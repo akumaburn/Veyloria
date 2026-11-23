@@ -10,6 +10,12 @@ community shapes together. The stack is a Quarkus 3.36 backend and a React 18
 frontend, with inference on a local llama.cpp server pool or an OpenAI-compatible
 endpoint.
 
+## Product tour
+
+[![Watch the Veyloria product tour on YouTube](https://img.youtube.com/vi/EWhdoN4t6pI/hqdefault.jpg)](https://youtu.be/EWhdoN4t6pI)
+
+Watch the guided tour of Veyloria’s characters, conversations, voices, maps and RPG systems.
+
 ## Features
 
 ### Chat
