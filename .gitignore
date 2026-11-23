@@ -1,0 +1,159 @@
+### Gradle ###
+.gradle/
+build/
+!**/src/main/**/build/
+!**/src/test/**/build/
+!gradle/wrapper/gradle-wrapper.jar
+!gradle/wrapper/gradle-wrapper.properties
+
+### IntelliJ IDEA ###
+.idea/modules.xml
+.idea/jarRepositories.xml
+.idea/compiler.xml
+.idea/libraries/
+*.iws
+*.iml
+*.ipr
+
+### Eclipse ###
+.apt_generated
+.classpath
+.factorypath
+.project
+.settings
+.springBeans
+.sts4-cache
+
+### NetBeans ###
+/nbproject/private/
+/nbbuild/
+/dist/
+/nbdist/
+/.nb-gradle/
+
+### VS Code ###
+.vscode/
+
+### Mac OS ###
+.DS_Store
+
+### Custom ###
+.aider*
+/.aider*
+/.idea/
+.qodo/
+agent_progress.log
+.crush/
+.claude/
+
+### Python ###
+__pycache__/
+*.py[cod]
+
+### Backups ###
+*.bak
+
+### CI artifacts ###
+*.sarif
+
+### Generated output ###
+graphify-out/
+
+### Node ###
+node_modules/
+*.tsbuildinfo
+package-lock.json
+
+### Environment ###
+.env
+.env.local
+.env.*
+!.env.example
+*.local
+
+### Logs ###
+logs/
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+### Build output ###
+frontend/dist/
+target/
+
+### IDE ###
+ChatLLM.iml
+
+### Temporary files ###
+*.pid
+*.tmp
+*.swp
+*~
+
+### OpenCode ###
+.opencode/
+
+### Agent tooling installs ###
+.agents/
+.codex/
+.github/agents/
+.github/hooks/
+.github/skills/
+
+### Impeccable tool state ###
+**/.impeccable/config.local.json
+**/.impeccable/live/
+
+### Secrets ###
+*.pem
+*.key
+
+### Local, untracked archives ###
+/docs/archive/
+# Local Ming inference runtime and model cache
+.runtime/
+
+# Personal assistant permissions and inferred preferences
+.commandcode/
+
+# Python environments and test/tool caches
+.venv/
+venv/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.coverage
+.coverage.*
+htmlcov/
+coverage/
+
+# Local application data and exports
+/backups/
+/data/
+/uploads/
+*.hprof
+hs_err_pid*
+*.gguf
+*.safetensors
+
+# Local frontend overrides; publish examples instead
+frontend/.env.*
+!frontend/.env.example
+
+# Browser review artifacts
+playwright-report/
+test-results/
+
+# Local certificate/key containers
+*.p12
+*.pfx
+*.jks
+*.keystore
+id_rsa
+id_ed25519
+chatllm-deploy-*/
+
+# Publication policy: no dot-prefixed directories at any depth.
+# Keep standard config files (.gitignore, .dockerignore, .env.example, etc.).
+.*/

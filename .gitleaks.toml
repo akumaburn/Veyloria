@@ -1,0 +1,27 @@
+title = "Veyloria secret scanning"
+[extend]
+useDefault = true
+
+# Match only these public protocol/documentation fixtures, including in history.
+[[allowlists]]
+description = "Documented JWT placeholder; not a credential"
+condition = "AND"
+paths = ['''^backend/README\.md$''']
+regexTarget = "match"
+regexes = ['''Bearer YOUR_JWT_TOKEN''']
+
+[[allowlists]]
+description = "RFC 6455 example WebSocket handshake nonce"
+condition = "AND"
+paths = ['''^scripts/tests/test-basic-communication\.sh$''']
+regexTarget = "match"
+regexes = ['''Sec-WebSocket-Key: dGhlIHNhbXBsZSBub25jZQ==''']
+
+# Legacy versions used a short static key that generic entropy/length rules miss.
+# Do not embed the actual credential here: detect the named literal assignment.
+[[rules]]
+id = "legacy-chatllm-api-key"
+description = "Hardcoded legacy Veyloria API authentication key"
+regex = '''\bCHATLLM_API_KEY\s*=\s*["']([^"'\r\n]+)["']'''
+secretGroup = 1
+keywords = ["CHATLLM_API_KEY"]

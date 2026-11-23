@@ -1,0 +1,36 @@
+overwrite: true
+
+# Schema is obtained via introspection against the running Quarkus backend.
+# A running backend is REQUIRED for codegen to work (no local .graphql file).
+# Start it first, e.g.:
+#   docker compose up -d backend
+# or run Quarkus directly in dev mode, then:
+#   bun run codegen
+schema: "http://localhost:8300/graphql"
+
+# Pluck GraphQL operations from source, excluding test files.
+# Test files import mocks/fragments that would make codegen fail.
+documents:
+  - "src/**/*.{ts,tsx}"
+  - "!src/**/*.{test,spec}.{ts,tsx}"
+  - "!src/graphql/generated/**"
+
+generates:
+  src/graphql/generated/:
+    preset: client
+    config:
+      useTypeImports: true
+      fragmentMasking: false
+      strictScalars: true
+      scalars:
+        UUID: string
+        DateTime: string
+        JSON: Record<string, any>
+        Long: number
+        BigInteger: number
+        BigDecimal: number
+        Base64: string
+
+hooks:
+  afterAllFileWrite:
+    - prettier --write

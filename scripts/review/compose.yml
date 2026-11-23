@@ -1,0 +1,30 @@
+# Disposable review data only. No application volumes or .env files are loaded.
+services:
+  mysql:
+    image: mysql:8.0
+    environment:
+      MYSQL_ROOT_PASSWORD: review-root-only
+      MYSQL_DATABASE: veyloria_review
+      MYSQL_USER: review
+      MYSQL_PASSWORD: review-local-only
+    ports:
+      - "127.0.0.1:${REVIEW_DB_PORT}:3306"
+    tmpfs:
+      - /var/lib/mysql
+    volumes:
+      - ../../backend/src/main/resources/db/schema.sql:/docker-entrypoint-initdb.d/01-schema.sql:ro
+    healthcheck:
+      test: [CMD-SHELL, "mysql -ureview -preview-local-only veyloria_review -e 'SELECT COUNT(*) FROM achievement' >/dev/null 2>&1"]
+      interval: 2s
+      timeout: 3s
+      retries: 60
+  redis:
+    image: redis:7-alpine
+    ports:
+      - "127.0.0.1:${REVIEW_REDIS_PORT}:6379"
+    command: [redis-server, --save, '', --appendonly, 'no']
+    healthcheck:
+      test: [CMD, redis-cli, ping]
+      interval: 2s
+      timeout: 3s
+      retries: 30

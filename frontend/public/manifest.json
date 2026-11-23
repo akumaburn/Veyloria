@@ -1,0 +1,16 @@
+{
+  "name": "Veyloria",
+  "short_name": "Veyloria",
+  "description": "An AI-run fantasy RPG that keeps its world, cast, and consequences consistent.",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#fffaeb",
+  "theme_color": "#fa520f",
+  "icons": [
+    {
+      "src": "/favicon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml"
+    }
+  ]
+}

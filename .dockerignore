@@ -1,0 +1,63 @@
+# VCS
+.git
+.gitignore
+
+# Secrets & local env — never ship these into a build context
+.env
+.env.*
+**/.env
+**/.env.*
+!.env.example
+!**/.env.example
+
+# Build output
+backend/build
+backend/.gradle
+frontend/dist
+frontend/node_modules
+target
+graphify-out
+__pycache__
+
+# Logs & runtime data
+logs
+backups
+
+# IDE / editor
+.idea
+.vscode
+*.iml
+.aider*
+.claude
+.commandcode
+.crush
+.opencode
+.qodo
+
+# OS
+.DS_Store
+
+# Local Ming inference runtime and model cache
+.runtime
+
+# Nested dependencies, test caches, and local assistant state
+**/node_modules
+**/.gradle
+**/__pycache__
+**/.pytest_cache
+**/.venv
+**/venv
+**/coverage
+**/.impeccable
+.agents
+.codex
+.github/agents
+.github/hooks
+.github/skills
+.pytest_cache
+# Local application data and model weights
+uploads
+data
+*.gguf
+*.safetensors
+*.hprof

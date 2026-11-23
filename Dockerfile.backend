@@ -1,0 +1,61 @@
+# Backend Dockerfile (Quarkus + Gradle)
+# Java 21 is required: build.gradle.kts sets the toolchain to 21 and
+# gradle/gradle-daemon-jvm.properties pins the Gradle daemon to JDK 21.
+FROM eclipse-temurin:21-jdk AS builder
+
+WORKDIR /app
+
+# Copy Gradle wrapper first for dependency caching
+COPY backend/gradlew .
+COPY backend/gradle ./gradle
+COPY backend/settings.gradle.kts backend/build.gradle.kts backend/gradle.properties ./
+
+# Pre-fetch dependencies to take advantage of Docker layer caching
+RUN chmod +x gradlew && ./gradlew --no-daemon dependencies --quiet
+
+# Copy source code
+COPY backend/src ./src
+
+# Build the Quarkus uber-jar (skip tests — tests run in CI)
+RUN ./gradlew --no-daemon clean build -x test -Dquarkus.package.jar.type=uber-jar
+
+# Runtime stage
+FROM eclipse-temurin:21-jre-alpine
+
+RUN apk add --no-cache \
+    curl \
+    bash \
+    && addgroup -g 1000 chatllm \
+    && adduser -D -u 1000 -G chatllm chatllm
+
+WORKDIR /app
+
+# Copy the built Quarkus uber-jar
+COPY --from=builder /app/build/*-runner.jar app.jar
+
+# Create directories for logs and data
+RUN mkdir -p /app/logs /app/data && \
+    chown -R chatllm:chatllm /app
+
+USER chatllm
+
+# Health check
+HEALTHCHECK --interval=30s --timeout=3s --start-period=40s --retries=3 \
+    CMD curl -f http://localhost:8300/health || exit 1
+
+# Expose ports
+EXPOSE 8300
+
+# JVM options for container environment
+ENV JAVA_OPTS="-Xms512m -Xmx2g \
+    -XX:+UseG1GC \
+    -XX:MaxGCPauseMillis=100 \
+    -XX:+UseStringDeduplication \
+    -Djava.security.egd=file:/dev/./urandom \
+    -Duser.timezone=UTC"
+
+# Force UTC timezone for the container (Alpine default is UTC but be explicit)
+ENV TZ=UTC
+
+# Start the Quarkus application
+ENTRYPOINT ["sh", "-c", "java $JAVA_OPTS -jar app.jar"]

@@ -1,0 +1,242 @@
+{
+  "date": "2026-11-13",
+  "scope": {
+    "frontend": "http://localhost:3000",
+    "backend": "http://localhost:8300/graphql",
+    "activeDatabase": "127.0.0.1:3306/chatllm",
+    "reference": "Disposable MySQL 8 schema loaded from backend/src/main/resources/db/schema.sql; removed after comparison."
+  },
+  "activeDatabase": {
+    "tables": 51,
+    "columns": 618,
+    "indexEntries": 273,
+    "foreignKeys": 109,
+    "differences": [],
+    "indexes": 238
+  },
+  "integrity": {
+    "foreignKeys": 109,
+    "jsonColumns": 41,
+    "violations": []
+  },
+  "sql": {
+    "staticStatements": 500,
+    "dynamicTemplates": 24,
+    "dynamicFailures": []
+  },
+  "graphql": {
+    "query": 71,
+    "mutation": 112,
+    "subscription": 40,
+    "types": 155,
+    "frontendFiles": 177,
+    "operations": 200,
+    "fragments": 34,
+    "failures": []
+  },
+  "runtime": {
+    "checks": 83,
+    "passed": 83,
+    "failures": []
+  },
+  "regressionTests": {
+    "backend": 59,
+    "frontend": 80,
+    "failures": 0
+  },
+  "inactiveDockerDatabase": {
+    "active": false,
+    "host": "127.0.0.1:3307",
+    "tables": 15,
+    "missingTables": [
+      "achievement",
+      "agent_model_config",
+      "agent_run",
+      "battle",
+      "battle_vote",
+      "character_favorite",
+      "character_inventory",
+      "character_proposal",
+      "character_relationship",
+      "character_stat",
+      "character_visual_ref",
+      "comfyui_workflow",
+      "community_template",
+      "conversation_character",
+      "conversation_invite",
+      "dice_roll",
+      "generated_image",
+      "highlighter_cache",
+      "interjection_request",
+      "journey_state",
+      "knowledge_entry",
+      "map_character_position",
+      "map_item_position",
+      "map_location",
+      "party",
+      "party_member",
+      "published_story",
+      "scene",
+      "scene_character",
+      "story_bookmark",
+      "story_branch",
+      "story_rating",
+      "story_template",
+      "user_achievement",
+      "user_progression",
+      "world_map",
+      "world_state"
+    ],
+    "missingColumns": [
+      {
+        "table": "character",
+        "column": "category"
+      },
+      {
+        "table": "character",
+        "column": "chatBackgroundImage"
+      },
+      {
+        "table": "character",
+        "column": "photoAlbum"
+      },
+      {
+        "table": "conversation",
+        "column": "activeSceneId"
+      },
+      {
+        "table": "conversation",
+        "column": "agentPipelineEnabled"
+      },
+      {
+        "table": "conversation",
+        "column": "consecutiveResponseCount"
+      },
+      {
+        "table": "conversation",
+        "column": "currentSpeakerId"
+      },
+      {
+        "table": "conversation",
+        "column": "groupState"
+      },
+      {
+        "table": "conversation",
+        "column": "isGroupChat"
+      },
+      {
+        "table": "conversation",
+        "column": "isRoleplay"
+      },
+      {
+        "table": "conversation",
+        "column": "lastSpeakerId"
+      },
+      {
+        "table": "conversation",
+        "column": "maxConsecutiveResponses"
+      },
+      {
+        "table": "conversation",
+        "column": "rpMode"
+      },
+      {
+        "table": "conversation",
+        "column": "storyTemplateId"
+      },
+      {
+        "table": "conversation",
+        "column": "turnMode"
+      },
+      {
+        "table": "conversation_participant",
+        "column": "can_add_characters"
+      },
+      {
+        "table": "conversation_participant",
+        "column": "can_invite"
+      },
+      {
+        "table": "conversation_participant",
+        "column": "is_active"
+      },
+      {
+        "table": "conversation_participant",
+        "column": "last_typing_at"
+      },
+      {
+        "table": "conversation_participant",
+        "column": "left_at"
+      },
+      {
+        "table": "conversation_participant",
+        "column": "nickname"
+      },
+      {
+        "table": "message",
+        "column": "agentMetadata"
+      },
+      {
+        "table": "message",
+        "column": "characterId"
+      },
+      {
+        "table": "message",
+        "column": "completionTokens"
+      },
+      {
+        "table": "message",
+        "column": "generationMs"
+      },
+      {
+        "table": "message",
+        "column": "isInterjection"
+      },
+      {
+        "table": "message",
+        "column": "messageEncoding"
+      },
+      {
+        "table": "message",
+        "column": "messageType"
+      },
+      {
+        "table": "message",
+        "column": "promptEvalMs"
+      },
+      {
+        "table": "message",
+        "column": "promptTokens"
+      },
+      {
+        "table": "message",
+        "column": "sceneId"
+      },
+      {
+        "table": "message",
+        "column": "scheduledDeleteAt"
+      },
+      {
+        "table": "message",
+        "column": "seq"
+      },
+      {
+        "table": "message",
+        "column": "tokensPerSecond"
+      },
+      {
+        "table": "message",
+        "column": "totalTimeMs"
+      },
+      {
+        "table": "message",
+        "column": "visibilityOverride"
+      }
+    ]
+  },
+  "limits": [
+    "Dynamic SQL templates use representative substitutions; validation does not exhaust every runtime combination.",
+    "External LLM, image generation, email, administrative destructive actions, and live subscription delivery were not invoked by this audit. Subscription documents were statically validated; existing backend subscription regression tests passed.",
+    "The inactive Docker database on port 3307 was inspected read-only and was not upgraded."
+  ]
+}
