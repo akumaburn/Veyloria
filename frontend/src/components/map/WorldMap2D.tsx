@@ -21,7 +21,7 @@ import type {
   CulturalRegion,
   RoadSegment,
 } from '@/graphql/types';
-import { Crosshair, Maximize2, Loader2, ZoomIn, ZoomOut, Grid3X3 } from 'lucide-react';
+import { Crosshair, Flag, Maximize2, Loader2, ZoomIn, ZoomOut, Grid3X3 } from 'lucide-react';
 import { toast } from 'react-hot-toast';
 import { drawLocationIcon } from './markers/locationIcons2D';
 import LocationInfoPanel from './overlays/LocationInfoPanel';
@@ -573,7 +573,10 @@ export default function WorldMap2D({
           <button type="button" onClick={() => setShowGrid(prev => !prev)} aria-label="Show grid" aria-pressed={showGrid} title="Toggle grid" className={cn(controlClass, showGrid && 'bg-accent text-foreground')}><Grid3X3 size={18} /></button>
         </div>
         {culturalRegions.length > 0 && (
-          <button type="button" aria-pressed={showEmpires} onClick={() => setShowEmpires(prev => !prev)} className={cn(controlClass, 'w-auto px-3', showEmpires && 'bg-accent text-foreground')}>Empires</button>
+          <button type="button" aria-pressed={showEmpires} onClick={() => setShowEmpires(prev => !prev)} aria-label="Empires" title="Toggle empires" className={cn(controlClass, 'gap-1.5 sm:w-auto sm:px-3', showEmpires && 'bg-accent text-foreground')}>
+            <Flag size={18} aria-hidden="true" />
+            <span className="hidden text-sm sm:inline">Empires</span>
+          </button>
         )}
         <div className="min-w-40 flex-1 sm:ml-auto sm:max-w-72">
           <label className="sr-only" htmlFor={locationSelectId}>Select map location</label>

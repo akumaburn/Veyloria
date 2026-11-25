@@ -24,19 +24,19 @@ export const AuthShell: React.FC<AuthShellProps> = ({
   footerLink,
   legal,
 }) => (
-  <div className="relative flex min-h-screen items-start justify-center overflow-x-hidden bg-background py-12 sm:items-center">
+  <div className="relative flex min-h-dvh items-start justify-center overflow-x-hidden bg-background py-8 sm:items-center sm:py-12">
     {/* Background effects: the one atmospheric surface in the product. */}
     <div className="pointer-events-none absolute inset-0" aria-hidden="true">
       <div className="absolute inset-0 bg-gradient-to-br from-primary/5 via-transparent to-secondary/5" />
-      <div className="absolute top-1/4 left-1/4 h-96 w-96 rounded-full bg-primary/10 blur-3xl" />
-      <div className="absolute right-1/4 bottom-1/4 h-96 w-96 rounded-full bg-secondary/10 blur-3xl" />
+      <div className="absolute top-1/4 left-1/4 h-64 w-64 rounded-full bg-primary/10 blur-3xl sm:h-96 sm:w-96" />
+      <div className="absolute right-1/4 bottom-1/4 h-64 w-64 rounded-full bg-secondary/10 blur-3xl sm:h-96 sm:w-96" />
     </div>
 
-    <div className="relative z-10 w-full max-w-md px-6">
-      <div className="mb-8 flex flex-col items-center">
+    <div className="relative z-10 w-full max-w-md px-4 sm:px-6">
+      <div className="mb-6 flex flex-col items-center sm:mb-8">
         <div className="flex items-center gap-3">
           <BrandMark className="scale-125" />
-          <h1 className="text-3xl font-bold text-foreground">
+          <h1 className="text-2xl font-bold text-foreground sm:text-3xl">
             Veyloria<span className="text-brand-orange">_</span>
           </h1>
         </div>
@@ -45,7 +45,7 @@ export const AuthShell: React.FC<AuthShellProps> = ({
 
       <div
         className={cn(
-          'rounded-2xl border border-border/50 bg-card p-5 sm:p-8',
+          'rounded-2xl border border-border/50 bg-card px-4 py-6 sm:p-8',
           'shadow-2xl shadow-black/10',
         )}
       >
@@ -73,7 +73,7 @@ export const AuthShell: React.FC<AuthShellProps> = ({
             className={cn(
               'mt-4 flex w-full items-center justify-center gap-2',
               'rounded-xl border border-border bg-muted/50',
-              'px-4 py-3 text-sm font-medium text-foreground',
+              'min-h-11 px-4 py-3 text-sm font-medium text-foreground',
               'transition-colors duration-150 hover:bg-accent',
             )}
           >
@@ -82,7 +82,7 @@ export const AuthShell: React.FC<AuthShellProps> = ({
         </div>
       </div>
 
-      <div className="mt-8 text-center">
+      <div className="mt-6 text-center sm:mt-8">
         <p className="text-muted-foreground text-xs text-pretty">{legal}</p>
       </div>
     </div>

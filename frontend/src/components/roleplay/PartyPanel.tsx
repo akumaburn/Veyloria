@@ -72,12 +72,12 @@ export default function PartyPanel({ partyId, onCreateParty, onJoinParty }: Part
     <div className="rounded-2xl border border-border bg-card">
       {/* Header */}
       <div className="border-b border-border p-4">
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-2">
-            <Users size={16} className="text-primary" />
-            <h3 className="text-sm font-semibold text-foreground">{party.name}</h3>
+        <div className="flex items-center justify-between gap-2">
+          <div className="flex min-w-0 items-center gap-2">
+            <Users size={16} className="shrink-0 text-primary" />
+            <h3 className="truncate text-sm font-semibold text-foreground">{party.name}</h3>
           </div>
-          <span className="text-xs text-muted-foreground">
+          <span className="shrink-0 text-xs text-muted-foreground">
             {members.length}/{party.maxMembers ?? '?'} members
           </span>
         </div>
@@ -122,8 +122,8 @@ export default function PartyPanel({ partyId, onCreateParty, onJoinParty }: Part
       <div className="border-t border-border p-3">
         {party.inviteCode && (
           <div className="mb-3 flex items-center gap-2 rounded-md bg-muted/50 px-3 py-2">
-            <span className="flex-1 font-mono text-xs text-foreground">{party.inviteCode}</span>
-            <Button size="sm" variant="ghost" onClick={handleCopyCode}>
+            <span className="min-w-0 flex-1 truncate font-mono text-xs text-foreground">{party.inviteCode}</span>
+            <Button size="sm" variant="ghost" className="h-10 sm:h-8" onClick={handleCopyCode}>
               <Copy size={12} />
               <span className="ml-1 text-xs">{copied ? 'Copied' : 'Copy'}</span>
             </Button>
@@ -132,7 +132,7 @@ export default function PartyPanel({ partyId, onCreateParty, onJoinParty }: Part
         <Button
           variant="danger"
           size="sm"
-          className="w-full"
+          className="h-10 w-full sm:h-8"
           onClick={handleLeave}
           isLoading={leaving}
           leftIcon={<LogOut size={14} />}

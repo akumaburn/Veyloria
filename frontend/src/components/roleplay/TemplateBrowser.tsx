@@ -87,8 +87,8 @@ export default function TemplateBrowser({
   return (
     <div className={cn('space-y-4', className)}>
       {/* Search and Filter */}
-      <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
-        <div className="flex-1">
+      <div className="flex items-center gap-2 sm:gap-3">
+        <div className="min-w-0 flex-1">
           <Input
             size="sm"
             placeholder="Search templates..."
@@ -99,7 +99,7 @@ export default function TemplateBrowser({
             onClear={() => setSearchQuery('')}
           />
         </div>
-        <div className="w-full sm:w-44">
+        <div className="w-36 shrink-0 sm:w-44">
           <Select
             size="sm"
             options={GENRE_OPTIONS}
@@ -164,9 +164,9 @@ export default function TemplateBrowser({
                     </div>
 
                     {/* Author */}
-                    <div className="flex items-center gap-1 text-xs text-muted-foreground">
-                      <User size={12} />
-                      <span>{ct.userId}</span>
+                    <div className="flex min-w-0 items-center gap-1 text-xs text-muted-foreground">
+                      <User size={12} className="shrink-0" />
+                      <span className="truncate">{ct.userId}</span>
                     </div>
 
                     {/* Genre badge */}
@@ -203,7 +203,7 @@ export default function TemplateBrowser({
                     <Button
                       variant="outline"
                       size="sm"
-                      className="w-full"
+                      className="h-10 w-full sm:h-8"
                       onClick={() => onUseTemplate(ct.templateId)}
                       leftIcon={<BookOpen size={14} />}
                     >
@@ -221,6 +221,7 @@ export default function TemplateBrowser({
               <Button
                 variant="outline"
                 size="sm"
+                className="h-10 sm:h-8"
                 onClick={handleLoadMore}
                 isLoading={isLoading}
                 loadingText="Loading..."

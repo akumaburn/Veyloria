@@ -318,25 +318,25 @@ export const DataManagement = () => {
     <div className="space-y-6">
       {/* Data Overview */}
       <SettingSection title="Data Overview" description="Summary of your stored data" icon={Database}>
-        <div className="p-5">
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-            <div className="rounded-xl bg-muted/30 border border-border p-4">
+        <div className="p-4 sm:p-5">
+          <div className="grid grid-cols-2 gap-3 sm:gap-4 md:grid-cols-4">
+            <div className="min-w-0 rounded-xl bg-muted/30 border border-border p-3 sm:p-4">
               <p className="text-xs text-muted-foreground">Total Size</p>
-              <p className="text-xl font-semibold text-foreground mt-1">{dataStats.totalSize}</p>
+              <p className="text-lg font-semibold text-foreground mt-1 break-words sm:text-xl">{dataStats.totalSize}</p>
             </div>
-            <div className="rounded-xl bg-muted/30 border border-border p-4">
+            <div className="min-w-0 rounded-xl bg-muted/30 border border-border p-3 sm:p-4">
               <p className="text-xs text-muted-foreground">Messages</p>
-              <p className="text-xl font-semibold text-foreground mt-1">
+              <p className="text-lg font-semibold text-foreground mt-1 break-words sm:text-xl">
                 {dataStats.messages.toLocaleString()}
               </p>
             </div>
-            <div className="rounded-xl bg-muted/30 border border-border p-4">
+            <div className="min-w-0 rounded-xl bg-muted/30 border border-border p-3 sm:p-4">
               <p className="text-xs text-muted-foreground">Oldest Data</p>
-              <p className="text-xl font-semibold text-foreground mt-1">{dataStats.oldestData}</p>
+              <p className="text-lg font-semibold text-foreground mt-1 break-words sm:text-xl">{dataStats.oldestData}</p>
             </div>
-            <div className="rounded-xl bg-muted/30 border border-border p-4">
+            <div className="min-w-0 rounded-xl bg-muted/30 border border-border p-3 sm:p-4">
               <p className="text-xs text-muted-foreground">Last Backup</p>
-              <p className="text-xl font-semibold text-foreground mt-1">{dataStats.lastBackup}</p>
+              <p className="text-lg font-semibold text-foreground mt-1 break-words sm:text-xl">{dataStats.lastBackup}</p>
             </div>
           </div>
         </div>
@@ -348,7 +348,7 @@ export const DataManagement = () => {
         description="Download your data in various formats"
         icon={Download}
       >
-        <div className="p-5 space-y-4">
+        <div className="p-4 space-y-4 sm:p-5">
           {/* Export Options */}
           <div>
             <p className="text-xs text-muted-foreground mb-3">Select data to export:</p>
@@ -401,6 +401,7 @@ export const DataManagement = () => {
               disabled={isExporting}
               icon={isExporting ? undefined : Download}
               loading={isExporting}
+              className="w-full sm:w-auto"
             >
               {isExporting ? `Exporting... ${exportProgress}%` : 'Export Data'}
             </SettingActionButton>
@@ -430,10 +431,10 @@ export const DataManagement = () => {
         description="Restore data from a backup file"
         icon={Upload}
       >
-        <div className="p-5">
+        <div className="p-4 sm:p-5">
           <div
             className={cn(
-              'rounded-xl border-2 border-dashed p-8 text-center transition-colors',
+              'rounded-xl border-2 border-dashed p-6 text-center transition-colors sm:p-8',
               isImporting ? 'border-primary bg-primary/5' : 'border-border hover:border-border-hover'
             )}
           >
@@ -464,12 +465,12 @@ export const DataManagement = () => {
           {dataCategories.map((category) => {
             const Icon = category.icon;
             return (
-              <div key={category.id} className="flex items-center justify-between px-5 py-4">
-                <div className="flex items-center gap-3">
-                  <div className={cn('flex h-10 w-10 items-center justify-center rounded-xl', category.bgClass)}>
+              <div key={category.id} className="flex items-center justify-between gap-3 px-4 py-4 sm:px-5">
+                <div className="flex min-w-0 items-center gap-3">
+                  <div className={cn('flex h-10 w-10 shrink-0 items-center justify-center rounded-xl', category.bgClass)}>
                     <Icon size={18} className={category.textClass} />
                   </div>
-                  <div>
+                  <div className="min-w-0">
                     <p className="text-sm font-medium text-foreground">
                       {category.label}
                       {category.count !== null && (
@@ -480,21 +481,25 @@ export const DataManagement = () => {
                   </div>
                 </div>
 
-                <div className="flex items-center gap-1">
+                <div className="flex shrink-0 items-center gap-1">
                   {category.id !== 'cache' && (
                     <button
+                      type="button"
                       onClick={() => handleExportCategory(category.id)}
-                      className="rounded-lg p-2 text-muted-foreground hover:bg-muted hover:text-foreground transition-colors"
-                      title="Export"
+                      className="flex h-10 w-10 items-center justify-center rounded-lg text-muted-foreground hover:bg-muted hover:text-foreground transition-colors sm:h-8 sm:w-8"
+                      title={`Export ${category.label.toLowerCase()}`}
+                      aria-label={`Export ${category.label.toLowerCase()}`}
                     >
                       <Download size={16} />
                     </button>
                   )}
                   {category.id !== 'cache' ? (
                     <button
+                      type="button"
                       onClick={() => setShowDeleteConfirm(category.id)}
-                      className="rounded-lg p-2 text-muted-foreground hover:bg-destructive/10 hover:text-destructive transition-colors"
-                      title="Delete"
+                      className="flex h-10 w-10 items-center justify-center rounded-lg text-muted-foreground hover:bg-destructive/10 hover:text-destructive transition-colors sm:h-8 sm:w-8"
+                      title={`Delete ${category.label.toLowerCase()}`}
+                      aria-label={`Delete ${category.label.toLowerCase()}`}
                     >
                       <Trash2 size={16} />
                     </button>
@@ -529,21 +534,22 @@ export const DataManagement = () => {
             className="absolute inset-0 bg-black/60 backdrop-blur-sm"
             onClick={() => setShowDeleteConfirm(null)}
           />
-          <div className="relative z-10 w-full max-w-md rounded-2xl border border-border bg-card p-6 shadow-2xl animate-scale-in">
+          <div className="relative z-10 max-h-[calc(100dvh-2rem)] w-full max-w-md overflow-y-auto overscroll-contain rounded-2xl border border-border bg-card p-4 shadow-2xl animate-scale-in sm:p-6">
             <div className="flex items-start gap-3">
               <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-destructive/10">
                 <AlertTriangle className="text-destructive" size={20} />
               </div>
-              <div className="flex-1">
+              <div className="min-w-0 flex-1">
                 <h3 className="text-lg font-semibold text-foreground">Delete Data</h3>
                 <p className="text-sm text-muted-foreground mt-2">
                   Are you sure you want to delete all <strong>{showDeleteConfirm}</strong> data?
                   This action cannot be undone.
                 </p>
-                <div className="mt-6 flex justify-end gap-3">
+                <div className="mt-6 flex flex-col-reverse gap-3 sm:flex-row sm:justify-end">
                   <SettingActionButton
                     onClick={() => setShowDeleteConfirm(null)}
                     variant="default"
+                    className="w-full sm:w-auto"
                   >
                     Cancel
                   </SettingActionButton>
@@ -551,6 +557,7 @@ export const DataManagement = () => {
                     onClick={() => handleDeleteData(showDeleteConfirm)}
                     variant="destructive"
                     icon={Trash2}
+                    className="w-full sm:w-auto"
                   >
                     Delete
                   </SettingActionButton>

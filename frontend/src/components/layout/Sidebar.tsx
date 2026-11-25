@@ -196,17 +196,18 @@ export const Sidebar = ({ isOpen, onClose, isCollapsed = false }: SidebarProps) 
         id={isMobile ? 'app-sidebar' : undefined}
         aria-label="Conversation history"
         className={cn(
-          'fixed inset-y-0 left-0 z-50 h-dvh w-60 max-w-[calc(100vw-3rem)] shrink-0',
-          'lg:relative lg:left-0 lg:top-0 lg:z-0 lg:h-full lg:max-w-none',
+          'fixed inset-y-0 left-0 z-50 h-dvh w-72 max-w-[calc(100vw-3rem)] shrink-0',
+          'lg:relative lg:left-0 lg:top-0 lg:z-0 lg:h-full lg:w-60 lg:max-w-none',
           'border-r border-border',
-          'bg-background-secondary/95 backdrop-blur-md lg:bg-background-secondary',
+          'bg-background-secondary',
           'transform transition-transform duration-300 ease-smooth',
           isOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'
         )}
       >
         <div className="flex h-full min-h-0 flex-col">
+          {isMobile && <Dialog.Title className="sr-only">Your conversations</Dialog.Title>}
           <div className="flex items-center gap-2 p-3">
-            <button type="button" onClick={handleNewConversation} className="flex min-h-9 flex-1 items-center justify-center gap-2 rounded-md bg-primary px-3 py-2 text-xs font-medium text-primary-foreground transition-colors hover:bg-primary-hover"><Plus size={16} />New chat</button>
+            <button type="button" onClick={handleNewConversation} className="flex min-h-10 flex-1 items-center justify-center gap-2 rounded-md bg-primary px-3 py-2 text-sm font-medium text-primary-foreground transition-colors hover:bg-primary-hover lg:min-h-9 lg:text-xs"><Plus size={16} />New chat</button>
             <button type="button" onClick={onClose} className="workspace-icon-button lg:hidden" aria-label="Close conversations"><X size={18} /></button>
           </div>
 
@@ -222,7 +223,7 @@ export const Sidebar = ({ isOpen, onClose, isCollapsed = false }: SidebarProps) 
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
                   className={cn(
-                    'w-full rounded-lg border border-border bg-muted/50',
+                    'h-10 w-full rounded-lg border border-border bg-muted/50 lg:h-auto',
                     'py-2 pl-9 pr-2 text-xs text-foreground placeholder-muted-foreground',
                     'focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary/50',
                     'transition-all duration-150'
@@ -231,8 +232,9 @@ export const Sidebar = ({ isOpen, onClose, isCollapsed = false }: SidebarProps) 
               </div>
               <button
                 onClick={() => setIsSearchModalOpen(true)}
+                type="button"
                 className={cn(
-                  'flex-shrink-0 rounded-lg border border-border bg-muted/50 p-2',
+                  'flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-lg border border-border bg-muted/50 lg:h-auto lg:w-auto lg:p-2',
                   'text-muted-foreground hover:text-foreground hover:bg-accent',
                   'transition-colors duration-150'
                 )}
@@ -294,10 +296,10 @@ export const Sidebar = ({ isOpen, onClose, isCollapsed = false }: SidebarProps) 
                             onClick={() => handleSelectConversation(conversation.id)}
                             aria-label={`Open ${conversation.title}`}
                             aria-current={currentConversationId === conversation.id ? 'page' : undefined}
-                            className="flex w-full items-start gap-2 rounded-lg px-2 py-2 text-left"
+                            className="flex min-h-11 w-full items-center gap-2 rounded-lg px-2 py-2 text-left lg:min-h-0 lg:items-start"
                           >
                             <div className={cn(
-                              'mt-0.5 rounded-lg p-1.5',
+                              'rounded-lg p-1.5 lg:mt-0.5',
                               conversation.characterId
                                 ? 'bg-secondary/20 text-secondary'
                                 : 'bg-primary/20 text-primary'
@@ -309,9 +311,9 @@ export const Sidebar = ({ isOpen, onClose, isCollapsed = false }: SidebarProps) 
                               )}
                             </div>
 
-                            <div className="min-w-0 flex-1 pr-6">
+                            <div className="min-w-0 flex-1 pr-9 lg:pr-6">
                               <h3 className={cn(
-                                'truncate text-xs font-medium',
+                                'truncate text-sm font-medium lg:text-xs',
                                 currentConversationId === conversation.id
                                   ? 'text-foreground'
                                   : 'text-foreground/90'
@@ -323,9 +325,10 @@ export const Sidebar = ({ isOpen, onClose, isCollapsed = false }: SidebarProps) 
 
                           {/* Delete button */}
                           <button
+                            type="button"
                             onClick={(e) => handleDeleteConversation(e, conversation.id)}
                             className={cn(
-                              'absolute right-2 top-1/2 -translate-y-1/2 rounded-lg p-1.5',
+                              'absolute right-1 top-1/2 flex h-9 w-9 -translate-y-1/2 items-center justify-center rounded-lg lg:right-2 lg:h-auto lg:w-auto lg:p-1.5',
                               'transition-all duration-150',
                               selectedForDelete === conversation.id
                                 ? 'bg-destructive text-destructive-foreground opacity-100'
@@ -366,7 +369,6 @@ export const Sidebar = ({ isOpen, onClose, isCollapsed = false }: SidebarProps) 
             }}>
               {sidebar}
             </Dialog.Content>
-            <Dialog.Title className="sr-only">Your conversations</Dialog.Title>
           </Dialog.Portal>
         </Dialog.Root>
       ) : <div id="app-sidebar" hidden={isCollapsed} className="h-full shrink-0">{sidebar}</div>}

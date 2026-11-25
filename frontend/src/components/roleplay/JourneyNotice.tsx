@@ -43,7 +43,7 @@ export default function JourneyNotice({ conversationId }: { conversationId: stri
           <button
             disabled={pending || !mayContinue}
             onClick={() => void run(() => resumeJourney(conversationId))}
-            className="border-border hover:bg-accent rounded-md border px-3 py-2 disabled:opacity-50"
+            className="border-border hover:bg-accent min-h-10 rounded-md border px-3 disabled:opacity-50"
           >
             Continue journey
           </button>
@@ -51,7 +51,7 @@ export default function JourneyNotice({ conversationId }: { conversationId: stri
         <button
           disabled={pending || !mayContinue}
           onClick={() => void run(() => cancelJourney(conversationId))}
-          className="text-muted-foreground hover:bg-accent rounded-md px-3 py-2 disabled:opacity-50"
+          className="text-muted-foreground hover:bg-accent min-h-10 rounded-md px-3 disabled:opacity-50"
         >
           Abandon route
         </button>

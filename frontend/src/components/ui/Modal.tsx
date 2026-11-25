@@ -55,7 +55,7 @@ export const Modal = ({
               {description && <Dialog.Description className="mt-1 text-sm text-muted-foreground">{description}</Dialog.Description>}
             </div>
             {showCloseButton && (
-              <Dialog.Close className="shrink-0 rounded-lg p-2 text-muted-foreground transition-colors hover:bg-accent hover:text-foreground" aria-label="Close modal">
+              <Dialog.Close className="-my-1 flex h-10 w-10 shrink-0 items-center justify-center rounded-lg text-muted-foreground transition-colors hover:bg-accent hover:text-foreground sm:my-0 sm:h-9 sm:w-9" aria-label="Close modal">
                 <X size={20} />
               </Dialog.Close>
             )}
@@ -109,12 +109,13 @@ export const ConfirmModal = ({
       title={title}
       size="sm"
       footer={
-        <div className="flex justify-end gap-3">
+        <div className="flex flex-col-reverse gap-3 sm:flex-row sm:justify-end">
           <button
+            type="button"
             onClick={onClose}
             disabled={isLoading}
             className={cn(
-              'rounded-xl px-4 py-2.5 text-sm font-medium',
+              'rounded-xl px-4 py-2.5 text-sm font-medium max-sm:min-h-11',
               'bg-muted text-muted-foreground hover:bg-accent hover:text-foreground',
               'disabled:opacity-50 transition-colors duration-150'
             )}
@@ -122,10 +123,11 @@ export const ConfirmModal = ({
             {cancelText}
           </button>
           <button
+            type="button"
             onClick={() => void handleConfirm()}
             disabled={isLoading}
             className={cn(
-              'inline-flex items-center gap-2 rounded-xl px-4 py-2.5 text-sm font-medium',
+              'inline-flex items-center justify-center gap-2 rounded-xl px-4 py-2.5 text-sm font-medium max-sm:min-h-11',
               'disabled:opacity-50 transition-colors duration-150',
               variantClasses[variant]
             )}

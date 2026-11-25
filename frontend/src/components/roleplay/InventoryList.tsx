@@ -14,6 +14,9 @@ import {
 } from '@/hooks/useRoleplay';
 import { Shield, Loader2, Plus, Trash2 } from 'lucide-react';
 import { toast } from 'react-hot-toast';
+import { useAuthStore } from '@/stores/authStore';
+
+const ITEM_ACTION = 'inline-flex min-h-10 items-center rounded px-3 text-xs disabled:opacity-50 sm:min-h-0 sm:px-2 sm:py-1';
 
 interface InventoryListProps {
   conversationId: string;
@@ -217,7 +220,7 @@ function AddItemForm({
           !Number.isFinite(effectDelta)
         }
         className={cn(
-          'inline-flex w-full items-center justify-center gap-1.5 rounded-lg px-2.5 py-1.5',
+          'inline-flex min-h-10 w-full items-center justify-center gap-1.5 rounded-lg px-2.5 py-1.5 sm:min-h-0',
           'bg-primary/10 text-primary text-xs font-medium',
           'hover:bg-primary/20 transition-colors disabled:opacity-50',
         )}
@@ -250,7 +253,12 @@ export default function InventoryList({
   const [usingId, setUsingId] = useState<string | null>(null);
   const [effectTarget, setEffectTarget] = useState('');
   const [confirmRemove, setConfirmRemove] = useState<string | null>(null);
-  const canModify = access.canModify === true;
+  const currentUserId = useAuthStore((state) => state.user?.id);
+  const isOwnInventory = !characterId && !!userId && userId === currentUserId;
+  // Outside narrator mode the player acts only on their own pack; other
+  // inventories change through the story, where the accountant agent applies them.
+  const canModify = access.canModify === true && (narratorMode === true || isOwnInventory);
+  const requestInStory = !canModify && !isOwnInventory && !narratorMode;
   const canManage = narratorMode && access.canManage === true;
 
   const inventory = characterId ? charResult.inventory : userResult.inventory;
@@ -383,7 +391,7 @@ export default function InventoryList({
                               item.isEquipped ? 'Item unequipped' : 'Item equipped',
                             )
                           }
-                          className="text-muted-foreground hover:bg-muted hover:text-foreground rounded px-2 py-1 text-xs disabled:opacity-50"
+                          className={cn(ITEM_ACTION, 'text-muted-foreground hover:bg-muted hover:text-foreground')}
                           aria-label={`${item.isEquipped ? 'Unequip' : 'Equip'} ${item.itemName}`}
                         >
                           {item.isEquipped ? 'Unequip' : 'Equip'}
@@ -404,7 +412,7 @@ export default function InventoryList({
                                 rules.consumable ? 'Used one item' : 'Item used',
                               );
                           }}
-                          className="text-primary hover:bg-primary/10 rounded px-2 py-1 text-xs disabled:opacity-50"
+                          className={cn(ITEM_ACTION, 'text-primary hover:bg-primary/10')}
                           aria-label={`Use ${item.itemName}`}
                         >
                           Use
@@ -419,7 +427,7 @@ export default function InventoryList({
                             setRecipient('');
                             setGiveQuantity(item.quantity ?? 1);
                           }}
-                          className="text-muted-foreground hover:bg-muted hover:text-foreground rounded px-2 py-1 text-xs disabled:opacity-50"
+                          className={cn(ITEM_ACTION, 'text-muted-foreground hover:bg-muted hover:text-foreground')}
                           aria-label={`Give ${item.itemName}`}
                         >
                           Give
@@ -432,7 +440,7 @@ export default function InventoryList({
                           disabled={!!busyId || removingItem}
                           title="Remove entire stack"
                           aria-label={`Remove ${item.itemName}`}
-                          className="text-muted-foreground hover:bg-destructive/10 hover:text-destructive rounded p-1 disabled:opacity-50"
+                          className="text-muted-foreground hover:bg-destructive/10 hover:text-destructive inline-flex h-10 w-10 items-center justify-center rounded disabled:opacity-50 sm:h-7 sm:w-7"
                         >
                           <Trash2 size={14} />
                         </button>
@@ -459,7 +467,7 @@ export default function InventoryList({
                         value={effectTarget}
                         onChange={(e) => setEffectTarget(e.target.value)}
                         disabled={!!busyId}
-                        className="border-border bg-background w-full rounded border px-2 py-1 text-xs"
+                        className="border-border bg-background w-full rounded border px-2 py-2 text-xs sm:py-1"
                       >
                         <option value="">Choose character</option>
                         {access.recipients
@@ -480,7 +488,7 @@ export default function InventoryList({
                             'Item used',
                           )
                         }
-                        className="text-primary rounded px-2 py-1 text-xs disabled:opacity-50"
+                        className={cn(ITEM_ACTION, 'text-primary hover:bg-primary/10')}
                       >
                         Confirm use
                       </button>
@@ -488,7 +496,7 @@ export default function InventoryList({
                         type="button"
                         disabled={!!busyId}
                         onClick={() => setUsingId(null)}
-                        className="text-muted-foreground text-xs"
+                        className={cn(ITEM_ACTION, 'text-muted-foreground hover:bg-muted')}
                       >
                         Cancel
                       </button>
@@ -505,7 +513,7 @@ export default function InventoryList({
                         value={recipient}
                         onChange={(e) => setRecipient(e.target.value)}
                         disabled={!!busyId}
-                        className="border-border bg-background w-full rounded border px-2 py-1 text-xs"
+                        className="border-border bg-background w-full rounded border px-2 py-2 text-xs sm:py-1"
                       >
                         <option value="">Choose recipient</option>
                         {access.recipients?.map((r) => (
@@ -524,7 +532,7 @@ export default function InventoryList({
                           aria-label="Quantity to give"
                           disabled={!!busyId}
                           onChange={(e) => setGiveQuantity(Number(e.target.value))}
-                          className="border-border bg-background w-16 rounded border px-2 py-1 text-xs"
+                          className="border-border bg-background w-16 rounded border px-2 py-2 text-xs sm:py-1"
                         />
                       )}
                       <button
@@ -536,7 +544,7 @@ export default function InventoryList({
                           giveQuantity < 1 ||
                           giveQuantity > (item.quantity ?? 1)
                         }
-                        className="text-primary rounded px-2 py-1 text-xs disabled:opacity-50"
+                        className={cn(ITEM_ACTION, 'text-primary hover:bg-primary/10')}
                         onClick={() => {
                           const target = access.recipients?.find(
                             (r) => `${r.kind}:${r.id}` === recipient,
@@ -561,7 +569,7 @@ export default function InventoryList({
                         type="button"
                         disabled={!!busyId}
                         onClick={() => setGivingId(null)}
-                        className="text-muted-foreground text-xs"
+                        className={cn(ITEM_ACTION, 'text-muted-foreground hover:bg-muted')}
                       >
                         Cancel
                       </button>
@@ -569,13 +577,13 @@ export default function InventoryList({
                   )}
                   {canManage && confirmRemove === item.inventoryId && (
                     <div className="flex w-full flex-wrap items-center gap-2 pt-2 text-xs">
-                      <span>
+                      <span className="w-full break-words sm:w-auto">
                         Remove all {item.quantity ?? 1} × {item.itemName}?
                       </span>
                       <button
                         type="button"
                         disabled={!!busyId}
-                        className="text-destructive"
+                        className={cn(ITEM_ACTION, 'text-destructive hover:bg-destructive/10')}
                         onClick={() =>
                           void act(
                             item.inventoryId,
@@ -590,7 +598,7 @@ export default function InventoryList({
                         type="button"
                         disabled={!!busyId}
                         onClick={() => setConfirmRemove(null)}
-                        className="text-muted-foreground"
+                        className={cn(ITEM_ACTION, 'text-muted-foreground hover:bg-muted')}
                       >
                         Cancel
                       </button>
@@ -602,6 +610,12 @@ export default function InventoryList({
           </div>
         </div>
       ))}
+
+      {requestInStory && sortedCategories.length > 0 && (
+        <p className="text-muted-foreground text-xs">
+          Ask for these items in the story to use or trade them.
+        </p>
+      )}
 
       {/* Narrator mode: add item form */}
       {canManage && (

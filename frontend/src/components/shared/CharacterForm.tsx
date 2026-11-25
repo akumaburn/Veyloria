@@ -394,7 +394,7 @@ export default function CharacterForm({
         <div
           role="tablist"
           aria-label="Character editor sections"
-          className="border-border bg-card flex flex-wrap gap-1 rounded-xl border p-1"
+          className="border-border bg-card scrollbar-hide flex gap-1 overflow-x-auto rounded-xl border p-1 sm:flex-wrap sm:overflow-visible"
         >
           {TABS.map(({ id: tabId, label, icon: Icon }) => (
             <button
@@ -422,7 +422,7 @@ export default function CharacterForm({
                 }
               }}
               className={cn(
-                'text-muted-foreground inline-flex min-h-10 shrink-0 items-center gap-2 rounded-lg px-3 py-2 text-sm font-medium transition-colors',
+                'text-muted-foreground inline-flex min-h-10 shrink-0 items-center gap-2 rounded-lg px-3 py-2 text-sm font-medium whitespace-nowrap transition-colors',
                 'hover:bg-accent hover:text-foreground',
                 tab === tabId &&
                   'bg-primary text-primary-foreground hover:bg-primary hover:text-primary-foreground',
@@ -584,7 +584,7 @@ export default function CharacterForm({
                               (formData.tags ?? []).filter((item) => item !== tag),
                             )
                           }
-                          className="text-muted-foreground hover:text-foreground"
+                          className="text-muted-foreground hover:text-foreground -my-2 -mr-2 inline-flex h-8 w-8 items-center justify-center rounded-md sm:m-0 sm:h-auto sm:w-auto"
                         >
                           <X size={12} />
                         </button>
@@ -726,7 +726,7 @@ export default function CharacterForm({
                               : `${formData.systemPrompt.trim()}\n\n${prompt}`.trim(),
                           )
                         }
-                        className="border-border bg-background hover:bg-accent text-muted-foreground hover:text-foreground inline-flex items-center gap-1.5 rounded-full border px-2.5 py-1 text-xs"
+                        className="border-border bg-background hover:bg-accent text-muted-foreground hover:text-foreground inline-flex min-h-10 items-center gap-1.5 rounded-full border px-3 py-1 text-left text-xs sm:min-h-0 sm:px-2.5"
                       >
                         <Sparkles size={11} aria-hidden />
                         {prompt.replace(/\.$/, '')}
@@ -815,7 +815,7 @@ export default function CharacterForm({
                         maxTokens: defaultFormData.maxTokens,
                       });
                     }}
-                    className="text-muted-foreground hover:text-foreground text-xs underline-offset-4 hover:underline"
+                    className="text-muted-foreground hover:text-foreground inline-flex min-h-10 items-center text-xs underline-offset-4 hover:underline sm:min-h-0"
                   >
                     Reset model settings to defaults
                   </button>
@@ -1001,7 +1001,7 @@ export default function CharacterForm({
       </aside>
 
       {/* The save action sits under the form on narrow screens, so keep it in reach. */}
-      <div className="border-border bg-background/95 sticky bottom-0 z-20 -mx-4 border-t px-4 py-3 backdrop-blur xl:hidden">
+      <div className="border-border bg-background sticky bottom-0 z-20 -mx-4 border-t px-4 py-3 sm:-mx-6 sm:px-6 xl:hidden">
         <div className="flex gap-3">
           {onCancel && (
             <Button
@@ -1054,7 +1054,7 @@ function FeelingStartingField({
             aria-label={feeling.label}
             onClick={() => onChange(feeling.points)}
             className={cn(
-              'min-h-9 rounded-lg border px-0.5 py-1.5 text-[11px] font-medium transition-colors sm:px-1 sm:text-xs',
+              'min-h-10 rounded-lg border px-0.5 py-1.5 text-[11px] font-medium transition-colors sm:min-h-9 sm:px-1 sm:text-xs',
               value === feeling.points
                 ? 'border-primary bg-primary text-primary-foreground'
                 : 'border-border bg-background hover:bg-accent',

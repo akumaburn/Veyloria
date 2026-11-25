@@ -76,23 +76,23 @@ export default function SceneIndicator({ conversationId, className }: SceneIndic
   return (
     <div className={className}>
       <div
-        className="flex items-center gap-3 rounded-lg border border-border/50 bg-card px-4 py-2"
+        className="flex items-center gap-2 rounded-lg border border-border/50 bg-card px-3 py-1.5 sm:gap-3 sm:px-4 sm:py-2"
       >
         {/* Scene Icon */}
         <Theater size={16} className="flex-shrink-0 text-primary" />
 
         {/* Scene Name */}
         <div className="min-w-0 flex-1">
-          <div className="flex items-center gap-2">
+          <div className="flex min-w-0 flex-col sm:flex-row sm:items-center sm:gap-2">
             <span className="truncate text-sm font-medium text-foreground">
               {scene.name}
             </span>
             {scene.location && (
               <>
-                <span className="text-muted-foreground/50">|</span>
-                <span className="flex items-center gap-1 text-xs text-muted-foreground">
-                  <MapPin size={12} />
-                  {scene.location}
+                <span className="hidden text-muted-foreground/50 sm:inline" aria-hidden="true">|</span>
+                <span className="flex min-w-0 items-center gap-1 text-xs text-muted-foreground">
+                  <MapPin size={12} className="shrink-0" />
+                  <span className="truncate">{scene.location}</span>
                 </span>
               </>
             )}
@@ -101,8 +101,8 @@ export default function SceneIndicator({ conversationId, className }: SceneIndic
 
         {/* Characters Present */}
         {characters && characters.length > 0 && (
-          <div className="flex items-center gap-1">
-            <Users size={14} className="text-muted-foreground" />
+          <div className="flex shrink-0 items-center gap-1">
+            <Users size={14} className="hidden text-muted-foreground sm:block" aria-hidden="true" />
             <div className="flex -space-x-1.5">
               {characters.slice(0, 4).map((char) => (
                 <button
@@ -111,7 +111,7 @@ export default function SceneIndicator({ conversationId, className }: SceneIndic
                   onClick={() => openCharacterCard(char.id, conversationId)}
                   title={`Open ${char.name}'s character card`}
                   aria-label={`Open ${char.name}'s character card`}
-                  className="flex h-6 w-6 cursor-pointer items-center justify-center rounded-full border-2 border-card bg-muted text-[10px] font-bold uppercase text-muted-foreground focus:outline-none focus-visible:ring-2 focus-visible:ring-primary"
+                  className="flex h-8 w-8 cursor-pointer items-center justify-center rounded-full border-2 border-card bg-muted text-[10px] font-bold uppercase text-muted-foreground focus:outline-none focus-visible:ring-2 focus-visible:ring-primary sm:h-6 sm:w-6"
                 >
                   {char.avatar ? (
                     <img
@@ -125,7 +125,7 @@ export default function SceneIndicator({ conversationId, className }: SceneIndic
                 </button>
               ))}
               {characters.length > 4 && (
-                <div className="flex h-6 w-6 items-center justify-center rounded-full border-2 border-card bg-muted text-[10px] font-medium text-muted-foreground">
+                <div className="flex h-8 w-8 items-center justify-center rounded-full border-2 border-card bg-muted text-[10px] font-medium text-muted-foreground sm:h-6 sm:w-6">
                   +{characters.length - 4}
                 </div>
               )}
@@ -138,9 +138,12 @@ export default function SceneIndicator({ conversationId, className }: SceneIndic
           variant="ghost"
           size="sm"
           onClick={handleOpenModal}
-          leftIcon={<ArrowRight size={14} />}
+          leftIcon={<ArrowRight size={14} aria-hidden="true" />}
+          aria-label="Change Scene"
+          title="Change Scene"
+          className="h-10 w-10 shrink-0 px-0 sm:h-8 sm:w-auto sm:px-3"
         >
-          Change Scene
+          <span className="hidden sm:inline">Change Scene</span>
         </Button>}
       </div>
 
@@ -152,10 +155,11 @@ export default function SceneIndicator({ conversationId, className }: SceneIndic
         description="Transition to a new scene in the story."
         size="md"
         footer={
-          <div className="flex justify-end gap-2">
+          <div className="flex flex-col-reverse gap-2 sm:flex-row sm:justify-end">
             <Button
               variant="outline"
               size="sm"
+              className="h-10 sm:h-8"
               onClick={() => setShowChangeModal(false)}
               disabled={changing}
             >
@@ -164,6 +168,7 @@ export default function SceneIndicator({ conversationId, className }: SceneIndic
             <Button
               variant="primary"
               size="sm"
+              className="h-10 sm:h-8"
               onClick={handleChangeScene}
               isLoading={changing}
               loadingText="Changing..."

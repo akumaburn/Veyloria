@@ -53,8 +53,8 @@ export default function StoryTemplateSelector({
   return (
     <div className={cn('space-y-4', className)}>
       {/* Search and Filter Bar */}
-      <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
-        <div className="flex-1">
+      <div className="flex items-center gap-2 sm:gap-3">
+        <div className="min-w-0 flex-1">
           <Input
             size="sm"
             placeholder="Search templates..."
@@ -65,7 +65,7 @@ export default function StoryTemplateSelector({
             onClear={() => setSearchQuery('')}
           />
         </div>
-        <div className="w-full sm:w-44">
+        <div className="w-36 shrink-0 sm:w-44">
           <Select
             size="sm"
             options={GENRE_OPTIONS}
@@ -139,7 +139,7 @@ export default function StoryTemplateSelector({
                   <Button
                     variant={isSelected ? 'secondary' : 'outline'}
                     size="sm"
-                    className="w-full"
+                    className="h-10 w-full sm:h-8"
                     onClick={() => onSelectTemplate(template)}
                     leftIcon={<BookOpen size={14} />}
                   >

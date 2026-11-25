@@ -25,7 +25,7 @@ type Change =
   | { kind: 'adjust'; lawfulnessDelta: number; goodnessDelta: number };
 
 const axisButton =
-  'flex h-8 min-w-9 items-center justify-center rounded-lg border border-border bg-background px-2 text-xs font-medium tabular-nums text-foreground transition-colors hover:bg-accent disabled:opacity-40';
+  'flex h-10 min-w-11 items-center justify-center rounded-lg border border-border bg-background px-2 text-xs font-medium tabular-nums text-foreground transition-colors hover:bg-accent disabled:opacity-40 sm:h-8 sm:min-w-9';
 
 function AxisMeter({
   label,
@@ -47,12 +47,12 @@ function AxisMeter({
   onNudge: (delta: number) => void;
 }) {
   return (
-    <div>
-      <div className="mb-1.5 flex items-center justify-between gap-2">
+    <div className="flex flex-wrap items-center gap-x-2 gap-y-1.5">
+      <div className="order-1 flex min-w-0 flex-1 items-center justify-between gap-2 sm:basis-full">
         <span className="text-xs font-medium">{label}</span>
         <span className="text-sm font-semibold tabular-nums">{signedAlignment(value)}</span>
       </div>
-      <div className="flex items-center gap-2">
+      <div className="order-3 flex min-w-0 basis-full items-center gap-2 sm:order-2 sm:flex-1 sm:basis-0">
         <span className="text-2xs text-muted-foreground w-12 shrink-0 text-right">{low}</span>
         <div
           role="meter"
@@ -75,26 +75,26 @@ function AxisMeter({
           />
         </div>
         <span className="text-2xs text-muted-foreground w-12 shrink-0">{high}</span>
-        <div className="flex shrink-0 gap-1">
-          <button
-            type="button"
-            className={axisButton}
-            disabled={saving || value <= -100}
-            onClick={() => onNudge(-10)}
-            aria-label={`Move ${label.toLowerCase()} 10 points toward ${low}`}
-          >
-            −10
-          </button>
-          <button
-            type="button"
-            className={axisButton}
-            disabled={saving || value >= 100}
-            onClick={() => onNudge(10)}
-            aria-label={`Move ${label.toLowerCase()} 10 points toward ${high}`}
-          >
-            +10
-          </button>
-        </div>
+      </div>
+      <div className="order-2 flex shrink-0 gap-1 sm:order-3">
+        <button
+          type="button"
+          className={axisButton}
+          disabled={saving || value <= -100}
+          onClick={() => onNudge(-10)}
+          aria-label={`Move ${label.toLowerCase()} 10 points toward ${low}`}
+        >
+          −10
+        </button>
+        <button
+          type="button"
+          className={axisButton}
+          disabled={saving || value >= 100}
+          onClick={() => onNudge(10)}
+          aria-label={`Move ${label.toLowerCase()} 10 points toward ${high}`}
+        >
+          +10
+        </button>
       </div>
     </div>
   );
@@ -251,14 +251,14 @@ export function CharacterAlignmentPanel({
       ) : error ? (
         <div role="alert" className="space-y-3">
           <p>Unable to load alignments.</p>
-          <button className={axisButton} onClick={() => void refetch()}>
+          <button type="button" className={axisButton} onClick={() => void refetch()}>
             Try again
           </button>
         </div>
       ) : (
         <div className="space-y-5">
           <section aria-label="Choose who to inspect">
-            <div className="flex flex-wrap gap-2">
+            <div className="scrollbar-hide -mx-4 flex gap-2 overflow-x-auto px-4 py-1 sm:mx-0 sm:flex-wrap sm:overflow-visible sm:p-0">
               {actors.map((actor) => {
                 const key = actorAlignmentKey(actor.characterId);
                 const actorRecord = records.find(
@@ -325,7 +325,7 @@ export function CharacterAlignmentPanel({
                 <span className="flex items-center">Morality</span>
                 <span className="flex items-center">Evil ↓</span>
               </div>
-              <div className="relative grid min-h-[17rem] grid-cols-3 grid-rows-3 gap-1">
+              <div className="relative grid min-h-[13rem] grid-cols-3 grid-rows-3 gap-1 sm:min-h-[17rem]">
                 {ALIGNMENT_ORDER.map((option) => {
                   const optionMeta = ALIGNMENTS[option];
                   const active = alignment === option;
@@ -470,7 +470,7 @@ export function CharacterAlignmentPanel({
                 type="button"
                 disabled={saving || (lawfulness === 0 && goodness === 0)}
                 onClick={() => setConfirmReset(true)}
-                className="text-muted-foreground hover:text-foreground inline-flex items-center gap-1.5 rounded-md p-1 text-xs disabled:opacity-40"
+                className="text-muted-foreground hover:text-foreground inline-flex min-h-10 items-center gap-1.5 rounded-md px-2 text-xs disabled:opacity-40 sm:min-h-0 sm:p-1"
               >
                 <RotateCcw size={12} />
                 Reset to True Neutral
@@ -482,7 +482,7 @@ export function CharacterAlignmentPanel({
                 <div className="mt-3 flex gap-3">
                   <button
                     type="button"
-                    className="bg-primary text-primary-foreground rounded-lg px-3 py-2"
+                    className="bg-primary text-primary-foreground min-h-10 rounded-lg px-3 py-2"
                     disabled={saving}
                     onClick={() => void change({ kind: 'set', lawfulness: 0, goodness: 0 })}
                   >
@@ -490,7 +490,7 @@ export function CharacterAlignmentPanel({
                   </button>
                   <button
                     type="button"
-                    className="hover:bg-accent rounded-lg px-3 py-2"
+                    className="hover:bg-accent min-h-10 rounded-lg px-3 py-2"
                     onClick={() => setConfirmReset(false)}
                   >
                     Cancel

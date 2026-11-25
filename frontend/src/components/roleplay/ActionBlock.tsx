@@ -36,7 +36,7 @@ export default function ActionBlock({
   return (
     <div
       className={cn(
-        'relative rounded-lg border border-teal-500/20 bg-teal-500/5 px-4 py-3',
+        'relative rounded-lg border border-teal-500/20 bg-teal-500/5 px-3 py-2.5 sm:px-4 sm:py-3',
         className
       )}
     >
@@ -44,12 +44,12 @@ export default function ActionBlock({
       <div className="absolute inset-y-0 left-0 w-1 rounded-l-lg bg-teal-500/40" />
 
       {/* Character header */}
-      <div className="mb-1.5 flex items-center gap-2">
+      <div className="mb-1.5 flex min-w-0 items-center gap-2">
         {onAvatarClick ? (
           <button
             type="button"
             onClick={onAvatarClick}
-            className="flex-shrink-0 cursor-pointer rounded-full focus:outline-none focus-visible:ring-2 focus-visible:ring-teal-500"
+            className="flex-shrink-0 cursor-pointer rounded-full focus:outline-none focus-visible:ring-2 focus-visible:ring-teal-500 max-md:-m-2.5 max-md:p-2.5"
             aria-label={`Open ${characterName}'s character card`}
             title={`Open ${characterName}'s character card`}
           >
@@ -58,12 +58,12 @@ export default function ActionBlock({
         ) : (
           avatar
         )}
-        <span className="text-xs font-semibold text-teal-400">{characterName}</span>
-        <Swords size={12} className="text-teal-400/50" />
+        <span className="truncate text-xs font-semibold text-teal-400">{characterName}</span>
+        <Swords size={12} className="shrink-0 text-teal-400/50" />
       </div>
 
       {/* Action text */}
-      <p className="whitespace-pre-wrap text-sm leading-relaxed text-foreground/90">
+      <p className="whitespace-pre-wrap break-words text-sm leading-relaxed text-foreground/90">
         <span className="text-teal-400/70">*</span>
         <span className="italic">{content}</span>
         <span className="text-teal-400/70">*</span>

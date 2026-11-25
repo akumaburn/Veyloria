@@ -194,6 +194,9 @@ export const AdminDashboard = () => {
     return `${days}d ${hours}h ${minutes}m`;
   };
 
+  const formatDate = (value: string | undefined, fallback = '-') =>
+    value ? new Date(normalizeTimestamp(value)).toLocaleDateString() : fallback;
+
   // Format bytes
   const formatBytes = (bytes: number) => {
     if (bytes === 0) return '0 B';
@@ -204,7 +207,7 @@ export const AdminDashboard = () => {
   };
 
   const StatCard = ({ icon: Icon, label, value, color, trend, loading }: any) => (
-    <div className="rounded-xl border border-border bg-card p-4">
+    <div className="min-w-0 rounded-xl border border-border bg-card p-3 sm:p-4">
       <div className="flex items-center justify-between mb-2">
         <Icon size={20} className={cn(
           color === 'blue' && 'text-primary',
@@ -226,7 +229,7 @@ export const AdminDashboard = () => {
         <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
       ) : (
         <>
-          <p className="text-2xl font-bold text-foreground">{value}</p>
+          <p className="text-xl font-bold text-foreground break-words sm:text-2xl">{value}</p>
           <p className="text-xs text-muted-foreground mt-1">{label}</p>
         </>
       )}
@@ -256,6 +259,48 @@ export const AdminDashboard = () => {
       </div>
     );
   };
+
+  const renderUserActions = (user: User, buttonClassName: string) => (
+    <>
+      <button
+        type="button"
+        onClick={() => {
+          setSelectedUser(user);
+          setShowUserDetails(true);
+        }}
+        className={cn(buttonClassName, 'text-muted-foreground hover:bg-muted hover:text-foreground transition-colors')}
+        title="View Details"
+        aria-label={`View details for ${user.username}`}
+      >
+        <Eye size={16} />
+      </button>
+      {user.id !== currentUser?.id && (
+        user.isBanned ? (
+          <button
+            type="button"
+            onClick={() => handleUnbanUser(user)}
+            disabled={unbanLoading}
+            className={cn(buttonClassName, 'text-muted-foreground hover:bg-muted hover:text-success transition-colors disabled:opacity-50')}
+            title="Unban User"
+            aria-label={`Unban ${user.username}`}
+          >
+            <UserCheck size={16} />
+          </button>
+        ) : (
+          <button
+            type="button"
+            onClick={() => handleBanUser(user)}
+            disabled={banLoading}
+            className={cn(buttonClassName, 'text-muted-foreground hover:bg-muted hover:text-destructive transition-colors disabled:opacity-50')}
+            title="Ban User"
+            aria-label={`Ban ${user.username}`}
+          >
+            <Ban size={16} />
+          </button>
+        )
+      )}
+    </>
+  );
 
   // Check if user is admin (authStore uses lowercase 'admin')
   if (currentUser?.role !== 'admin') {
@@ -289,16 +334,22 @@ export const AdminDashboard = () => {
               }
               onClick={handleRefresh}
               disabled={statsLoading || usersLoading}
+              aria-label="Refresh"
+              title="Refresh"
+              className="max-sm:w-11 max-sm:px-0"
             >
-              Refresh
+              <span className="hidden sm:inline">Refresh</span>
             </Button>
             <Button
               variant="outline"
               aria-pressed={autoRefresh}
+              aria-label="Auto refresh"
+              title={`Auto refresh ${autoRefresh ? 'on' : 'off'}`}
               onClick={() => setAutoRefresh(!autoRefresh)}
               className={cn(autoRefresh && 'border-primary/40 bg-primary/10 text-primary')}
             >
-              Auto refresh {autoRefresh ? 'on' : 'off'}
+              <span className="sm:hidden">Auto</span>
+              <span className="hidden sm:inline">Auto refresh {autoRefresh ? 'on' : 'off'}</span>
             </Button>
           </>
         }
@@ -311,7 +362,7 @@ export const AdminDashboard = () => {
         />
       </PageHeader>
 
-      <div className="flex-1 overflow-y-auto px-4 py-8 sm:px-6">
+      <div className="flex-1 overflow-y-auto px-4 py-6 sm:px-6 sm:py-8">
         <div className="mx-auto max-w-7xl">
           {/* Error State */}
           {(statsError || usersError) && (
@@ -330,7 +381,7 @@ export const AdminDashboard = () => {
           {activeTab === 'overview' && (
             <div className="space-y-6">
               {/* Stats Grid */}
-              <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+              <div className="grid grid-cols-2 gap-3 sm:gap-4 md:grid-cols-4">
                 <StatCard
                   icon={Users}
                   label="Total Users"
@@ -362,7 +413,7 @@ export const AdminDashboard = () => {
               </div>
 
               {/* Secondary Stats */}
-              <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+              <div className="grid grid-cols-2 gap-3 sm:gap-4 md:grid-cols-4">
                 <StatCard
                   icon={UserCheck}
                   label="Active Users"
@@ -409,7 +460,7 @@ export const AdminDashboard = () => {
                         max={stats.memoryTotal}
                         color="blue"
                       />
-                      <div className="flex justify-between text-xs text-muted-foreground">
+                      <div className="flex flex-wrap justify-between gap-x-3 text-xs text-muted-foreground">
                         <span>Used: {formatBytes(stats.memoryUsed)}</span>
                         <span>Total: {formatBytes(stats.memoryTotal)}</span>
                       </div>
@@ -450,24 +501,29 @@ export const AdminDashboard = () => {
           {activeTab === 'users' && (
             <div className="space-y-4">
               {/* User Management Controls */}
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-3">
-                  <Input
-                    placeholder="Search users..."
-                    value={searchQuery}
-                    onChange={(e) => setSearchQuery(e.target.value)}
-                    className="w-64"
-                    leftIcon={<Search size={16} />}
-                  />
-                  <Select
-                    value={userFilter}
-                    onChange={(e) => setUserFilter(e.target.value as any)}
-                    options={[
-                      { value: 'all', label: 'All Users' },
-                      { value: 'active', label: 'Active' },
-                      { value: 'banned', label: 'Banned' },
-                    ]}
-                  />
+              <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+                <div className="flex min-w-0 items-center gap-2 sm:gap-3">
+                  <div className="min-w-0 flex-1 sm:w-64 sm:flex-none">
+                    <Input
+                      placeholder="Search users..."
+                      aria-label="Search users"
+                      value={searchQuery}
+                      onChange={(e) => setSearchQuery(e.target.value)}
+                      leftIcon={<Search size={16} />}
+                    />
+                  </div>
+                  <div className="w-36 shrink-0">
+                    <Select
+                      aria-label="Filter users"
+                      value={userFilter}
+                      onChange={(e) => setUserFilter(e.target.value as any)}
+                      options={[
+                        { value: 'all', label: 'All Users' },
+                        { value: 'active', label: 'Active' },
+                        { value: 'banned', label: 'Banned' },
+                      ]}
+                    />
+                  </div>
                 </div>
                 <div className="text-sm text-muted-foreground">
                   {filteredUsers.length} users found
@@ -480,7 +536,67 @@ export const AdminDashboard = () => {
                   <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
                 </div>
               ) : (
-                <div className="rounded-xl border border-border overflow-hidden">
+                <>
+                <ul className="space-y-3 md:hidden" aria-label="Users">
+                  {filteredUsers.map((user) => (
+                    <li key={user.id} className="rounded-xl border border-border bg-card p-4">
+                      <div className="flex items-start justify-between gap-3">
+                        <div className="min-w-0">
+                          <p className="text-sm font-medium text-foreground break-all">{user.username}</p>
+                          <p className="text-xs text-muted-foreground break-all">{user.email}</p>
+                        </div>
+                        <div className="-mt-2 -mr-2 flex shrink-0 items-center">
+                          {renderUserActions(user, 'flex h-10 w-10 items-center justify-center rounded-lg')}
+                        </div>
+                      </div>
+                      <div className="mt-3 flex flex-wrap items-center gap-2">
+                        <button
+                          type="button"
+                          onClick={() => handleToggleRole(user)}
+                          title="Toggle role"
+                          aria-label={`Toggle role for ${user.username}, currently ${user.role}`}
+                          className={cn(
+                            'inline-flex min-h-8 items-center rounded-md px-2.5 text-xs transition-colors',
+                            user.role === 'ADMIN'
+                              ? 'bg-secondary/20 text-secondary hover:bg-secondary/30'
+                              : 'bg-muted text-muted-foreground hover:bg-accent'
+                          )}
+                        >
+                          {user.role}
+                        </button>
+                        <span className={cn(
+                          'inline-flex min-h-8 items-center rounded-md px-2.5 text-xs',
+                          !user.isBanned
+                            ? 'bg-success/20 text-success'
+                            : 'bg-destructive/20 text-destructive'
+                        )}>
+                          {user.isBanned ? 'Banned' : 'Active'}
+                        </span>
+                      </div>
+                      {user.isBanned && user.bannedReason && (
+                        <p className="mt-2 text-xs text-muted-foreground break-words">
+                          Reason: {user.bannedReason}
+                        </p>
+                      )}
+                      <dl className="mt-3 grid grid-cols-2 gap-3 text-xs">
+                        <div className="min-w-0">
+                          <dt className="text-muted-foreground">Created</dt>
+                          <dd className="text-foreground">{formatDate(user.createdAt)}</dd>
+                        </div>
+                        <div className="min-w-0">
+                          <dt className="text-muted-foreground">Last login</dt>
+                          <dd className="text-foreground">{formatDate(user.lastLogin, 'Never')}</dd>
+                        </div>
+                      </dl>
+                    </li>
+                  ))}
+                  {filteredUsers.length === 0 && (
+                    <li className="rounded-xl border border-dashed border-border px-4 py-8 text-center text-sm text-muted-foreground">
+                      No users match your search.
+                    </li>
+                  )}
+                </ul>
+                <div className="hidden overflow-hidden rounded-xl border border-border md:block">
                   <table className="w-full">
                     <thead className="bg-muted/50">
                       <tr>
@@ -530,44 +646,14 @@ export const AdminDashboard = () => {
                             )}
                           </td>
                           <td className="px-4 py-3 text-xs text-muted-foreground">
-                            {user.createdAt ? new Date(normalizeTimestamp(user.createdAt)).toLocaleDateString() : '-'}
+                            {formatDate(user.createdAt)}
                           </td>
                           <td className="px-4 py-3 text-xs text-muted-foreground">
-                            {user.lastLogin ? new Date(normalizeTimestamp(user.lastLogin)).toLocaleDateString() : 'Never'}
+                            {formatDate(user.lastLogin, 'Never')}
                           </td>
                           <td className="px-4 py-3">
                             <div className="flex items-center gap-1">
-                              <button
-                                onClick={() => {
-                                  setSelectedUser(user);
-                                  setShowUserDetails(true);
-                                }}
-                                className="rounded p-1 text-muted-foreground hover:bg-muted hover:text-foreground transition-colors"
-                                title="View Details"
-                              >
-                                <Eye size={16} />
-                              </button>
-                              {user.id !== currentUser?.id && (
-                                user.isBanned ? (
-                                  <button
-                                    onClick={() => handleUnbanUser(user)}
-                                    disabled={unbanLoading}
-                                    className="rounded p-1 text-muted-foreground hover:bg-muted hover:text-success transition-colors disabled:opacity-50"
-                                    title="Unban User"
-                                  >
-                                    <UserCheck size={16} />
-                                  </button>
-                                ) : (
-                                  <button
-                                    onClick={() => handleBanUser(user)}
-                                    disabled={banLoading}
-                                    className="rounded p-1 text-muted-foreground hover:bg-muted hover:text-destructive transition-colors disabled:opacity-50"
-                                    title="Ban User"
-                                  >
-                                    <Ban size={16} />
-                                  </button>
-                                )
-                              )}
+                              {renderUserActions(user, 'rounded p-1')}
                             </div>
                           </td>
                         </tr>
@@ -575,6 +661,7 @@ export const AdminDashboard = () => {
                     </tbody>
                   </table>
                 </div>
+                </>
               )}
             </div>
           )}
@@ -696,10 +783,11 @@ export const AdminDashboard = () => {
                 <h3 className="text-sm font-semibold text-foreground mb-3">LLM Service Control</h3>
                 <div className="flex gap-3">
                   <button
+                    type="button"
                     onClick={() => reloadModel()}
                     disabled={reloadLoading}
                     className={cn(
-                      'rounded-lg px-4 py-2 text-sm transition-colors',
+                      'rounded-lg px-4 py-2 text-sm transition-colors max-sm:min-h-11 max-sm:w-full',
                       'bg-primary text-primary-foreground hover:bg-primary/90',
                       reloadLoading && 'opacity-50 cursor-not-allowed'
                     )}
@@ -717,7 +805,7 @@ export const AdminDashboard = () => {
               {/* Health Status */}
               <div className="rounded-xl border border-border bg-card p-4">
                 <h3 className="text-sm font-semibold text-foreground mb-3">Service Status</h3>
-                <div className="flex items-center gap-3">
+                <div className="flex flex-wrap items-center gap-3">
                   <span className={cn(
                     'text-xs px-3 py-1 rounded-full',
                     healthData?.health
@@ -727,8 +815,9 @@ export const AdminDashboard = () => {
                     {healthData?.health ? 'Online' : 'Status Unknown'}
                   </span>
                   <button
+                    type="button"
                     onClick={() => refetchHealth()}
-                    className="text-xs text-muted-foreground hover:text-foreground transition-colors"
+                    className="min-h-10 rounded-lg px-2 text-xs text-muted-foreground hover:text-foreground transition-colors sm:min-h-0 sm:px-0"
                   >
                     <RefreshCw size={14} className="inline mr-1" />
                     Check Status
@@ -746,24 +835,27 @@ export const AdminDashboard = () => {
             className="absolute inset-0 bg-black/60 backdrop-blur-sm"
             onClick={() => setShowUserDetails(false)}
           />
-          <div className="relative z-10 w-full max-w-2xl rounded-2xl border border-border bg-card p-6 shadow-2xl animate-scale-in">
-            <div className="flex items-start justify-between mb-4">
-              <div>
+          <div className="relative z-10 max-h-[calc(100dvh-2rem)] w-full max-w-2xl overflow-y-auto overscroll-contain rounded-2xl border border-border bg-card p-4 shadow-2xl animate-scale-in sm:p-6">
+            <div className="flex items-start justify-between gap-3 mb-4">
+              <div className="min-w-0">
                 <h3 className="text-lg font-semibold text-foreground">User Details</h3>
-                <p className="text-sm text-muted-foreground">{selectedUser.username}</p>
+                <p className="text-sm text-muted-foreground break-all">{selectedUser.username}</p>
               </div>
               <button
+                type="button"
                 onClick={() => setShowUserDetails(false)}
-                className="rounded p-1 text-muted-foreground hover:bg-muted hover:text-foreground transition-colors"
+                aria-label="Close"
+                title="Close"
+                className="-mt-2 -mr-2 flex h-10 w-10 shrink-0 items-center justify-center rounded-lg text-muted-foreground hover:bg-muted hover:text-foreground transition-colors sm:m-0 sm:h-7 sm:w-7 sm:rounded"
               >
                 <X size={20} />
               </button>
             </div>
 
-            <div className="grid grid-cols-2 gap-4">
-              <div>
+            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+              <div className="min-w-0">
                 <p className="text-xs text-muted-foreground">Email</p>
-                <p className="text-sm text-foreground">{selectedUser.email}</p>
+                <p className="text-sm text-foreground break-all">{selectedUser.email}</p>
               </div>
               <div>
                 <p className="text-xs text-muted-foreground">Role</p>
@@ -791,18 +883,19 @@ export const AdminDashboard = () => {
                 </p>
               </div>
               {selectedUser.isBanned && selectedUser.bannedReason && (
-                <div className="col-span-2">
+                <div className="min-w-0 sm:col-span-2">
                   <p className="text-xs text-muted-foreground">Ban Reason</p>
-                  <p className="text-sm text-destructive">{selectedUser.bannedReason}</p>
+                  <p className="text-sm text-destructive break-words">{selectedUser.bannedReason}</p>
                 </div>
               )}
             </div>
 
             <div className="mt-6 flex justify-end gap-3">
               <button
+                type="button"
                 onClick={() => setShowUserDetails(false)}
                 className={cn(
-                  'rounded-xl px-4 py-2 text-sm font-medium',
+                  'rounded-xl px-4 py-2 text-sm font-medium max-sm:min-h-11 max-sm:w-full',
                   'bg-muted text-foreground hover:bg-accent',
                   'transition-colors'
                 )}
@@ -825,19 +918,22 @@ export const AdminDashboard = () => {
               setBanReason('');
             }}
           />
-          <div className="relative z-10 w-full max-w-md rounded-2xl border border-border bg-card p-6 shadow-2xl animate-scale-in">
-            <div className="flex items-start justify-between mb-4">
-              <div>
+          <div className="relative z-10 max-h-[calc(100dvh-2rem)] w-full max-w-md overflow-y-auto overscroll-contain rounded-2xl border border-border bg-card p-4 shadow-2xl animate-scale-in sm:p-6">
+            <div className="flex items-start justify-between gap-3 mb-4">
+              <div className="min-w-0">
                 <h3 className="text-lg font-semibold text-foreground">Ban User</h3>
-                <p className="text-sm text-muted-foreground">Banning {userToBan.username}</p>
+                <p className="text-sm text-muted-foreground break-all">Banning {userToBan.username}</p>
               </div>
               <button
+                type="button"
+                aria-label="Close"
+                title="Close"
                 onClick={() => {
                   setShowBanModal(false);
                   setUserToBan(null);
                   setBanReason('');
                 }}
-                className="rounded p-1 text-muted-foreground hover:bg-muted hover:text-foreground transition-colors"
+                className="-mt-2 -mr-2 flex h-10 w-10 shrink-0 items-center justify-center rounded-lg text-muted-foreground hover:bg-muted hover:text-foreground transition-colors sm:m-0 sm:h-7 sm:w-7 sm:rounded"
               >
                 <X size={20} />
               </button>
@@ -860,15 +956,16 @@ export const AdminDashboard = () => {
               </div>
             </div>
 
-            <div className="mt-6 flex justify-end gap-3">
+            <div className="mt-6 flex flex-col-reverse gap-3 sm:flex-row sm:justify-end">
               <button
+                type="button"
                 onClick={() => {
                   setShowBanModal(false);
                   setUserToBan(null);
                   setBanReason('');
                 }}
                 className={cn(
-                  'rounded-xl px-4 py-2 text-sm font-medium',
+                  'rounded-xl px-4 py-2 text-sm font-medium max-sm:min-h-11',
                   'bg-muted text-foreground hover:bg-accent',
                   'transition-colors'
                 )}
@@ -876,10 +973,11 @@ export const AdminDashboard = () => {
                 Cancel
               </button>
               <button
+                type="button"
                 onClick={confirmBanUser}
                 disabled={!banReason.trim() || banLoading}
                 className={cn(
-                  'rounded-xl px-4 py-2 text-sm font-medium',
+                  'rounded-xl px-4 py-2 text-sm font-medium max-sm:min-h-11',
                   'bg-destructive text-destructive-foreground hover:bg-destructive/90',
                   'transition-colors',
                   (!banReason.trim() || banLoading) && 'opacity-50 cursor-not-allowed'

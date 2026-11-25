@@ -38,9 +38,22 @@ beforeEach(() => {
   useCharacterCardStore.setState({ characterId: null });
 });
 
-it('opens a character card from a cast avatar in the header', async () => {
+it('expands the avatar stack into the full member list', async () => {
   const user = userEvent.setup();
-  render(<GroupChatHeader {...props} />);
+  const members = [
+    ...props.participants,
+    ...['Bram', 'Cass', 'Dov'].map((name, i) => ({
+      id: `cc-${i + 3}`, character: { id: `char-${name}`, name } as Character, turnOrder: i + 2, responseCount: 0, isActive: true,
+    })),
+  ];
+  render(<GroupChatHeader {...props} participants={members} />);
+
+  const stack = screen.getByRole('button', { name: 'Show all 5 members' });
+  expect(stack).toHaveTextContent('+2');
+  await user.click(stack);
+  expect(screen.getByRole('button', { name: 'Hide all 5 members' })).toHaveAttribute('aria-expanded', 'true');
+  await user.click(screen.getByRole('button', { name: /Open Dov's character card/ }));
+  expect(useCharacterCardStore.getState().characterId).toBe('char-Dov');
 
   await user.click(screen.getByRole('button', { name: /Open Elara Vane's character card/ }));
 

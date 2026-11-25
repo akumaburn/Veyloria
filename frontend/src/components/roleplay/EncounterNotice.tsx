@@ -11,7 +11,7 @@ export default function EncounterNotice({ conversationId }: { conversationId: st
         className="border-border flex items-center justify-between gap-3 border-b px-4 py-2 text-sm"
       >
         <span>Encounter status unavailable.</span>
-        <button onClick={() => void refetch()} className="text-primary">
+        <button type="button" onClick={() => void refetch()} className="text-primary hover:bg-accent -my-1 min-h-10 shrink-0 rounded-md px-3">
           Retry
         </button>
       </div>
@@ -36,7 +36,7 @@ export default function EncounterNotice({ conversationId }: { conversationId: st
       </span>
       <Link
         to={`/chat/${conversationId}?battle=${encodeURIComponent(battle.battleId)}`}
-        className="text-primary hover:bg-accent shrink-0 rounded-md px-3 py-2 text-sm font-medium"
+        className="text-primary hover:bg-accent inline-flex min-h-10 shrink-0 items-center rounded-md px-3 text-sm font-medium"
       >
         Open fight in chat
       </Link>

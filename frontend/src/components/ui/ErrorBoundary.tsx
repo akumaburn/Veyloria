@@ -162,15 +162,15 @@ export class ErrorBoundary extends Component<Props, State> {
 
       // Default error UI
       return (
-        <div className="flex min-h-screen items-center justify-center bg-background p-4">
+        <div className="flex min-h-dvh items-center justify-center bg-background p-4">
           <div className="w-full max-w-2xl">
-            <div className="rounded-lg border border-destructive/30 bg-card p-6">
+            <div className="rounded-lg border border-destructive/30 bg-card p-4 sm:p-6">
               {/* Error Header */}
               <div className="flex items-start space-x-3">
                 <div className="rounded-lg bg-destructive/10 p-2">
                   <AlertTriangle className="h-6 w-6 text-destructive" />
                 </div>
-                <div className="flex-1">
+                <div className="min-w-0 flex-1">
                   <h1 className="text-xl font-semibold text-foreground">
                     Something went wrong
                   </h1>
@@ -182,7 +182,7 @@ export class ErrorBoundary extends Component<Props, State> {
 
               {/* Error Message */}
               <div className="mt-6 rounded-lg bg-muted/50 p-4">
-                <p className="font-mono text-sm text-destructive">
+                <p className="font-mono text-sm text-destructive break-words">
                   {error.message || 'Unknown error'}
                 </p>
                 {errorCount > 1 && (

@@ -11,7 +11,7 @@ vi.mock('@/components/map/hooks/useMapData', () => ({
 vi.mock('@/stores/authStore', () => ({ useAuthStore: (selector: any) => selector({ user: { id: 'player' } }) }));
 vi.mock('@/components/roleplay/JourneyNotice', () => ({ default: () => null }));
 vi.mock('@/components/roleplay/EncounterNotice', () => ({ default: () => null }));
-vi.mock('@/components/map/LocalMapPanel', () => ({ default: ({ expanded }: any) => <div>Local layout {expanded ? 'expanded' : 'compact'}</div> }));
+vi.mock('@/components/map/LocalMapPanel', () => ({ default: () => <div>Local layout</div> }));
 vi.mock('@/components/map/WorldMap2D', () => ({ default: () => <div>Global flat map</div> }));
 vi.mock('@/components/map/WorldMap3D', () => ({ default: () => <div>Global terrain</div> }));
 vi.mock('@/components/map/MapEditor', () => ({ default: () => <p>World editing</p> }));
@@ -20,18 +20,18 @@ beforeEach(() => useNarratorModeStore.setState({ enabled: {} }));
 describe('map scopes', () => {
   it('opens the local 2D map and preserves the selected global view across scope changes', async () => {
     render(<MemoryRouter initialEntries={['/map/conversation']}><Routes><Route path="/map/:conversationId" element={<MapPage />} /><Route path="/chat/:conversationId" element={<p>Conversation opened</p>} /></Routes></MemoryRouter>);
-    expect(screen.getByText('Local layout expanded')).toBeInTheDocument();
+    expect(screen.getByText('Local layout')).toBeInTheDocument();
     expect(screen.getByRole('link', { name: 'Back to conversation' })).toHaveAttribute('href', '/chat/conversation');
     expect(screen.queryByRole('button', { name: '3D View' })).not.toBeInTheDocument();
-    fireEvent.click(screen.getByRole('button', { name: 'Global' }));
+    fireEvent.click(screen.getByRole('button', { name: 'World' }));
     expect(await screen.findByText('Global terrain')).toBeInTheDocument();
     expect(screen.queryByRole('button', { name: 'Editor' })).not.toBeInTheDocument();
     expect(screen.queryByRole('button', { name: 'Generate' })).not.toBeInTheDocument();
     fireEvent.click(screen.getByRole('button', { name: '2D View' }));
     expect(screen.getByText('Global flat map')).toBeInTheDocument();
     fireEvent.click(screen.getByRole('button', { name: 'Local' }));
-    expect(screen.getByText('Local layout expanded')).toBeInTheDocument();
-    fireEvent.click(screen.getByRole('button', { name: 'Global' }));
+    expect(screen.getByText('Local layout')).toBeInTheDocument();
+    fireEvent.click(screen.getByRole('button', { name: 'World' }));
     expect(screen.getByText('Global flat map')).toBeInTheDocument();
     expect(screen.getByRole('button', { name: '2D View' })).toHaveAttribute('aria-pressed', 'true');
     fireEvent.click(screen.getByRole('link', { name: 'Back to conversation' }));
@@ -42,13 +42,13 @@ describe('map scopes', () => {
 it('shares narrator mode per conversation and removes an open editor immediately when disabled', async () => {
   useNarratorModeStore.getState().setEnabled('other-story', true);
   render(<MemoryRouter initialEntries={['/map/conversation']}><Routes><Route path="/map/:conversationId" element={<MapPage />} /></Routes></MemoryRouter>);
-  expect(screen.getByRole('checkbox', { name: 'Narrator mode' })).not.toBeChecked();
+  expect(screen.getByRole('switch', { name: 'Narrator mode' })).toHaveAttribute('aria-checked', 'false');
   act(() => useNarratorModeStore.getState().setEnabled('conversation', true));
-  expect(screen.getByRole('checkbox', { name: 'Narrator mode' })).toBeChecked();
-  fireEvent.click(screen.getByRole('button', { name: 'Global' }));
+  expect(screen.getByRole('switch', { name: 'Narrator mode' })).toHaveAttribute('aria-checked', 'true');
+  fireEvent.click(screen.getByRole('button', { name: 'World' }));
   fireEvent.click(screen.getByRole('button', { name: 'Editor' }));
   expect(screen.getByText('World editing')).toBeInTheDocument();
-  fireEvent.click(screen.getByRole('checkbox', { name: 'Narrator mode' }));
+  fireEvent.click(screen.getByRole('switch', { name: 'Narrator mode' }));
   expect(screen.queryByText('World editing')).not.toBeInTheDocument();
   expect(await screen.findByText('Global terrain')).toBeInTheDocument();
   expect(useNarratorModeStore.getState().enabled.conversation).toBe(false);

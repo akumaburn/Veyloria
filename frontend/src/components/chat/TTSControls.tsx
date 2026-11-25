@@ -109,7 +109,7 @@ export const TTSControls = memo(({
                 onClick={handlePlayPause}
                 disabled={isLoading || isStreaming}
                 className={cn(
-                  'inline-flex shrink-0 items-center justify-center rounded-lg p-1.5 transition-all duration-150 focus-visible:outline focus-visible:outline-2 focus-visible:outline-primary',
+                  'inline-flex shrink-0 items-center justify-center rounded-lg p-1.5 transition-all duration-150 focus-visible:outline focus-visible:outline-2 focus-visible:outline-primary max-md:h-10 max-md:w-10',
                   'text-muted-foreground hover:bg-accent hover:text-foreground',
                   isPlaying && !isPaused && 'text-primary',
                   (isLoading || isStreaming) && 'opacity-50 cursor-not-allowed'
@@ -138,7 +138,7 @@ export const TTSControls = memo(({
                   onClick={handleRestart}
                   disabled={isLoading}
                   className={cn(
-                    'inline-flex shrink-0 items-center justify-center rounded-lg p-1.5 transition-all duration-150 focus-visible:outline focus-visible:outline-2 focus-visible:outline-primary',
+                    'inline-flex shrink-0 items-center justify-center rounded-lg p-1.5 transition-all duration-150 focus-visible:outline focus-visible:outline-2 focus-visible:outline-primary max-md:h-10 max-md:w-10',
                     'text-muted-foreground hover:bg-accent hover:text-foreground',
                     isLoading && 'opacity-50 cursor-not-allowed'
                   )}
@@ -282,7 +282,7 @@ export const TTSToggle = memo(({ className }: { className?: string }) => {
             onClick={handleToggle}
             className={cn(
               'flex items-center justify-center',
-              'h-8 w-8 rounded-lg transition-all duration-200',
+              'h-10 w-10 rounded-lg transition-all duration-200 sm:h-8 sm:w-8',
               'border border-border/50',
               settings.enabled
                 ? 'bg-primary/10 text-primary hover:bg-primary/20'

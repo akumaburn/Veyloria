@@ -167,7 +167,7 @@ export function CharacterRelationshipsPanel({
       ) : error ? (
         <div role="alert" className="space-y-3">
           <p>Unable to load relationships.</p>
-          <button className={fieldClass} onClick={() => void refetch()}>
+          <button type="button" className={fieldClass} onClick={() => void refetch()}>
             Try again
           </button>
         </div>
@@ -196,11 +196,12 @@ export function CharacterRelationshipsPanel({
             <button
               type="button"
               aria-label="Reverse relationship direction"
+              title="Reverse direction"
               disabled={saving || !to}
               onClick={() => choosePair(to!, from)}
-              className="text-muted-foreground hover:bg-accent mb-1 justify-self-center rounded-lg p-2 disabled:opacity-50 sm:justify-self-auto"
+              className="text-muted-foreground hover:bg-accent flex h-10 w-10 items-center justify-center justify-self-center rounded-lg disabled:opacity-50 sm:mb-px sm:justify-self-auto"
             >
-              <ArrowRightLeft size={18} />
+              <ArrowRightLeft size={18} className="rotate-90 sm:rotate-0" />
             </button>
             <label className="min-w-0 space-y-1.5 text-xs font-medium">
               Toward
@@ -241,7 +242,7 @@ export function CharacterRelationshipsPanel({
                       choosePair(actorKey(a.fromCharacterId), actorKey(a.toCharacterId))
                     }
                     aria-pressed={a.affinityId === pair?.affinityId}
-                    className="hover:bg-accent aria-pressed:bg-muted flex w-full items-center justify-between gap-2 rounded-lg px-2 py-2 text-left text-xs disabled:opacity-50"
+                    className="hover:bg-accent aria-pressed:bg-muted flex min-h-10 w-full items-center justify-between gap-2 rounded-lg px-2 py-2 text-left text-xs disabled:opacity-50 sm:min-h-0"
                   >
                     <span className="flex min-w-0 items-center gap-1">
                       <span className="truncate">{a.fromName}</span>
@@ -361,7 +362,7 @@ export function CharacterRelationshipsPanel({
                     disabled={saving || !valid}
                     onClick={() => chooseTier(option.tier)}
                     className={cn(
-                      'min-h-9 rounded-lg border px-0.5 py-1.5 text-[11px] font-medium transition-colors disabled:opacity-40 sm:px-1 sm:text-xs',
+                      'min-h-10 rounded-lg border px-0.5 py-1.5 text-[11px] font-medium transition-colors disabled:opacity-40 sm:min-h-9 sm:px-1 sm:text-xs',
                       tier === option.tier
                         ? 'border-primary bg-primary text-primary-foreground'
                         : 'border-border bg-background hover:bg-accent',
@@ -415,7 +416,7 @@ export function CharacterRelationshipsPanel({
                 type="button"
                 disabled={saving || points === 0}
                 onClick={() => setConfirmReset(true)}
-                className="text-muted-foreground hover:text-foreground inline-flex items-center gap-1.5 rounded-md p-1 text-xs disabled:opacity-40"
+                className="text-muted-foreground hover:text-foreground inline-flex min-h-10 items-center gap-1.5 rounded-md px-2 text-xs disabled:opacity-40 sm:min-h-0 sm:p-1"
               >
                 <RotateCcw size={12} />
                 Reset to neutral
@@ -428,13 +429,15 @@ export function CharacterRelationshipsPanel({
                 </p>
                 <div className="mt-3 flex gap-3">
                   <button
-                    className="bg-primary text-primary-foreground rounded-lg px-3 py-2"
+                    type="button"
+                    className="bg-primary text-primary-foreground min-h-10 rounded-lg px-3 py-2"
                     onClick={() => void change('RESET')}
                   >
                     Reset score
                   </button>
                   <button
-                    className="hover:bg-accent rounded-lg px-3 py-2"
+                    type="button"
+                    className="hover:bg-accent min-h-10 rounded-lg px-3 py-2"
                     onClick={() => setConfirmReset(false)}
                   >
                     Cancel

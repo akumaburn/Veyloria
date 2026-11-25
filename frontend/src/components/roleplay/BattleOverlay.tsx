@@ -27,7 +27,7 @@ interface Props {
   narratorMode?: boolean;
 }
 const control =
-  'rounded-lg border border-border px-3 py-2 text-sm hover:bg-accent disabled:opacity-50';
+  'min-h-11 rounded-lg border border-border px-3 py-2 text-sm hover:bg-accent disabled:opacity-50 sm:min-h-0';
 
 export default function BattleOverlay({
   conversationId,
@@ -123,8 +123,8 @@ export default function BattleOverlay({
       {battle && (
         <>
           <div className="space-y-1">
-            <h3 className="flex items-center gap-2 text-base font-semibold">
-              <Swords size={18} />
+            <h3 className="flex min-w-0 items-center gap-2 text-base font-semibold break-words">
+              <Swords size={18} className="shrink-0" />
               {data.enemyName || 'Encounter'}
             </h3>
             <p className="text-muted-foreground text-sm">
@@ -238,7 +238,7 @@ export default function BattleOverlay({
               </p>
               {manager && narratorMode && (
                 <details className="border-border border-t pt-3">
-                  <summary className="text-muted-foreground cursor-pointer text-sm">
+                  <summary className="text-muted-foreground cursor-pointer py-2 text-sm sm:py-0">
                     Host outcome override
                   </summary>
                   <p className="text-muted-foreground my-2 text-xs">
@@ -353,7 +353,7 @@ export default function BattleOverlay({
               <Link
                 key={entry.battleId}
                 to={`/chat/${conversationId}?battle=${encodeURIComponent(entry.battleId)}`}
-                className="text-primary block text-sm break-words hover:underline"
+                className="text-primary flex min-h-10 items-center text-sm break-words hover:underline sm:block sm:min-h-0"
               >
                 {name} · {entry.status.toLowerCase()}
               </Link>

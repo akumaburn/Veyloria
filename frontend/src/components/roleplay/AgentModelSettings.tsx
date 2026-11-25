@@ -139,7 +139,7 @@ export default function AgentModelSettings({ conversationId }: AgentModelSetting
   }
 
   return (
-    <Card variant="default" padding="lg" className="bg-card border-border/60">
+    <Card variant="default" padding="lg" className="bg-card border-border/60 p-4 sm:p-6">
       <CardHeader
         title="Agent Model Configuration"
         description="Assign specific LLM models to each pipeline agent. Leave blank to use the default model."
@@ -158,9 +158,9 @@ export default function AgentModelSettings({ conversationId }: AgentModelSetting
                   : 'bg-muted/40 hover:bg-muted/60'
               )}
             >
-              <div className="mb-2 flex items-center gap-2">
-                {field.icon}
-                <div>
+              <div className="mb-2 flex items-start gap-2">
+                <span className="mt-0.5 shrink-0">{field.icon}</span>
+                <div className="min-w-0">
                   <span className="text-sm font-medium text-foreground">
                     {field.label}
                   </span>
@@ -183,10 +183,11 @@ export default function AgentModelSettings({ conversationId }: AgentModelSetting
       </div>
 
       {/* Save button and status */}
-      <div className="mt-5 flex items-center gap-3">
+      <div className="mt-5 flex flex-wrap items-center gap-3">
         <Button
           variant="primary"
           size="sm"
+          className="h-10 sm:h-8"
           onClick={handleSave}
           isLoading={saveLoading}
           disabled={!isDirty}

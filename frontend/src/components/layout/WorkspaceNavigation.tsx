@@ -27,7 +27,7 @@ const groups = [
     items: [
       { to: '/community', label: 'Community', icon: Globe },
       { to: '/party', label: 'Parties', icon: UsersRound },
-      { to: '/map', label: 'World map', icon: Map },
+      { to: '/map', label: 'Maps', icon: Map },
       { to: '/achievements', label: 'Achievements', icon: Trophy },
     ],
   },

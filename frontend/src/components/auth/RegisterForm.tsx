@@ -339,7 +339,7 @@ export const RegisterForm: React.FC<RegisterFormProps> = ({
               disabled={loading}
               aria-invalid={!!termsError}
               aria-describedby={termsError ? 'registration-terms-error' : undefined}
-              className="h-4 w-4 rounded border-border bg-muted/50 text-primary focus:ring-primary/20 mt-0.5"
+              className="mt-0.5 h-5 w-5 shrink-0 rounded border-border bg-muted/50 text-primary focus:ring-primary/20 sm:h-4 sm:w-4"
               checked={agreedToTerms}
               onChange={(e) => {
                 setAgreedToTerms(e.target.checked);

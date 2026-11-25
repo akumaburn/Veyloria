@@ -18,7 +18,7 @@ const PartyPage: React.FC = () => {
         measure="max-w-4xl"
       />
 
-      <div className="flex-1 overflow-y-auto px-4 py-8 sm:px-6">
+      <div className="flex-1 overflow-y-auto px-4 py-6 sm:px-6 sm:py-8">
         <div className="mx-auto max-w-4xl">
           <PartyPanel onCreateParty={() => setShowCreator(true)} onJoinParty={() => setShowJoin(true)} />
         </div>

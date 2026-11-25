@@ -79,7 +79,7 @@ export default function WorldStatePanel({ conversationId, className }: WorldStat
           </div>
           <div className="min-w-0 flex-1">
             <p className="text-xs text-muted-foreground">Time of Day</p>
-            <p className="text-sm font-medium capitalize text-foreground">
+            <p className="text-sm font-medium capitalize break-words text-foreground">
               {worldState.timeOfDay || 'Unset'}
             </p>
           </div>
@@ -92,7 +92,7 @@ export default function WorldStatePanel({ conversationId, className }: WorldStat
           </div>
           <div className="min-w-0 flex-1">
             <p className="text-xs text-muted-foreground">Day</p>
-            <p className="text-sm font-medium text-foreground">
+            <p className="text-sm font-medium break-words text-foreground">
               Day {worldState.dayNumber ?? 1}
             </p>
           </div>
@@ -105,7 +105,7 @@ export default function WorldStatePanel({ conversationId, className }: WorldStat
           </div>
           <div className="min-w-0 flex-1">
             <p className="text-xs text-muted-foreground">Weather</p>
-            <p className="text-sm font-medium capitalize text-foreground">
+            <p className="text-sm font-medium capitalize break-words text-foreground">
               {worldState.weather || 'Unset'}
             </p>
           </div>
@@ -118,7 +118,7 @@ export default function WorldStatePanel({ conversationId, className }: WorldStat
           </div>
           <div className="min-w-0 flex-1">
             <p className="text-xs text-muted-foreground">Mood</p>
-            <p className="text-sm font-medium capitalize text-foreground">
+            <p className="text-sm font-medium capitalize break-words text-foreground">
               {worldState.mood || 'Unset'}
             </p>
           </div>
@@ -131,7 +131,7 @@ export default function WorldStatePanel({ conversationId, className }: WorldStat
           </div>
           <div className="min-w-0 flex-1">
             <p className="text-xs text-muted-foreground">Location</p>
-            <p className="text-sm font-medium text-foreground">
+            <p className="text-sm font-medium break-words text-foreground">
               {worldState.currentLocation || 'Unset'}
             </p>
           </div>
@@ -144,7 +144,7 @@ export default function WorldStatePanel({ conversationId, className }: WorldStat
           </div>
           <div className="min-w-0 flex-1">
             <p className="text-xs text-muted-foreground">Area</p>
-            <p className="text-sm font-medium text-foreground">
+            <p className="text-sm font-medium break-words text-foreground">
               {worldState.currentArea || 'Unset'}
             </p>
           </div>
@@ -157,7 +157,7 @@ export default function WorldStatePanel({ conversationId, className }: WorldStat
           </div>
           <div className="min-w-0 flex-1">
             <p className="text-xs text-muted-foreground">Scene</p>
-            <p className="text-sm font-medium text-foreground">
+            <p className="text-sm font-medium break-words text-foreground">
               {worldState.currentScene || 'Unset'}
             </p>
           </div>

@@ -3,6 +3,7 @@ import { NavLink, useNavigate, useLocation } from 'react-router-dom';
 import { useAuthStore } from '@/stores/authStore';
 import {
   Menu,
+  MessagesSquare,
   Settings,
   LogOut,
   User,
@@ -20,12 +21,17 @@ interface HeaderProps {
   chatToolbarRef: (element: HTMLDivElement | null) => void;
   onMenuToggle: () => void;
   isMenuOpen: boolean;
+  /** Opens the conversation drawer, which is only a drawer below 1024px. */
+  onConversationsToggle: () => void;
+  isConversationsOpen: boolean;
 }
 
 export const Header = ({
   chatToolbarRef,
   onMenuToggle,
   isMenuOpen,
+  onConversationsToggle,
+  isConversationsOpen,
 }: HeaderProps) => {
   const navigate = useNavigate();
   const location = useLocation();
@@ -38,7 +44,7 @@ export const Header = ({
     community: 'Community',
     achievements: 'Achievements',
     party: 'Parties',
-    map: 'World map',
+    map: 'Maps',
     settings: 'Settings',
     profile: 'Profile',
     data: 'Your data',
@@ -62,6 +68,18 @@ export const Header = ({
             aria-controls="mobile-workspace-navigation"
           >
             <Menu size={21} />
+          </button>
+          <button
+            type="button"
+            id="conversation-toggle-mobile"
+            onClick={onConversationsToggle}
+            className={cn('workspace-icon-button lg:hidden', isConversationsOpen && 'bg-accent text-foreground')}
+            title="Conversations"
+            aria-label={isConversationsOpen ? 'Close conversations' : 'Open conversations'}
+            aria-expanded={isConversationsOpen}
+            aria-controls="app-sidebar"
+          >
+            <MessagesSquare size={20} />
           </button>
           <span className="flex shrink-0 items-center gap-1.5" aria-label="Veyloria">
             <BrandMark className="scale-75" />
@@ -113,7 +131,7 @@ export const Header = ({
                         section === 'chat' && location.pathname.split('/')[2]
                           ? `/map/${location.pathname.split('/')[2]}`
                           : '/map',
-                      label: 'World map',
+                      label: 'Maps',
                       icon: Map,
                     },
                     { to: '/achievements', label: 'Achievements', icon: Trophy },

@@ -38,6 +38,12 @@ interface CharacterSheetProps {
 
 type SectionId = 'stats' | 'relationships' | 'inventory';
 
+const ICON_BUTTON =
+  'inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-md transition-colors sm:h-7 sm:w-7';
+
+/** Hover-revealed on pointer desktops; always shown on touch-sized screens. */
+const HOVER_REVEAL = 'lg:opacity-0 lg:group-hover:opacity-100 lg:focus-visible:opacity-100';
+
 interface CollapsibleSectionProps {
   id: SectionId;
   title: string;
@@ -61,7 +67,9 @@ function CollapsibleSection({
   return (
     <div className="rounded-xl border border-border bg-card">
       <button
+        type="button"
         onClick={onToggle}
+        aria-expanded={isOpen}
         className="flex w-full items-center justify-between rounded-t-xl px-4 py-3 transition-colors hover:bg-accent/60"
       >
         <div className="flex items-center gap-2.5">
@@ -123,16 +131,17 @@ function EditableStatRow({
 
   if (editing) {
     return (
-      <div className="flex items-center gap-2">
-        <div className="flex-1">
+      <div className="flex items-center gap-1 sm:gap-2">
+        <div className="min-w-0 flex-1">
           <StatBar stat={stat} />
         </div>
         <input
           type="number"
           value={draft}
           onChange={(e) => setDraft(e.target.value)}
+          aria-label={`${stat.statName} value`}
           className={cn(
-            'w-16 rounded border border-input bg-background px-1.5 py-0.5',
+            'w-16 rounded border border-input bg-background px-1.5 py-1.5 sm:py-0.5',
             'text-xs text-foreground',
             'focus:border-primary focus:outline-none'
           )}
@@ -142,11 +151,24 @@ function EditableStatRow({
             if (e.key === 'Escape') setEditing(false);
           }}
         />
-        <button onClick={() => void handleSave()} disabled={loading} className="text-success hover:bg-success/10 rounded p-0.5">
-          {loading ? <Loader2 size={12} className="animate-spin" /> : <Check size={12} />}
+        <button
+          type="button"
+          onClick={() => void handleSave()}
+          disabled={loading}
+          aria-label={`Save ${stat.statName}`}
+          title="Save"
+          className={cn(ICON_BUTTON, 'text-success hover:bg-success/10')}
+        >
+          {loading ? <Loader2 size={14} className="animate-spin" /> : <Check size={14} />}
         </button>
-        <button onClick={() => setEditing(false)} className="text-muted-foreground hover:bg-accent rounded p-0.5">
-          <X size={12} />
+        <button
+          type="button"
+          onClick={() => setEditing(false)}
+          aria-label={`Cancel editing ${stat.statName}`}
+          title="Cancel"
+          className={cn(ICON_BUTTON, 'text-muted-foreground hover:bg-accent')}
+        >
+          <X size={14} />
         </button>
       </div>
     );
@@ -154,14 +176,17 @@ function EditableStatRow({
 
   return (
     <div className="group flex items-center gap-1">
-      <div className="flex-1">
+      <div className="min-w-0 flex-1">
         <StatBar stat={stat} />
       </div>
       <button
+        type="button"
         onClick={() => { setDraft(String(stat.statValue ?? 0)); setEditing(true); }}
-        className="rounded p-0.5 text-muted-foreground/70 opacity-0 group-hover:opacity-100 hover:bg-accent hover:text-muted-foreground transition-all"
+        aria-label={`Edit ${stat.statName}`}
+        title={`Edit ${stat.statName}`}
+        className={cn(ICON_BUTTON, HOVER_REVEAL, 'text-muted-foreground hover:bg-accent hover:text-foreground')}
       >
-        <Pencil size={10} />
+        <Pencil size={12} />
       </button>
     </div>
   );
@@ -206,23 +231,38 @@ function EditableRelationshipRow({
             value={draftType}
             onChange={(e) => setDraftType(e.target.value)}
             placeholder="Type"
-            className="flex-1 rounded border border-input bg-background px-1.5 py-0.5 text-xs text-foreground focus:border-primary focus:outline-none"
+            aria-label="Relationship type"
+            className="min-w-0 flex-1 rounded border border-input bg-background px-1.5 py-1.5 text-xs text-foreground focus:border-primary focus:outline-none sm:py-0.5"
           />
           <input
             type="number"
             value={draftIntensity}
             onChange={(e) => setDraftIntensity(e.target.value)}
-            className="w-14 rounded border border-input bg-background px-1.5 py-0.5 text-xs text-foreground focus:border-primary focus:outline-none"
+            aria-label="Relationship intensity"
+            className="w-16 rounded border border-input bg-background px-1.5 py-1.5 text-xs text-foreground focus:border-primary focus:outline-none sm:w-14 sm:py-0.5"
             min={0}
             max={100}
           />
         </div>
         <div className="flex gap-1">
-          <button onClick={() => void handleSave()} disabled={loading} className="text-success hover:bg-success/10 rounded p-0.5 text-xs">
-            {loading ? <Loader2 size={12} className="animate-spin" /> : <Check size={12} />}
+          <button
+            type="button"
+            onClick={() => void handleSave()}
+            disabled={loading}
+            aria-label="Save relationship"
+            title="Save"
+            className={cn(ICON_BUTTON, 'text-success hover:bg-success/10')}
+          >
+            {loading ? <Loader2 size={14} className="animate-spin" /> : <Check size={14} />}
           </button>
-          <button onClick={() => setEditing(false)} className="text-muted-foreground hover:bg-accent rounded p-0.5 text-xs">
-            <X size={12} />
+          <button
+            type="button"
+            onClick={() => setEditing(false)}
+            aria-label="Cancel editing relationship"
+            title="Cancel"
+            className={cn(ICON_BUTTON, 'text-muted-foreground hover:bg-accent')}
+          >
+            <X size={14} />
           </button>
         </div>
       </div>
@@ -233,14 +273,21 @@ function EditableRelationshipRow({
     <div className="group relative">
       <RelationshipCard relationship={relationship} />
       <button
+        type="button"
         onClick={() => {
           setDraftIntensity(String(relationship.intensity ?? 50));
           setDraftType(relationship.relationshipType ?? '');
           setEditing(true);
         }}
-        className="absolute top-2 right-2 rounded p-0.5 text-muted-foreground/70 opacity-0 group-hover:opacity-100 hover:bg-accent hover:text-muted-foreground transition-all"
+        aria-label="Edit relationship"
+        title="Edit relationship"
+        className={cn(
+          ICON_BUTTON,
+          HOVER_REVEAL,
+          'absolute top-2 right-2 text-muted-foreground hover:bg-accent hover:text-foreground',
+        )}
       >
-        <Pencil size={10} />
+        <Pencil size={12} />
       </button>
     </div>
   );
@@ -297,10 +344,27 @@ export default function CharacterSheet({
     {}
   );
 
+  // Empty sections are left out rather than drawn as "none" boxes. Inventory
+  // stays for the narrator, who adds items from it.
+  const statCount = (stats as CharacterStat[]).length;
+  const relationshipCount = (relationships as CharacterRelationship[]).length;
+  const itemCount = (inventory as CharacterInventoryItem[]).length;
+  const showStats = statsLoading || statCount > 0;
+  const showRelationships = relsLoading || relationshipCount > 0;
+  const showInventory = invLoading || itemCount > 0 || !!narratorMode;
+  const plural = (count: number, word: string) => `${count} ${word}${count === 1 ? '' : 's'}`;
+  const summary = statsLoading || relsLoading || invLoading
+    ? 'Loading…'
+    : [
+        statCount > 0 && plural(statCount, 'stat'),
+        relationshipCount > 0 && plural(relationshipCount, 'relationship'),
+        itemCount > 0 && plural(itemCount, 'item'),
+      ].filter(Boolean).join(' · ') || 'Nothing recorded yet';
+
   return (
-    <div className="flex flex-col gap-4">
+    <div className="@container flex flex-col gap-4">
       {/* Character header */}
-      <div className="flex items-center gap-4 rounded-xl border border-border bg-card p-4">
+      <div className="flex items-center gap-3 rounded-xl border border-border bg-card p-3 sm:gap-4 sm:p-4">
         <button
           type="button"
           onClick={() => openCharacterCard(characterId, conversationId)}
@@ -322,12 +386,12 @@ export default function CharacterSheet({
         </button>
         <div className="min-w-0 flex-1">
           <h2 className="text-lg font-semibold text-foreground truncate">{characterName}</h2>
-          <p className="text-xs text-muted-foreground">Character Sheet</p>
+          <p className="truncate text-xs text-muted-foreground">{summary}</p>
         </div>
       </div>
 
       {/* Stats section */}
-      <CollapsibleSection
+      {showStats && <CollapsibleSection
         id="stats"
         title="Stats"
         icon={<BarChart3 size={16} />}
@@ -336,10 +400,7 @@ export default function CharacterSheet({
         onToggle={() => toggleSection('stats')}
         loading={statsLoading}
       >
-        {(stats as CharacterStat[]).length === 0 ? (
-          <p className="py-1 text-center text-sm text-muted-foreground">No stats defined</p>
-        ) : (
-          <div className="flex flex-col gap-4">
+        <div className="flex flex-col gap-4">
             {Object.entries(statsByCategory).map(([category, categoryStats]) => (
               <div key={category}>
                 {Object.keys(statsByCategory).length > 1 && (
@@ -364,12 +425,11 @@ export default function CharacterSheet({
                 </div>
               </div>
             ))}
-          </div>
-        )}
-      </CollapsibleSection>
+        </div>
+      </CollapsibleSection>}
 
       {/* Relationships section */}
-      <CollapsibleSection
+      {showRelationships && <CollapsibleSection
         id="relationships"
         title="Relationships"
         icon={<Users size={16} />}
@@ -378,10 +438,8 @@ export default function CharacterSheet({
         onToggle={() => toggleSection('relationships')}
         loading={relsLoading}
       >
-        {(relationships as CharacterRelationship[]).length === 0 ? (
-          <p className="py-1 text-center text-sm text-muted-foreground">No relationships defined</p>
-        ) : narratorMode ? (
-          <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+        {narratorMode ? (
+          <div className="grid grid-cols-1 gap-3 @md:grid-cols-2">
             {(relationships as CharacterRelationship[]).map((rel) => (
               <EditableRelationshipRow
                 key={rel.relationshipId}
@@ -391,16 +449,16 @@ export default function CharacterSheet({
             ))}
           </div>
         ) : (
-          <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+          <div className="grid grid-cols-1 gap-3 @md:grid-cols-2">
             {(relationships as CharacterRelationship[]).map((rel) => (
               <RelationshipCard key={rel.relationshipId} relationship={rel} />
             ))}
           </div>
         )}
-      </CollapsibleSection>
+      </CollapsibleSection>}
 
       {/* Inventory section */}
-      <CollapsibleSection
+      {showInventory && <CollapsibleSection
         id="inventory"
         title="Inventory"
         icon={<Package size={16} />}
@@ -410,7 +468,7 @@ export default function CharacterSheet({
         loading={invLoading}
       >
         <InventoryList conversationId={conversationId} characterId={characterId} narratorMode={narratorMode} />
-      </CollapsibleSection>
+      </CollapsibleSection>}
     </div>
   );
 }

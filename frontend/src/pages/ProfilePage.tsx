@@ -97,13 +97,13 @@ const ProfilePage: React.FC = () => {
         }
       />
 
-      <div className="custom-scrollbar flex-1 overflow-y-auto px-4 py-8 sm:px-6">
+      <div className="custom-scrollbar flex-1 overflow-y-auto px-4 py-6 sm:px-6 sm:py-8">
         <div className="mx-auto max-w-4xl">
           {/* Profile Information */}
           <div className={cn(
-            'rounded-2xl border border-border bg-card p-6 mb-6'
+            'rounded-2xl border border-border bg-card p-4 mb-4 sm:p-6 sm:mb-6'
           )}>
-            <div className="flex flex-wrap items-center justify-between gap-3 mb-6">
+            <div className="flex flex-wrap items-center justify-between gap-3 mb-4 sm:mb-6">
               <div className="flex items-center gap-3">
                 <div className={cn(
                   'flex h-10 w-10 items-center justify-center rounded-xl',
@@ -115,9 +115,10 @@ const ProfilePage: React.FC = () => {
               </div>
               {!isEditingProfile && (
                 <button
+                  type="button"
                   onClick={() => setIsEditingProfile(true)}
                   className={cn(
-                    'flex items-center gap-2 px-3 py-1.5 rounded-lg text-sm',
+                    'flex min-h-10 items-center gap-2 px-3 py-1.5 rounded-lg text-sm sm:min-h-0',
                     'text-primary hover:bg-primary/10 transition-colors duration-150'
                   )}
                 >
@@ -199,7 +200,7 @@ const ProfilePage: React.FC = () => {
                     type="submit"
                     disabled={updateLoading}
                     className={cn(
-                      'inline-flex shrink-0 items-center gap-2 whitespace-nowrap px-4 py-2.5 rounded-xl text-sm font-medium',
+                      'inline-flex min-h-11 flex-1 items-center justify-center gap-2 whitespace-nowrap px-4 py-2.5 rounded-xl text-sm font-medium sm:min-h-0 sm:flex-none',
                       'bg-primary text-primary-foreground hover:bg-primary-hover',
                       'disabled:opacity-50 transition-colors duration-150'
                     )}
@@ -229,7 +230,7 @@ const ProfilePage: React.FC = () => {
                       });
                     }}
                     className={cn(
-                      'px-4 py-2.5 rounded-xl text-sm font-medium',
+                      'min-h-11 flex-1 px-4 py-2.5 rounded-xl text-sm font-medium sm:min-h-0 sm:flex-none',
                       'bg-muted text-muted-foreground hover:bg-accent hover:text-foreground',
                       'transition-colors duration-150'
                     )}
@@ -242,25 +243,25 @@ const ProfilePage: React.FC = () => {
               <dl className="divide-border/60 divide-y">
                 <div className="flex items-center gap-3 py-3">
                   <User size={16} className="text-muted-foreground shrink-0" aria-hidden="true" />
-                  <div>
+                  <div className="min-w-0">
                     <dt className="text-muted-foreground text-2xs font-medium tracking-wider uppercase">Username</dt>
-                    <dd className="text-foreground text-sm">{user.username || user.email}</dd>
+                    <dd className="text-foreground text-sm break-all">{user.username || user.email}</dd>
                   </div>
                 </div>
 
                 <div className="flex items-center gap-3 py-3">
                   <Mail size={16} className="text-muted-foreground shrink-0" aria-hidden="true" />
-                  <div>
+                  <div className="min-w-0">
                     <dt className="text-muted-foreground text-2xs font-medium tracking-wider uppercase">Email</dt>
-                    <dd className="text-foreground text-sm">{user.email}</dd>
+                    <dd className="text-foreground text-sm break-all">{user.email}</dd>
                   </div>
                 </div>
 
                 <div className="flex items-center gap-3 py-3">
                   <User size={16} className="text-muted-foreground shrink-0" aria-hidden="true" />
-                  <div>
+                  <div className="min-w-0">
                     <dt className="text-muted-foreground text-2xs font-medium tracking-wider uppercase">Display Name</dt>
-                    <dd className="text-foreground text-sm">{user.displayName || '-'}</dd>
+                    <dd className="text-foreground text-sm break-words">{user.displayName || '-'}</dd>
                   </div>
                 </div>
 
@@ -285,7 +286,7 @@ const ProfilePage: React.FC = () => {
                 {user.bio && (
                   <div className="py-3">
                     <dt className="text-muted-foreground text-2xs font-medium tracking-wider uppercase mb-1">Bio</dt>
-                    <dd className="text-foreground text-sm">{user.bio}</dd>
+                    <dd className="text-foreground text-sm break-words whitespace-pre-line">{user.bio}</dd>
                   </div>
                 )}
               </dl>
@@ -294,9 +295,9 @@ const ProfilePage: React.FC = () => {
 
           {/* Security */}
           <div className={cn(
-            'rounded-2xl border border-border bg-card p-6'
+            'rounded-2xl border border-border bg-card p-4 sm:p-6'
           )}>
-            <div className="flex flex-wrap items-center justify-between gap-3 mb-6">
+            <div className="flex flex-wrap items-center justify-between gap-3 mb-4 sm:mb-6">
               <div className="flex items-center gap-3">
                 <div className={cn(
                   'flex h-10 w-10 items-center justify-center rounded-xl',
@@ -308,9 +309,10 @@ const ProfilePage: React.FC = () => {
               </div>
               {!isChangingPassword && (
                 <button
+                  type="button"
                   onClick={() => setIsChangingPassword(true)}
                   className={cn(
-                    'flex items-center gap-2 px-3 py-1.5 rounded-lg text-sm',
+                    'flex min-h-10 items-center gap-2 px-3 py-1.5 rounded-lg text-sm sm:min-h-0',
                     'text-primary hover:bg-primary/10 transition-colors duration-150'
                   )}
                 >
@@ -384,7 +386,7 @@ const ProfilePage: React.FC = () => {
                     type="submit"
                     disabled={passwordLoading}
                     className={cn(
-                      'inline-flex shrink-0 items-center gap-2 whitespace-nowrap px-4 py-2.5 rounded-xl text-sm font-medium',
+                      'inline-flex min-h-11 flex-1 items-center justify-center gap-2 whitespace-nowrap px-4 py-2.5 rounded-xl text-sm font-medium sm:min-h-0 sm:flex-none',
                       'bg-primary text-primary-foreground hover:bg-primary-hover',
                       'disabled:opacity-50 transition-colors duration-150'
                     )}
@@ -406,7 +408,7 @@ const ProfilePage: React.FC = () => {
                       setPasswordData({ currentPassword: '', newPassword: '', confirmPassword: '' });
                     }}
                     className={cn(
-                      'px-4 py-2.5 rounded-xl text-sm font-medium',
+                      'min-h-11 flex-1 px-4 py-2.5 rounded-xl text-sm font-medium sm:min-h-0 sm:flex-none',
                       'bg-muted text-muted-foreground hover:bg-accent hover:text-foreground',
                       'transition-colors duration-150'
                     )}

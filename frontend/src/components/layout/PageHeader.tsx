@@ -46,7 +46,7 @@ export const PageHeader = ({
     <div className="px-4 sm:px-6">
       <div
         className={cn(
-          'mx-auto flex flex-wrap items-center justify-between gap-x-4 gap-y-3 py-4',
+          'mx-auto flex flex-wrap items-center justify-between gap-x-4 gap-y-3 py-3 sm:py-4',
           measure,
         )}
       >

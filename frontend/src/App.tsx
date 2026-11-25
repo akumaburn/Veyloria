@@ -75,7 +75,7 @@ const PublicRoute: React.FC<{ children: React.ReactNode }> = ({ children }) => {
 
 // Loading fallback component
 const PageLoader: React.FC = () => (
-  <div className="flex items-center justify-center min-h-screen">
+  <div className="flex items-center justify-center min-h-dvh">
     <LoadingSpinner size="lg" />
   </div>
 );
@@ -187,7 +187,7 @@ function AppContent() {
   return (
     <BrowserRouter>
       <AuthProvider>
-        <div className="min-h-screen bg-background text-foreground">
+        <div className="min-h-dvh bg-background text-foreground">
           {/* Global components */}
           <SessionTimeoutWarning />
           <Toaster
@@ -234,14 +234,14 @@ function AppContent() {
               {/* Public auth pages */}
               <Route path="/forgot-password" element={
                 <PublicRoute>
-                  <div className="min-h-screen flex items-center justify-center">
+                  <div className="min-h-dvh flex items-center justify-center">
                     <p className="text-muted-foreground">Password reset coming soon</p>
                   </div>
                 </PublicRoute>
               } />
               <Route path="/reset-password" element={
                 <PublicRoute>
-                  <div className="min-h-screen flex items-center justify-center">
+                  <div className="min-h-dvh flex items-center justify-center">
                     <p className="text-muted-foreground">Password reset coming soon</p>
                   </div>
                 </PublicRoute>
@@ -254,7 +254,7 @@ function AppContent() {
               {/* Debug-only public route (no MainLayout, so provide full-height container) */}
               {debugMode && (
                 <Route path="/testmap" element={
-                  <div className="h-screen flex flex-col">
+                  <div className="h-dvh flex flex-col">
                     <TestMapPage />
                   </div>
                 } />

@@ -10,7 +10,6 @@ interface LocalMapPanelProps {
   className?: string;
   /** Narrator (GM) view: the whole layout is known, so no fog of war. */
   narratorMode?: boolean;
-  expanded?: boolean;
 }
 
 /**
@@ -37,7 +36,13 @@ function compassDirection(fromX: number, fromY: number, toX: number, toY: number
  * This is the visual counterpart of the STAGE block given to the model —
  * the narrative drives the position; this panel shows the result.
  */
-export default function LocalMapPanel({ conversationId, className, narratorMode = false, expanded = false }: LocalMapPanelProps) {
+const LABEL_SIZE = 4.2;
+const LABEL_OFFSET = 7.2;
+const MARKER_PAD = 6;
+const MIN_SPAN = 40;
+const MIN_ASPECT = 0.5;
+
+export default function LocalMapPanel({ conversationId, className, narratorMode = false }: LocalMapPanelProps) {
   const { localMap, refetch, loading, error } = useLocalMap(conversationId);
   const { worldState } = useWorldStateChanged(conversationId);
   const refetchRef = useRef(refetch);
@@ -65,6 +70,33 @@ export default function LocalMapPanel({ conversationId, className, narratorMode 
     () => new Set(visibleAreas.map((area) => area.localAreaId)),
     [visibleAreas]
   );
+
+  // Frame only what is drawn: marker radius above, the label below, and half
+  // of the widest label on each side. The map crops to this frame at
+  // a fixed scale rather than zooming, so markers and labels keep their size.
+  const frame = useMemo(() => {
+    const fontSize = LABEL_SIZE;
+    if (!visibleAreas.length) return { x: -6, y: -6, width: 112, height: 112 };
+    let minX = Infinity, maxX = -Infinity, minY = Infinity, maxY = -Infinity;
+    for (const area of visibleAreas) {
+      const halfLabel = (area.name.length * fontSize * 0.3);
+      minX = Math.min(minX, area.x - Math.max(halfLabel, MARKER_PAD));
+      maxX = Math.max(maxX, area.x + Math.max(halfLabel, MARKER_PAD));
+      minY = Math.min(minY, area.y - MARKER_PAD);
+      maxY = Math.max(maxY, area.y + LABEL_OFFSET + fontSize * 0.4 + 2);
+    }
+    let width = maxX - minX;
+    let height = maxY - minY;
+    // Keep a sparse trail from being blown up, and a flat one from becoming a sliver.
+    const grow = (size: number, min: number) => Math.max(size, min);
+    const targetWidth = grow(width, MIN_SPAN);
+    const targetHeight = grow(height, Math.max(MIN_SPAN * 0.6, targetWidth * MIN_ASPECT));
+    minX -= (targetWidth - width) / 2;
+    minY -= (targetHeight - height) / 2;
+    width = targetWidth;
+    height = targetHeight;
+    return { x: minX, y: minY, width, height };
+  }, [visibleAreas]);
 
   const current = useMemo(
     () => localMap?.areas?.find((area) => area.localAreaId === localMap.currentAreaId) ?? null,
@@ -106,7 +138,6 @@ export default function LocalMapPanel({ conversationId, className, narratorMode 
   }, [localMap, current]);
 
   if (!localMap) {
-    if (!expanded) return null;
     return <div className="flex h-full min-h-64 flex-col items-center justify-center gap-3 p-6 text-center">
       <MapPin size={24} className="text-muted-foreground" aria-hidden="true" />
       <p role={error ? 'alert' : 'status'} className="text-sm text-muted-foreground">
@@ -117,18 +148,15 @@ export default function LocalMapPanel({ conversationId, className, narratorMode 
   }
 
   return (
-    <div className={cn(expanded ? 'mx-auto grid max-w-7xl gap-5 p-4 sm:p-6 lg:grid-cols-[minmax(0,1fr)_18rem]' : 'space-y-2', className)}>
-      {!expanded && <div className="flex items-center gap-1.5">
-        <MapPin size={12} className="text-rose-400" />
-        <h4 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
-          Local Map
-        </h4>
-      </div>}
+    // Layout follows the panel's own width, so it works full-page and in the
+    // roleplay tools panel alike.
+    <div className={cn('@container', className)}>
+    <div className="mx-auto grid max-w-7xl gap-3 p-3 @lg:gap-5 @lg:p-6 @3xl:grid-cols-[minmax(0,1fr)_18rem]">
 
       <div className="overflow-hidden rounded-lg border border-border/50 bg-card/50">
         <div className="border-b border-border/50 px-3 py-2">
           <p className="truncate text-sm font-medium text-foreground">{localMap.locationName}</p>
-          <p className={cn(expanded ? 'text-sm' : 'text-[11px]', 'text-muted-foreground')}>
+          <p className="text-sm text-muted-foreground">
             {current ? current.name : localMap.currentAreaName || 'Unknown area'}
             <span className="text-muted-foreground/70">
               {' '}· {exploredCount} of {localMap.areas.length} areas explored
@@ -137,8 +165,9 @@ export default function LocalMapPanel({ conversationId, className, narratorMode 
         </div>
 
         <svg
-          viewBox="-6 -6 112 112"
-          className={expanded ? 'aspect-square max-h-[min(65vh,42rem)] w-full' : 'h-44 w-full'}
+          viewBox={`${frame.x} ${frame.y} ${frame.width} ${frame.height}`}
+          className="mx-auto block max-h-[min(65dvh,42rem)] w-[min(100%,calc(var(--map-span)*3.4px))] @3xl:w-[min(100%,calc(var(--map-span)*5px))]"
+          style={{ aspectRatio: `${frame.width} / ${frame.height}`, '--map-span': frame.width } as React.CSSProperties}
           role="img"
           aria-label={`Layout of ${localMap.locationName}`}
         >
@@ -188,11 +217,11 @@ export default function LocalMapPanel({ conversationId, className, narratorMode 
                 </circle>
                 <text
                   x={area.x}
-                  y={area.y + 7.2}
+                  y={area.y + LABEL_OFFSET}
                   textAnchor="middle"
                   fill={isCurrent ? 'hsl(var(--foreground))' : 'hsl(var(--muted-foreground))'}
                   fontWeight={isCurrent ? 600 : 400}
-                  className={cn('select-none', expanded ? 'text-[4.2px]' : 'text-[3.4px]')}
+                  className="select-none text-[4.2px]"
                 >
                   {area.name}
                 </text>
@@ -202,25 +231,25 @@ export default function LocalMapPanel({ conversationId, className, narratorMode 
         </svg>
 
         {current?.description && (
-          <p className={cn('border-t border-border/50 px-3 py-2 leading-relaxed text-muted-foreground', expanded ? 'text-sm' : 'text-[11px]')}>
+          <p className="border-t border-border/50 px-3 py-2 text-sm leading-relaxed text-muted-foreground">
             {current.description}
           </p>
         )}
       </div>
 
-      <div className={cn(expanded ? 'self-start py-2 lg:sticky lg:top-4' : 'rounded-lg border border-border/50 bg-card/50 p-3')}>
-        <div className={cn('mb-2 flex items-center gap-1.5 font-medium text-muted-foreground', expanded ? 'text-sm' : 'text-[11px] uppercase tracking-wide')}>
+      <div className="self-start py-1 @3xl:sticky @3xl:top-4 @3xl:py-2">
+        <div className="mb-2 flex items-center gap-1.5 text-sm font-medium text-muted-foreground">
           <DoorOpen size={11} />
           Exits
         </div>
         {exits.length === 0 ? (
           <p className="text-[11px] text-muted-foreground">No recorded exits from this area.</p>
         ) : (
-          <ul className={expanded ? 'space-y-3' : 'space-y-1'}>
+          <ul className="space-y-3">
             {exits.map(({ area, label, direction }) => {
               const explored = visited.has(area.localAreaId);
               return (
-                <li key={area.localAreaId} className={cn('flex items-start justify-between gap-2',expanded ? 'text-sm' : 'text-[11px]')}>
+                <li key={area.localAreaId} className="flex items-start justify-between gap-2 text-sm">
                   <span className="min-w-0 break-words text-foreground">
                     {area.name}
                     <span className="text-muted-foreground"> ({direction})</span>
@@ -240,6 +269,7 @@ export default function LocalMapPanel({ conversationId, className, narratorMode 
           </p>
         )}
       </div>
+    </div>
     </div>
   );
 }

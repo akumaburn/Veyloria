@@ -81,7 +81,7 @@ export default function DiceRoller({ conversationId, characters = [], narratorMo
 
       {/* Expression input and roll button */}
       <div className="flex items-end gap-2">
-        <div className="flex-1">
+        <div className="min-w-0 flex-1">
           <Input
             label="Dice Expression"
             value={expression}
@@ -97,21 +97,22 @@ export default function DiceRoller({ conversationId, characters = [], narratorMo
           onClick={handleRoll}
           isLoading={loading}
           leftIcon={<Send size={14} />}
-          className="shrink-0"
+          className="h-9 shrink-0"
         >
           Roll
         </Button>
       </div>
 
       {/* Quick presets */}
-      <div className="flex flex-wrap gap-1.5">
+      <div className="grid grid-cols-4 gap-1.5 sm:flex sm:flex-wrap" role="group" aria-label="Dice presets">
         {PRESET_EXPRESSIONS.map((preset) => (
           <button
             key={preset.value}
             type="button"
+            aria-pressed={expression === preset.value}
             onClick={() => setExpression(preset.value)}
             className={cn(
-              'rounded-md px-2.5 py-1 text-xs font-mono transition-colors',
+              'h-10 rounded-md px-2 text-xs font-mono transition-colors sm:h-auto sm:px-2.5 sm:py-1',
               expression === preset.value
                 ? 'bg-warning/15 text-warning ring-1 ring-warning/40'
                 : 'bg-muted text-muted-foreground hover:bg-accent hover:text-foreground'

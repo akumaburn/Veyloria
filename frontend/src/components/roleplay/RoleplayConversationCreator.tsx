@@ -192,24 +192,25 @@ export default function RoleplayConversationCreator({
       }
       size="lg"
       footer={
-        <div className="flex items-center justify-between">
-          <Button variant="ghost" size="sm" onClick={handleReset} disabled={creating}>
+        <div className="flex items-center justify-between gap-2">
+          <Button variant="ghost" size="sm" className="h-10 sm:h-8" onClick={handleReset} disabled={creating}>
             Reset
           </Button>
           <div className="flex items-center gap-2">
-            <Button variant="outline" size="sm" onClick={onClose} disabled={creating}>
+            <Button variant="outline" size="sm" className="h-10 sm:h-8" onClick={onClose} disabled={creating}>
               Cancel
             </Button>
             <Button
               variant="primary"
               size="sm"
+              className="h-10 sm:h-8"
               onClick={handleSubmit}
               isLoading={creating}
               loadingText="Creating..."
               leftIcon={<Plus size={16} />}
               disabled={selectedCharacterIds.length === 0}
             >
-              Create Roleplay
+              Create<span className="hidden sm:inline"> Roleplay</span>
             </Button>
           </div>
         </div>
@@ -440,9 +441,9 @@ export default function RoleplayConversationCreator({
 
           {selectedTemplate && (
             <Card padding="sm" className="mt-3 space-y-2">
-              <div className="flex items-center justify-between">
-                <h4 className="text-sm font-semibold text-foreground">{selectedTemplate.name}</h4>
-                <span className="rounded-full bg-primary/15 px-2 py-0.5 text-xs font-medium text-primary">
+              <div className="flex items-start justify-between gap-2">
+                <h4 className="min-w-0 text-sm font-semibold break-words text-foreground">{selectedTemplate.name}</h4>
+                <span className="shrink-0 rounded-full bg-primary/15 px-2 py-0.5 text-xs font-medium text-primary">
                   {selectedTemplate.genre}
                 </span>
               </div>
@@ -459,10 +460,10 @@ export default function RoleplayConversationCreator({
         </div>
 
         {/* Agent Pipeline Toggle */}
-        <Card padding="sm" className="flex items-center justify-between">
-          <div className="flex items-center gap-2">
-            <Wand2 size={16} className="text-primary" />
-            <div>
+        <Card padding="sm" className="flex items-center justify-between gap-3">
+          <div className="flex min-w-0 items-center gap-2">
+            <Wand2 size={16} className="shrink-0 text-primary" />
+            <div className="min-w-0">
               <p className="text-sm font-medium text-foreground">Agent Pipeline</p>
               <p className="text-xs text-muted-foreground">
                 Enable multi-agent processing for richer narrative generation.

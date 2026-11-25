@@ -104,10 +104,10 @@ export const TTSSettings = () => {
       {initError && (
         <div className="p-4 bg-destructive/10 border border-destructive/30 rounded-xl">
           <div className="flex items-center gap-3">
-            <Volume2 size={20} className="text-destructive" />
-            <div>
+            <Volume2 size={20} className="shrink-0 text-destructive" />
+            <div className="min-w-0">
               <p className="text-sm font-medium text-destructive">TTS Server Not Available</p>
-              <p className="text-sm text-destructive mt-0.5">
+              <p className="text-sm text-destructive mt-0.5 break-words">
                 {initError}. Make sure the TTS server is running at {settings.serverUrl}
               </p>
             </div>
@@ -187,7 +187,7 @@ export const TTSSettings = () => {
         </SettingRow>
         <SettingRow label="Character dialogue" description="Edit a character’s Personality to shape their voice. Playback begins when the response finishes, so speaker changes stay accurate.">{null}</SettingRow>
         {!voicesLoaded && !initError && settings.enabled && (
-          <div className="px-5 py-3">
+          <div className="px-4 py-3 sm:px-5">
             <div className="flex items-center gap-2 text-sm text-muted-foreground">
               <div className="h-4 w-4 animate-spin rounded-full border-2 border-primary border-t-transparent" />
               Loading available voices...
@@ -196,7 +196,7 @@ export const TTSSettings = () => {
         )}
 
         {voicesLoaded && voices.length === 0 && settings.enabled && (
-          <div className="px-5 py-3">
+          <div className="px-4 py-3 sm:px-5">
             <p className="text-sm text-muted-foreground">
               No voices available. Make sure the TTS server is running.
             </p>
@@ -222,12 +222,12 @@ export const TTSSettings = () => {
           />
         </SettingRow>
 
-        <div className="px-5 py-3">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-2">
+        <div className="px-4 py-3 sm:px-5">
+          <div className="flex flex-wrap items-center justify-between gap-3">
+            <div className="flex min-w-0 items-center gap-2">
               <div
                 className={cn(
-                  'h-2.5 w-2.5 rounded-full',
+                  'h-2.5 w-2.5 shrink-0 rounded-full',
                   isChecking
                     ? 'bg-warning animate-pulse'
                     : isInitialized && !initError
@@ -248,13 +248,14 @@ export const TTSSettings = () => {
               </span>
             </div>
             <button
+              type="button"
               onClick={() => {
                 setIsChecking(true);
                 void checkConnection().finally(() => setIsChecking(false));
               }}
               disabled={isChecking}
               className={cn(
-                'flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium transition-all',
+                'flex min-h-10 items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium transition-all sm:min-h-0',
                 'border border-border/50 bg-muted/50 text-muted-foreground hover:bg-accent hover:text-foreground',
                 isChecking && 'opacity-50 cursor-not-allowed'
               )}

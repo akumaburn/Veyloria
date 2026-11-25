@@ -34,32 +34,39 @@ export const InterjectionModal = ({
 
   return (
     <div className={cn(
-      'fixed inset-0 z-50 flex items-center justify-center',
+      'fixed inset-0 z-50 flex items-center justify-center p-4',
       'bg-black/50 backdrop-blur-sm'
     )}>
-      <div className={cn(
-        'w-full max-w-md overflow-hidden',
-        'rounded-2xl border border-border bg-background',
-        'shadow-2xl animate-fade-up'
-      )}>
+      <div
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="interjection-modal-title"
+        className={cn(
+          'flex w-full max-w-md max-h-[calc(100dvh-2rem)] flex-col overflow-hidden',
+          'rounded-2xl border border-border bg-background',
+          'shadow-2xl animate-fade-up'
+        )}
+      >
         {/* Header */}
-        <div className="flex items-center justify-between border-b border-border p-4">
-          <div className="flex items-center gap-3">
+        <div className="flex shrink-0 items-center justify-between gap-3 border-b border-border p-4">
+          <div className="flex min-w-0 items-center gap-3">
             <div className={cn(
-              'flex h-10 w-10 items-center justify-center rounded-xl',
+              'flex h-10 w-10 shrink-0 items-center justify-center rounded-xl',
               'bg-gradient-to-br from-warning to-warning/80 shadow-lg'
             )}>
               <Hand size={20} className="text-warning-foreground" />
             </div>
-            <div>
-              <h2 className="text-lg font-semibold text-foreground">Request Interjection</h2>
+            <div className="min-w-0">
+              <h2 id="interjection-modal-title" className="text-lg font-semibold text-foreground">Request Interjection</h2>
               <p className="text-xs text-muted-foreground">Ask to speak out of turn</p>
             </div>
           </div>
           <button
+            type="button"
             onClick={onClose}
+            aria-label="Close"
             className={cn(
-              'rounded-lg p-2 text-muted-foreground',
+              'inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-lg text-muted-foreground',
               'hover:bg-accent hover:text-foreground',
               'transition-colors duration-150'
             )}
@@ -68,7 +75,7 @@ export const InterjectionModal = ({
           </button>
         </div>
 
-        <div className="p-4 space-y-4">
+        <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain p-4 space-y-4">
           {/* Priority selection */}
           <div>
             <label className="block text-sm font-medium text-foreground mb-2">
@@ -78,9 +85,11 @@ export const InterjectionModal = ({
               {priorities.map((p) => (
                 <button
                   key={p.value}
+                  type="button"
                   onClick={() => setPriority(p.value)}
+                  aria-pressed={priority === p.value}
                   className={cn(
-                    'flex-1 flex flex-col items-center gap-1 rounded-xl border p-3',
+                    'flex-1 flex min-h-11 flex-col items-center justify-center gap-1 rounded-xl border p-2 sm:p-3',
                     'transition-all duration-150',
                     priority === p.value
                       ? 'border-primary bg-primary/10'
@@ -89,7 +98,7 @@ export const InterjectionModal = ({
                 >
                   {p.icon && <p.icon size={16} className={priority === p.value ? 'text-primary' : 'text-muted-foreground'} />}
                   <span className="text-sm font-medium">{p.label}</span>
-                  <span className="text-xs text-muted-foreground">{p.description}</span>
+                  <span className="text-xs text-muted-foreground max-sm:hidden">{p.description}</span>
                 </button>
               ))}
             </div>
@@ -122,11 +131,12 @@ export const InterjectionModal = ({
         </div>
 
         {/* Footer */}
-        <div className="flex justify-end gap-2 border-t border-border p-4 bg-background-secondary/50">
+        <div className="flex shrink-0 justify-end gap-2 border-t border-border p-4 bg-background-secondary/50">
           <button
+            type="button"
             onClick={onClose}
             className={cn(
-              'rounded-lg px-4 py-2 text-sm font-medium',
+              'rounded-lg px-4 py-2 text-sm font-medium max-sm:min-h-11 max-sm:flex-1',
               'bg-muted text-muted-foreground',
               'hover:bg-accent hover:text-foreground',
               'transition-colors duration-150'
@@ -135,10 +145,11 @@ export const InterjectionModal = ({
             Cancel
           </button>
           <button
+            type="button"
             onClick={handleSubmit}
             disabled={isLoading}
             className={cn(
-              'flex items-center gap-2 rounded-lg px-4 py-2 text-sm font-medium',
+              'flex items-center justify-center gap-2 rounded-lg px-4 py-2 text-sm font-medium max-sm:min-h-11 max-sm:flex-1',
               'bg-primary text-primary-foreground',
               'hover:bg-primary-hover',
               'disabled:opacity-50 disabled:cursor-not-allowed',

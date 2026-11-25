@@ -194,15 +194,17 @@ export const MessageSearchModal = ({ isOpen, onClose }: MessageSearchModalProps)
             onChange={(e) => setSearchQuery(e.target.value)}
             className={cn(
               'w-full rounded-xl border border-border bg-muted/50',
-              'py-3 pl-10 pr-10 text-foreground placeholder-muted-foreground',
+              'py-3 pl-10 pr-12 text-foreground placeholder-muted-foreground',
               'focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20',
               'transition-all duration-150'
             )}
           />
           {searchQuery && (
             <button
+              type="button"
               onClick={() => setSearchQuery('')}
-              className="absolute right-3 top-1/2 -translate-y-1/2 p-1 rounded-md text-muted-foreground hover:text-foreground hover:bg-accent transition-colors"
+              aria-label="Clear search"
+              className="absolute right-1 top-1/2 inline-flex h-10 w-10 -translate-y-1/2 items-center justify-center rounded-lg text-muted-foreground hover:text-foreground hover:bg-accent transition-colors"
             >
               <X size={16} />
             </button>
@@ -210,7 +212,7 @@ export const MessageSearchModal = ({ isOpen, onClose }: MessageSearchModalProps)
         </div>
 
         {/* Search Results */}
-        <div className="min-h-[200px] max-h-[400px] overflow-y-auto custom-scrollbar">
+        <div className="min-h-[160px] max-h-[min(400px,calc(100dvh-16rem))] overflow-y-auto overscroll-contain custom-scrollbar sm:min-h-[200px]">
           {loading && results.length === 0 ? (
             <div className="flex flex-col items-center justify-center py-12">
               <Loader2 size={32} className="animate-spin text-primary" />
@@ -253,13 +255,13 @@ export const MessageSearchModal = ({ isOpen, onClose }: MessageSearchModalProps)
                     }
                   }}
                   className={cn(
-                    'group relative rounded-xl p-3 cursor-pointer',
+                    'group relative rounded-xl p-2.5 cursor-pointer sm:p-3',
                     'border border-transparent',
                     'hover:bg-accent hover:border-border/50',
                     'transition-all duration-150'
                   )}
                 >
-                  <div className="flex items-start gap-3">
+                  <div className="flex items-start gap-2.5 sm:gap-3">
                     {/* Role icon */}
                     <div
                       className={cn(
@@ -290,8 +292,8 @@ export const MessageSearchModal = ({ isOpen, onClose }: MessageSearchModalProps)
                       </div>
 
                       {/* Conversation info */}
-                      <div className="flex items-center gap-2 mt-2">
-                        <MessageSquare size={12} className="text-muted-foreground" />
+                      <div className="flex min-w-0 items-center gap-2 mt-2">
+                        <MessageSquare size={12} className="shrink-0 text-muted-foreground" />
                         <span className="text-xs text-muted-foreground truncate">
                           {result.conversation.title || 'Untitled conversation'}
                         </span>
@@ -299,7 +301,7 @@ export const MessageSearchModal = ({ isOpen, onClose }: MessageSearchModalProps)
                     </div>
 
                     {/* Arrow indicator */}
-                    <div className="opacity-0 group-hover:opacity-100 transition-opacity flex-shrink-0">
+                    <div className="opacity-0 group-hover:opacity-100 transition-opacity flex-shrink-0 max-sm:hidden" aria-hidden="true">
                       <ArrowRight size={16} className="text-muted-foreground" />
                     </div>
                   </div>
@@ -310,10 +312,11 @@ export const MessageSearchModal = ({ isOpen, onClose }: MessageSearchModalProps)
               {hasMore && (
                 <div className="pt-2 pb-1">
                   <button
+                    type="button"
                     onClick={loadMore}
                     disabled={loading}
                     className={cn(
-                      'w-full rounded-lg py-2 text-sm font-medium',
+                      'w-full rounded-lg py-2 text-sm font-medium max-sm:min-h-11',
                       'bg-muted text-muted-foreground',
                       'hover:bg-accent hover:text-foreground',
                       'disabled:opacity-50 transition-colors duration-150'

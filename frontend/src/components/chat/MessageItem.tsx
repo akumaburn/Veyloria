@@ -126,9 +126,11 @@ const ActionButton = memo(({
   variant?: 'default' | 'danger' | 'success';
 }) => (
   <button
+    type="button"
     onClick={onClick}
+    aria-label={title}
     className={cn(
-      'rounded-lg p-1.5 transition-all duration-150',
+      'inline-flex items-center justify-center rounded-lg p-1.5 transition-all duration-150 max-md:h-10 max-md:w-10',
       variant === 'default' && 'text-muted-foreground hover:bg-accent hover:text-foreground',
       variant === 'danger' && 'text-muted-foreground hover:bg-destructive/10 hover:text-destructive',
       variant === 'success' && 'text-success bg-success/10'
@@ -162,6 +164,13 @@ interface MessageItemProps {
 // Edit time window in seconds (must match backend EDIT_TIME_LIMIT_MINUTES * 60)
 const EDIT_WINDOW_SECONDS = 5 * 60; // 5 minutes
 
+const INTERACTIVE_SELECTOR = 'a, button, input, textarea, select, [role="button"]';
+
+const actionTrayVisibility = (visible: boolean) =>
+  visible
+    ? 'opacity-100 translate-y-0'
+    : 'opacity-0 -translate-y-1 pointer-events-none max-md:hidden focus-within:pointer-events-auto focus-within:translate-y-0 focus-within:opacity-100';
+
 // Main MessageItem component wrapped in React.memo for performance
 // Uses custom comparison to prevent unnecessary re-renders of non-streaming messages
 export const MessageItem = memo(({
@@ -184,6 +193,7 @@ export const MessageItem = memo(({
   const [showThinking, setShowThinking] = useState(false);
   const [editTimeRemaining, setEditTimeRemaining] = useState<number | null>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
+  const rootRef = useRef<HTMLDivElement>(null);
 
   // Calculate and track edit time remaining for user messages
   useEffect(() => {
@@ -298,8 +308,28 @@ export const MessageItem = memo(({
   const handleStartEditing = useCallback(() => setIsEditing(true), []);
   const handleToggleExpanded = useCallback(() => setIsExpanded(prev => !prev), []);
   const handleToggleThinking = useCallback(() => setShowThinking(prev => !prev), []);
-  const handleMouseEnter = useCallback(() => setShowActions(true), []);
-  const handleMouseLeave = useCallback(() => setShowActions(false), []);
+  const handlePointerEnter = useCallback((event: React.PointerEvent) => {
+    if (event.pointerType === 'mouse') setShowActions(true);
+  }, []);
+  const handlePointerLeave = useCallback((event: React.PointerEvent) => {
+    if (event.pointerType === 'mouse') setShowActions(false);
+  }, []);
+  // Touch has no hover, so a tap on the message body toggles its action tray.
+  const handlePointerUp = useCallback((event: React.PointerEvent) => {
+    if (event.pointerType === 'mouse') return;
+    if ((event.target as Element).closest(INTERACTIVE_SELECTOR)) return;
+    setShowActions((prev) => !prev);
+  }, []);
+
+  useEffect(() => {
+    if (!showActions) return undefined;
+    const closeOnOutsideTouch = (event: PointerEvent) => {
+      if (event.pointerType === 'mouse') return;
+      if (!rootRef.current?.contains(event.target as Node)) setShowActions(false);
+    };
+    document.addEventListener('pointerdown', closeOnOutsideTouch);
+    return () => document.removeEventListener('pointerdown', closeOnOutsideTouch);
+  }, [showActions]);
   const handleRetryClick = useCallback(() => onRetry(message.id), [onRetry, message.id]);
   const handleDeleteClick = useCallback(() => onDelete(message.id), [onDelete, message.id]);
 
@@ -316,9 +346,11 @@ export const MessageItem = memo(({
   if (message.messageType === 'NARRATION') {
     return (
       <div
+        ref={rootRef}
         className="group relative"
-        onMouseEnter={handleMouseEnter}
-        onMouseLeave={handleMouseLeave}
+        onPointerEnter={handlePointerEnter}
+        onPointerLeave={handlePointerLeave}
+        onPointerUp={handlePointerUp}
       >
         <NarrationBlock
           content={displayContent ?? message.content}
@@ -326,7 +358,7 @@ export const MessageItem = memo(({
         />
         {message.battleId && conversationId && (
           <Link to={`/chat/${conversationId}?battle=${encodeURIComponent(message.battleId)}`}
-            className="mt-2 inline-flex rounded-md border border-border px-3 py-1.5 text-sm text-primary hover:bg-accent">
+            className="mt-2 inline-flex items-center rounded-md border border-border px-3 py-1.5 text-sm text-primary hover:bg-accent max-md:min-h-10">
             Open this encounter
           </Link>
         )}
@@ -349,7 +381,7 @@ export const MessageItem = memo(({
         <div className={cn(
           'mt-1 flex items-center gap-0.5 rounded-lg bg-card border border-border/50 p-1 shadow-lg w-fit',
           'transition-all duration-200',
-          showActions ? 'opacity-100 translate-y-0' : 'opacity-0 -translate-y-1 pointer-events-none'
+          actionTrayVisibility(showActions)
         )}>
           <ActionButton onClick={handleCopy} title="Copy" icon={isCopied ? Check : Copy} variant={isCopied ? 'success' : 'default'} />
           {allowStoryEditing && <ActionButton onClick={handleDeleteClick} title="Delete" icon={Trash2} variant="danger" />}
@@ -362,9 +394,11 @@ export const MessageItem = memo(({
   if (message.messageType === 'ACTION') {
     return (
       <div
+        ref={rootRef}
         className="group relative"
-        onMouseEnter={handleMouseEnter}
-        onMouseLeave={handleMouseLeave}
+        onPointerEnter={handlePointerEnter}
+        onPointerLeave={handlePointerLeave}
+        onPointerUp={handlePointerUp}
       >
         <ActionBlock
           content={displayContent ?? message.content}
@@ -391,7 +425,7 @@ export const MessageItem = memo(({
         <div className={cn(
           'mt-1 flex items-center gap-0.5 rounded-lg bg-card border border-border/50 p-1 shadow-lg w-fit',
           'transition-all duration-200',
-          showActions ? 'opacity-100 translate-y-0' : 'opacity-0 -translate-y-1 pointer-events-none'
+          actionTrayVisibility(showActions)
         )}>
           <ActionButton onClick={handleCopy} title="Copy" icon={isCopied ? Check : Copy} variant={isCopied ? 'success' : 'default'} />
           {allowStoryEditing && <ActionButton onClick={handleDeleteClick} title="Delete" icon={Trash2} variant="danger" />}
@@ -402,16 +436,22 @@ export const MessageItem = memo(({
 
   return (
     <div
+      ref={rootRef}
       className={cn(
-        'group relative flex gap-4',
+        'group relative flex gap-2.5 sm:gap-4',
         showOnRight ? 'flex-row-reverse' : 'flex-row'
       )}
-      onMouseEnter={handleMouseEnter}
-      onMouseLeave={handleMouseLeave}
+      onPointerEnter={handlePointerEnter}
+      onPointerLeave={handlePointerLeave}
+      onPointerUp={handlePointerUp}
     >
-      {/* Avatar */}
+      {/* Avatar; the player's own avatar is dropped on phones to give the bubble the width */}
       <div
-        className={cn('flex-shrink-0 pt-1', characterCardId && 'cursor-pointer rounded-xl')}
+        className={cn(
+          'flex-shrink-0 pt-1',
+          showOnRight && 'max-sm:hidden',
+          characterCardId && 'cursor-pointer rounded-xl'
+        )}
         onClick={characterCardId ? openCharacterCardForMessage : undefined}
         onKeyDown={
           characterCardId
@@ -435,7 +475,7 @@ export const MessageItem = memo(({
               src={message.author.profilePicture}
               alt={message.author.displayName}
               className={cn(
-                'h-9 w-9 rounded-xl object-cover shadow-lg',
+                'h-8 w-8 rounded-xl object-cover shadow-lg sm:h-9 sm:w-9',
                 'transition-transform duration-200 group-hover:scale-105',
                 isCurrentUser && 'ring-2 ring-primary ring-offset-2 ring-offset-background'
               )}
@@ -448,7 +488,7 @@ export const MessageItem = memo(({
               src={message.character.avatar}
               alt={message.character.name}
               className={cn(
-                'h-9 w-9 rounded-xl object-cover shadow-lg',
+                'h-8 w-8 rounded-xl object-cover shadow-lg sm:h-9 sm:w-9',
                 'transition-transform duration-200 group-hover:scale-105',
                 message.isInterjection && 'ring-2 ring-warning ring-offset-2 ring-offset-background'
               )}
@@ -462,7 +502,7 @@ export const MessageItem = memo(({
         ) : (
           <div
             className={cn(
-              'relative flex h-9 w-9 items-center justify-center rounded-xl shadow-lg',
+              'relative flex h-8 w-8 items-center justify-center rounded-xl shadow-lg sm:h-9 sm:w-9',
               'transition-transform duration-200 group-hover:scale-105',
               isUser
                 ? isMultiUser && !isCurrentUser
@@ -504,10 +544,10 @@ export const MessageItem = memo(({
       </div>
 
       {/* Message content */}
-      <div className={cn('flex-1 min-w-0', showOnRight && 'flex justify-end')}>
+      <div className={cn('flex-1 min-w-0', showOnRight && 'flex justify-end max-md:flex-col max-md:items-end')}>
         <div
           className={cn(
-            'relative rounded-2xl px-4 py-3',
+            'relative rounded-2xl px-3 py-2.5 sm:px-4 sm:py-3',
             'min-w-0 transition-colors duration-200',
             showOnRight ? 'max-w-[85%]' : 'w-full max-w-[42rem]',
             showOnRight
@@ -525,14 +565,14 @@ export const MessageItem = memo(({
         >
           {/* Message header for other users in multi-user mode */}
           {isUser && isMultiUser && !isCurrentUser && (
-            <div className="flex items-center gap-2 mb-2">
+            <div className="mb-2 flex min-w-0 items-center gap-2">
               <span className={cn(
-                'text-xs font-medium',
+                'truncate text-xs font-medium',
                 participantColors ? participantColors.accent : 'text-foreground'
               )}>
                 {message.author?.displayName || message.author?.username || 'User'}
               </span>
-              <span className="text-xs text-muted-foreground">
+              <span className="truncate text-xs text-muted-foreground">
                 @{message.author?.username}
               </span>
             </div>
@@ -540,9 +580,9 @@ export const MessageItem = memo(({
 
           {/* Message header for assistant */}
           {!isUser && (
-            <div className="flex items-center gap-2 mb-2">
+            <div className="mb-2 flex flex-wrap items-center gap-x-2 gap-y-1">
               <span className={cn(
-                'text-xs font-medium',
+                'max-w-full truncate text-xs font-medium',
                 participantColors ? participantColors.accent : 'text-foreground'
               )}>
                 {/* Show character name for assistant/system messages */}
@@ -575,12 +615,15 @@ export const MessageItem = memo(({
                 <OOCBadge />
               )}
               {message.metadata?.model && (
-                <span className={cn(
-                  'inline-flex items-center gap-1 rounded-md px-1.5 py-0.5',
-                  'bg-accent text-2xs text-muted-foreground'
-                )}>
-                  <Sparkles size={10} />
-                  {message.metadata.model}
+                <span
+                  className={cn(
+                    'inline-flex min-w-0 max-w-full items-center gap-1 rounded-md px-1.5 py-0.5',
+                    'bg-accent text-2xs text-muted-foreground'
+                  )}
+                  title={message.metadata.model}
+                >
+                  <Sparkles size={10} className="shrink-0" />
+                  <span className="truncate">{message.metadata.model}</span>
                 </span>
               )}
             </div>
@@ -603,15 +646,16 @@ export const MessageItem = memo(({
                 rows={3}
                 placeholder="Edit your message..."
               />
-              <div className="flex items-center justify-between">
-                <span className={cn('text-2xs', showOnRight ? 'text-primary-foreground' : 'text-muted-foreground')}>
+              <div className="flex items-center justify-end sm:justify-between">
+                <span className={cn('text-2xs max-sm:hidden', showOnRight ? 'text-primary-foreground' : 'text-muted-foreground')}>
                   Press Ctrl+Enter to save, Esc to cancel
                 </span>
                 <div className="flex gap-2">
                   <button
+                    type="button"
                     onClick={handleCancelEdit}
                     className={cn(
-                      'rounded-lg px-3 py-1.5 text-sm font-medium',
+                      'rounded-lg px-3 py-1.5 text-sm font-medium max-md:min-h-10 max-md:px-4',
                       'bg-muted text-muted-foreground',
                       'hover:bg-accent hover:text-foreground',
                       'transition-colors duration-150'
@@ -620,9 +664,10 @@ export const MessageItem = memo(({
                     Cancel
                   </button>
                   <button
+                    type="button"
                     onClick={handleSaveEdit}
                     className={cn(
-                      'rounded-lg px-3 py-1.5 text-sm font-medium',
+                      'rounded-lg px-3 py-1.5 text-sm font-medium max-md:min-h-10 max-md:px-4',
                       'bg-primary text-primary-foreground',
                       'hover:bg-primary-hover',
                       'transition-colors duration-150'
@@ -649,9 +694,11 @@ export const MessageItem = memo(({
               {allowStoryEditing && thinking.length > 0 && (
                 <div className="mb-3">
                   <button
+                    type="button"
                     onClick={handleToggleThinking}
+                    aria-expanded={showThinking}
                     className={cn(
-                      'flex items-center gap-2 text-xs font-medium',
+                      'flex items-center gap-2 text-xs font-medium max-md:min-h-10',
                       'text-muted-foreground hover:text-foreground',
                       'transition-colors duration-150'
                     )}
@@ -721,18 +768,20 @@ export const MessageItem = memo(({
                       <div className="group/code relative my-3 overflow-hidden rounded-xl border border-border/50">
                         {/* Code header */}
                         <div className={cn(
-                          'flex items-center justify-between px-4 py-2',
+                          'flex items-center justify-between px-4 py-2 max-md:py-0.5 max-md:pl-3 max-md:pr-1',
                           'bg-muted border-b border-border/50'
                         )}>
                           <span className="text-xs font-medium text-muted-foreground uppercase tracking-wider">
                             {language}
                           </span>
                           <button
+                            type="button"
                             onClick={() => {
                               void navigator.clipboard.writeText(String(children));
                             }}
+                            aria-label="Copy code"
                             className={cn(
-                              'flex items-center gap-1.5 rounded-md px-2 py-1',
+                              'flex items-center gap-1.5 rounded-md px-2 py-1 max-md:min-h-10 max-md:px-3',
                               'text-xs text-muted-foreground',
                               'hover:bg-accent hover:text-foreground',
                               'transition-colors duration-150'
@@ -816,12 +865,13 @@ export const MessageItem = memo(({
               'mt-3 flex items-center gap-2 rounded-lg',
               'bg-destructive/10 px-3 py-2 text-sm text-destructive'
             )}>
-              <AlertCircle size={16} />
+              <AlertCircle size={16} className="shrink-0" />
               <span>Failed to send message</span>
               <button
+                type="button"
                 onClick={() => onRetry(message.id)}
                 className={cn(
-                  'ml-auto flex items-center gap-1.5 rounded-md px-2 py-1',
+                  'ml-auto flex shrink-0 items-center gap-1.5 rounded-md px-2 py-1 max-md:min-h-10 max-md:px-3',
                   'bg-destructive/20 hover:bg-destructive/30',
                   'transition-colors duration-150'
                 )}
@@ -858,12 +908,14 @@ export const MessageItem = memo(({
                     </div>
                   </div>
                   <button
+                    type="button"
                     className={cn(
-                      'rounded-lg p-1.5 text-muted-foreground',
+                      'inline-flex shrink-0 items-center justify-center rounded-lg p-1.5 text-muted-foreground max-md:h-10 max-md:w-10',
                       'hover:bg-accent hover:text-foreground',
                       'transition-colors duration-150'
                     )}
                     title="Download"
+                    aria-label={`Download ${attachment.name}`}
                   >
                     <Download size={16} />
                   </button>
@@ -883,7 +935,7 @@ export const MessageItem = memo(({
 
           {/* Metadata footer */}
           <div className={cn(
-            'mt-3 flex items-center justify-between text-2xs',
+            'mt-3 flex items-center justify-between gap-3 text-2xs',
             showOnRight ? 'text-primary-foreground' : 'text-muted-foreground'
           )}>
             <TooltipProvider>
@@ -984,13 +1036,13 @@ export const MessageItem = memo(({
             'flex items-center gap-1 mt-1.5',
             showOnRight ? 'justify-end mr-1' : 'justify-start ml-1',
             'transition-all duration-200',
-            showActions ? 'opacity-100 translate-y-0' : 'opacity-0 -translate-y-1 pointer-events-none'
+            actionTrayVisibility(showActions)
           )}
         >
           <div className={cn(
             'flex items-center gap-0.5 rounded-lg',
             'bg-card border border-border/50 p-1',
-            'shadow-lg backdrop-blur-sm'
+            'shadow-lg'
           )}>
             <ActionButton
               onClick={handleCopy}

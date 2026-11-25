@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import * as DropdownMenu from '@radix-ui/react-dropdown-menu';
 import { cn } from '@/lib/utils';
 import { Modal, ConfirmModal } from '@/components/ui/Modal';
 import {
@@ -23,6 +24,9 @@ import {
 } from '@/hooks/useGraphQL';
 import { useAuthStore } from '@/stores/authStore';
 import { InviteUserModal } from './InviteUserModal';
+
+const menuItem =
+  'flex min-h-11 cursor-pointer items-center gap-2 rounded-lg px-3 py-2.5 text-sm outline-none data-[highlighted]:bg-accent sm:min-h-0';
 
 interface ParticipantListProps {
   isOpen: boolean;
@@ -51,7 +55,6 @@ export const ParticipantList = ({
   const [editRole, setEditRole] = useState<'MEMBER' | 'ADMIN'>('MEMBER');
   const [editCanInvite, setEditCanInvite] = useState(false);
   const [editCanAddCharacters, setEditCanAddCharacters] = useState(false);
-  const [openMenuId, setOpenMenuId] = useState<string | null>(null);
 
   // Find current user's participation
   const myParticipation = participants.find((p) => p.user.id === currentUser?.id);
@@ -116,7 +119,6 @@ export const ParticipantList = ({
     setEditCanInvite(participant.canInvite);
     setEditCanAddCharacters(participant.canAddCharacters);
     setShowEditModal(true);
-    setOpenMenuId(null);
   };
 
   const getRoleIcon = (role: string) => {
@@ -171,7 +173,7 @@ export const ParticipantList = ({
             <button
               onClick={() => setShowInviteModal(true)}
               className={cn(
-                'flex w-full items-center justify-center gap-2 rounded-xl px-4 py-3',
+                'flex min-h-11 w-full items-center justify-center gap-2 rounded-xl px-4 py-3',
                 'border border-dashed border-primary/50',
                 'text-primary hover:bg-primary/5',
                 'transition-colors duration-150'
@@ -204,7 +206,7 @@ export const ParticipantList = ({
                   )}
                 >
                   {/* Avatar */}
-                  <div className="relative">
+                  <div className="relative shrink-0">
                     <div className="flex h-10 w-10 items-center justify-center rounded-full bg-primary/10">
                       {participant.user.profilePicture ? (
                         <img
@@ -230,77 +232,68 @@ export const ParticipantList = ({
                         {participant.nickname || participant.user.displayName}
                       </span>
                       {participant.user.id === currentUser?.id && (
-                        <span className="text-xs text-muted-foreground">(you)</span>
+                        <span className="shrink-0 text-xs text-muted-foreground">(you)</span>
                       )}
                     </div>
-                    <div className="flex items-center gap-2 mt-0.5">
-                      <span className="text-xs text-muted-foreground">@{participant.user.username}</span>
-                      {getRoleBadge(participant.role)}
+                    <div className="flex min-w-0 items-center gap-2 mt-0.5">
+                      <span className="truncate text-xs text-muted-foreground">@{participant.user.username}</span>
+                      <span className="shrink-0">{getRoleBadge(participant.role)}</span>
                     </div>
                   </div>
 
                   {/* Actions Menu */}
                   {isAdmin && participant.user.id !== currentUser?.id && participant.role !== 'OWNER' && (
-                    <div className="relative">
-                      <button
-                        onClick={() => setOpenMenuId(openMenuId === participant.id ? null : participant.id)}
-                        className={cn(
-                          'rounded-lg p-2 text-muted-foreground',
-                          'hover:bg-accent hover:text-foreground',
-                          'transition-colors duration-150'
-                        )}
-                      >
-                        <MoreVertical size={16} />
-                      </button>
-
-                      {/* Dropdown Menu */}
-                      {openMenuId === participant.id && (
-                        <div className="absolute right-0 top-full z-50 mt-1 w-48 rounded-xl border border-border bg-card shadow-lg">
-                          <button
-                            onClick={() => openEditModal(participant)}
-                            className={cn(
-                              'flex w-full items-center gap-2 px-4 py-2.5 text-sm',
-                              'hover:bg-accent transition-colors',
-                              'rounded-t-xl'
-                            )}
-                          >
+                    <DropdownMenu.Root modal={false}>
+                      <DropdownMenu.Trigger asChild>
+                        <button
+                          type="button"
+                          aria-label={`Actions for ${participant.nickname || participant.user.displayName}`}
+                          title="Participant actions"
+                          className={cn(
+                            'inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-lg text-muted-foreground sm:h-9 sm:w-9',
+                            'hover:bg-accent hover:text-foreground data-[state=open]:bg-accent',
+                            'transition-colors duration-150'
+                          )}
+                        >
+                          <MoreVertical size={16} />
+                        </button>
+                      </DropdownMenu.Trigger>
+                      <DropdownMenu.Portal>
+                        <DropdownMenu.Content
+                          align="end"
+                          sideOffset={4}
+                          collisionPadding={16}
+                          className="z-50 w-56 max-w-[calc(100vw-2rem)] rounded-xl border border-border bg-card p-1.5 shadow-lg"
+                        >
+                          <DropdownMenu.Item className={menuItem} onSelect={() => openEditModal(participant)}>
                             <Settings size={14} />
                             <span>Edit Role & Permissions</span>
-                          </button>
+                          </DropdownMenu.Item>
                           {isOwner && (
-                            <button
-                              onClick={() => {
+                            <DropdownMenu.Item
+                              className={menuItem}
+                              onSelect={() => {
                                 setSelectedParticipant(participant);
                                 setShowTransferConfirm(true);
-                                setOpenMenuId(null);
                               }}
-                              className={cn(
-                                'flex w-full items-center gap-2 px-4 py-2.5 text-sm',
-                                'hover:bg-accent transition-colors'
-                              )}
                             >
                               <Crown size={14} />
                               <span>Transfer Ownership</span>
-                            </button>
+                            </DropdownMenu.Item>
                           )}
-                          <button
-                            onClick={() => {
+                          <DropdownMenu.Item
+                            className={cn(menuItem, 'text-destructive data-[highlighted]:bg-destructive/10')}
+                            onSelect={() => {
                               setSelectedParticipant(participant);
                               setShowRemoveConfirm(true);
-                              setOpenMenuId(null);
                             }}
-                            className={cn(
-                              'flex w-full items-center gap-2 px-4 py-2.5 text-sm',
-                              'text-destructive hover:bg-destructive/10 transition-colors',
-                              'rounded-b-xl'
-                            )}
                           >
                             <UserMinus size={14} />
                             <span>Remove from Conversation</span>
-                          </button>
-                        </div>
-                      )}
-                    </div>
+                          </DropdownMenu.Item>
+                        </DropdownMenu.Content>
+                      </DropdownMenu.Portal>
+                    </DropdownMenu.Root>
                   )}
                 </div>
               ))
@@ -375,7 +368,7 @@ export const ParticipantList = ({
               <button
                 onClick={() => setEditRole('MEMBER')}
                 className={cn(
-                  'flex flex-1 items-center justify-center gap-2 rounded-xl px-4 py-2.5 text-sm font-medium',
+                  'flex flex-1 items-center justify-center gap-2 rounded-xl px-4 py-2.5 text-sm font-medium max-sm:min-h-11',
                   'border transition-colors',
                   editRole === 'MEMBER'
                     ? 'border-primary bg-primary/10 text-primary'
@@ -388,7 +381,7 @@ export const ParticipantList = ({
               <button
                 onClick={() => setEditRole('ADMIN')}
                 className={cn(
-                  'flex flex-1 items-center justify-center gap-2 rounded-xl px-4 py-2.5 text-sm font-medium',
+                  'flex flex-1 items-center justify-center gap-2 rounded-xl px-4 py-2.5 text-sm font-medium max-sm:min-h-11',
                   'border transition-colors',
                   editRole === 'ADMIN'
                     ? 'border-primary bg-primary/10 text-primary'
@@ -404,7 +397,7 @@ export const ParticipantList = ({
           {/* Permissions */}
           <div className="space-y-3">
             <label className="block text-sm font-medium text-foreground">Permissions</label>
-            <label className="flex items-center gap-3 cursor-pointer">
+            <label className="flex items-center gap-3 cursor-pointer max-sm:min-h-11">
               <input
                 type="checkbox"
                 checked={editCanInvite}
@@ -413,7 +406,7 @@ export const ParticipantList = ({
               />
               <span className="text-sm text-foreground">Can invite other users</span>
             </label>
-            <label className="flex items-center gap-3 cursor-pointer">
+            <label className="flex items-center gap-3 cursor-pointer max-sm:min-h-11">
               <input
                 type="checkbox"
                 checked={editCanAddCharacters}
@@ -432,7 +425,7 @@ export const ParticipantList = ({
                 setSelectedParticipant(null);
               }}
               className={cn(
-                'rounded-xl px-4 py-2.5 text-sm font-medium',
+                'rounded-xl px-4 py-2.5 text-sm font-medium max-sm:min-h-11',
                 'bg-muted text-muted-foreground',
                 'hover:bg-accent hover:text-foreground',
                 'transition-colors duration-150'
@@ -444,7 +437,7 @@ export const ParticipantList = ({
               onClick={handleUpdateParticipant}
               disabled={updateLoading}
               className={cn(
-                'inline-flex items-center gap-2 rounded-xl px-4 py-2.5 text-sm font-medium',
+                'inline-flex items-center gap-2 rounded-xl px-4 py-2.5 text-sm font-medium max-sm:min-h-11',
                 'bg-primary text-primary-foreground',
                 'hover:bg-primary-hover',
                 'disabled:opacity-50 disabled:cursor-not-allowed',

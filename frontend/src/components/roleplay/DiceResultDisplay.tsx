@@ -63,7 +63,7 @@ export default function DiceResultDisplay({ roll, animate = true }: DiceResultDi
       )}
     >
       {/* Header: expression + purpose */}
-      <div className="mb-2 flex items-center justify-between">
+      <div className="mb-2 flex flex-wrap items-center justify-between gap-x-2 gap-y-1">
         <div className="flex items-center gap-2">
           <span className="font-mono text-xs font-bold text-warning">
             {roll.expression}
@@ -76,8 +76,8 @@ export default function DiceResultDisplay({ roll, animate = true }: DiceResultDi
           )}
         </div>
         {roll.purpose && (
-          <span className="flex items-center gap-1 text-xs text-muted-foreground">
-            <Target size={10} />
+          <span className="flex min-w-0 items-center gap-1 break-words text-xs text-muted-foreground">
+            <Target size={10} className="shrink-0" />
             {roll.purpose}
           </span>
         )}

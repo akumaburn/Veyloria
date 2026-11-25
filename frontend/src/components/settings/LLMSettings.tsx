@@ -83,8 +83,8 @@ export const LLMSettings = () => {
         description="Save and load parameter configurations"
         icon={Sparkles}
       >
-        <div className="p-5">
-          <div className="flex items-center justify-between mb-4">
+        <div className="p-4 sm:p-5">
+          <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
             <p className="text-sm text-muted-foreground">
               {presets.length} saved preset{presets.length !== 1 ? 's' : ''}
             </p>
@@ -133,11 +133,13 @@ export const LLMSettings = () => {
                       </p>
                     )}
                   </div>
-                  <div className="flex items-center gap-1 ml-3">
+                  <div className="ml-3 flex shrink-0 items-center gap-1">
                     <button
+                      type="button"
                       onClick={() => applyPreset(preset.id)}
+                      aria-label={`Apply preset ${preset.name}`}
                       className={cn(
-                        'rounded-lg p-2 text-muted-foreground',
+                        'flex h-10 w-10 items-center justify-center rounded-lg text-muted-foreground sm:h-8 sm:w-8',
                         'hover:bg-accent hover:text-foreground',
                         'transition-colors duration-150'
                       )}
@@ -147,9 +149,11 @@ export const LLMSettings = () => {
                     </button>
                     {!preset.isDefault && (
                       <button
+                        type="button"
                         onClick={() => deletePreset(preset.id)}
+                        aria-label={`Delete preset ${preset.name}`}
                         className={cn(
-                          'rounded-lg p-2 text-muted-foreground',
+                          'flex h-10 w-10 items-center justify-center rounded-lg text-muted-foreground sm:h-8 sm:w-8',
                           'hover:bg-destructive/10 hover:text-destructive',
                           'transition-colors duration-150'
                         )}
@@ -175,19 +179,19 @@ export const LLMSettings = () => {
           badge="External"
           badgeVariant="success"
         >
-          <div className="px-5 py-3 bg-primary/5 border-b border-border">
+          <div className="px-4 py-3 bg-primary/5 border-b border-border sm:px-5">
             <p className="text-xs text-muted-foreground">
               This instance is configured to use an external LLM provider. Server-level settings
               like GPU layers, threads, and prompt templates are managed by the external service.
             </p>
           </div>
           <SettingRow label="Base URL" description="External API endpoint." disabled>
-            <span className="text-sm text-foreground font-mono">
+            <span className="text-sm text-foreground font-mono break-all">
               {llmConfigData?.llmConfig?.externalBaseUrl || 'Not configured'}
             </span>
           </SettingRow>
           <SettingRow label="Model" description="Model used for generation." disabled>
-            <span className="text-sm text-foreground font-mono">
+            <span className="text-sm text-foreground font-mono break-all">
               {llmConfigData?.llmConfig?.externalModel || 'Not configured'}
             </span>
           </SettingRow>
@@ -407,7 +411,7 @@ export const LLMSettings = () => {
           badge="Read-Only"
           badgeVariant="default"
         >
-          <div className="px-5 py-3 bg-muted/30 border-b border-border">
+          <div className="px-4 py-3 bg-muted/30 border-b border-border sm:px-5">
             <p className="text-xs text-muted-foreground">
               These settings are configured when the LLM server starts and cannot be changed per-user.
               Contact your administrator to modify these values.
@@ -539,7 +543,7 @@ export const LLMSettings = () => {
           />
           <div
             className={cn(
-              'relative z-10 w-full max-w-md rounded-2xl border border-border bg-card p-6 shadow-2xl',
+              'relative z-10 max-h-[calc(100dvh-2rem)] w-full max-w-md overflow-y-auto overscroll-contain rounded-2xl border border-border bg-card p-4 shadow-2xl sm:p-6',
               'animate-scale-in'
             )}
           >
@@ -577,14 +581,15 @@ export const LLMSettings = () => {
                 />
               </div>
             </div>
-            <div className="mt-6 flex justify-end gap-3">
-              <SettingActionButton onClick={() => setShowPresetModal(false)} variant="default">
+            <div className="mt-6 flex flex-col-reverse gap-3 sm:flex-row sm:justify-end">
+              <SettingActionButton onClick={() => setShowPresetModal(false)} variant="default" className="w-full sm:w-auto">
                 Cancel
               </SettingActionButton>
               <SettingActionButton
                 onClick={() => void handleSavePreset()}
                 variant="primary"
                 disabled={!presetName.trim()}
+                className="w-full sm:w-auto"
               >
                 Save Preset
               </SettingActionButton>

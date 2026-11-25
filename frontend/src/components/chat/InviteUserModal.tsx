@@ -140,12 +140,14 @@ export const InviteUserModal = ({
             rightIcon={
               selectedUser ? (
                 <button
+                  type="button"
                   onClick={() => {
                     setSelectedUser(null);
                     setSearchInput('');
                     clearResults();
                   }}
-                  className="text-muted-foreground hover:text-foreground transition-colors"
+                  aria-label="Clear selected user"
+                  className="flex h-9 w-9 items-center justify-center rounded-lg text-muted-foreground hover:bg-accent hover:text-foreground transition-colors"
                 >
                   <X size={16} />
                 </button>
@@ -161,14 +163,15 @@ export const InviteUserModal = ({
               {results.map((user) => (
                 <button
                   key={user.id}
+                  type="button"
                   onClick={() => handleSelectUser(user)}
                   className={cn(
-                    'flex w-full items-center gap-3 px-4 py-3',
+                    'flex w-full items-center gap-3 px-3 py-2.5 sm:px-4 sm:py-3',
                     'hover:bg-accent transition-colors',
                     'border-b border-border/50 last:border-b-0'
                   )}
                 >
-                  <div className="flex h-10 w-10 items-center justify-center rounded-full bg-primary/10">
+                  <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-primary/10">
                     {user.profilePicture ? (
                       <img
                         src={user.profilePicture}
@@ -179,9 +182,9 @@ export const InviteUserModal = ({
                       <User size={20} className="text-primary" />
                     )}
                   </div>
-                  <div className="flex-1 text-left">
-                    <div className="font-medium text-foreground">{user.displayName}</div>
-                    <div className="text-sm text-muted-foreground">@{user.username}</div>
+                  <div className="min-w-0 flex-1 text-left">
+                    <div className="truncate font-medium text-foreground">{user.displayName}</div>
+                    <div className="truncate text-sm text-muted-foreground">@{user.username}</div>
                   </div>
                 </button>
               ))}
@@ -191,7 +194,7 @@ export const InviteUserModal = ({
           {/* Selected User Display */}
           {selectedUser && (
             <div className="mt-2 flex items-center gap-3 rounded-xl border border-primary/30 bg-primary/5 p-3">
-              <div className="flex h-10 w-10 items-center justify-center rounded-full bg-primary/10">
+              <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-primary/10">
                 {selectedUser.profilePicture ? (
                   <img
                     src={selectedUser.profilePicture}
@@ -202,18 +205,18 @@ export const InviteUserModal = ({
                   <User size={20} className="text-primary" />
                 )}
               </div>
-              <div className="flex-1">
-                <div className="font-medium text-foreground">{selectedUser.displayName}</div>
-                <div className="text-sm text-muted-foreground">@{selectedUser.username}</div>
+              <div className="min-w-0 flex-1">
+                <div className="truncate font-medium text-foreground">{selectedUser.displayName}</div>
+                <div className="truncate text-sm text-muted-foreground">@{selectedUser.username}</div>
               </div>
-              <Check size={20} className="text-primary" />
+              <Check size={20} className="shrink-0 text-primary" />
             </div>
           )}
 
           {/* Email hint */}
           {searchInput.length > 0 && !selectedUser && results.length === 0 && !searchLoading && (
             <div className="mt-2 flex items-center gap-2 text-sm text-muted-foreground">
-              <Mail size={14} />
+              <Mail size={14} className="shrink-0" />
               <span>
                 {isEmailFormat
                   ? 'User will be invited by email'
@@ -230,7 +233,7 @@ export const InviteUserModal = ({
             <button
               onClick={() => setRoleToGrant('MEMBER')}
               className={cn(
-                'flex flex-1 items-center justify-center gap-2 rounded-xl px-4 py-2.5 text-sm font-medium',
+                'flex flex-1 items-center justify-center gap-2 rounded-xl px-4 py-2.5 text-sm font-medium max-sm:min-h-11',
                 'border transition-colors',
                 roleToGrant === 'MEMBER'
                   ? 'border-primary bg-primary/10 text-primary'
@@ -243,7 +246,7 @@ export const InviteUserModal = ({
             <button
               onClick={() => setRoleToGrant('ADMIN')}
               className={cn(
-                'flex flex-1 items-center justify-center gap-2 rounded-xl px-4 py-2.5 text-sm font-medium',
+                'flex flex-1 items-center justify-center gap-2 rounded-xl px-4 py-2.5 text-sm font-medium max-sm:min-h-11',
                 'border transition-colors',
                 roleToGrant === 'ADMIN'
                   ? 'border-primary bg-primary/10 text-primary'
@@ -300,7 +303,7 @@ export const InviteUserModal = ({
           <button
             onClick={handleClose}
             className={cn(
-              'rounded-xl px-4 py-2.5 text-sm font-medium',
+              'rounded-xl px-4 py-2.5 text-sm font-medium max-sm:min-h-11',
               'bg-muted text-muted-foreground',
               'hover:bg-accent hover:text-foreground',
               'transition-colors duration-150'
@@ -312,7 +315,7 @@ export const InviteUserModal = ({
             onClick={handleInvite}
             disabled={!canInvite || inviteLoading}
             className={cn(
-              'inline-flex items-center gap-2 rounded-xl px-4 py-2.5 text-sm font-medium',
+              'inline-flex items-center gap-2 rounded-xl px-4 py-2.5 text-sm font-medium max-sm:min-h-11',
               'bg-primary text-primary-foreground',
               'hover:bg-primary-hover',
               'disabled:opacity-50 disabled:cursor-not-allowed',

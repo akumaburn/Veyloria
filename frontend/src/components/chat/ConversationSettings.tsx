@@ -125,16 +125,18 @@ export const ConversationSettings = ({ conversationId, onClose }: ConversationSe
     return (
       <div className={cn(
         'absolute left-0 right-0 top-full z-50',
-        'max-h-[70dvh] overflow-y-auto custom-scrollbar',
-        'border-b border-border/50 bg-background-secondary/95 backdrop-blur-md',
+        'max-h-[70dvh] overflow-y-auto overscroll-contain custom-scrollbar',
+        'border-b border-border/50 bg-background-secondary',
         'shadow-2xl animate-fade-down'
       )}>
-        <div className="mx-auto max-w-2xl p-6">
+        <div className="mx-auto max-w-2xl p-4 sm:p-6">
           <div className="flex items-center justify-between mb-4">
             <h3 className="text-lg font-semibold text-foreground">Conversation Settings</h3>
             <button
+              type="button"
               onClick={onClose}
-              className="rounded-lg p-2 text-muted-foreground hover:bg-accent hover:text-foreground transition-colors"
+              className="inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-lg text-muted-foreground hover:bg-accent hover:text-foreground transition-colors"
+              aria-label="Close settings"
             >
               <X size={20} />
             </button>
@@ -153,17 +155,18 @@ export const ConversationSettings = ({ conversationId, onClose }: ConversationSe
   return (
     <div className={cn(
       'absolute left-0 right-0 top-full z-50',
-      'max-h-[70dvh] overflow-y-auto custom-scrollbar',
-      'border-b border-border/50 bg-background-secondary/95 backdrop-blur-md',
+      'max-h-[70dvh] overflow-y-auto overscroll-contain custom-scrollbar',
+      'border-b border-border/50 bg-background-secondary',
       'shadow-2xl animate-fade-down'
     )}>
-      <div className="mx-auto max-w-2xl p-6">
+      <div className="mx-auto max-w-2xl p-4 sm:p-6">
         {/* Header */}
-        <div className="flex items-center justify-between mb-6">
+        <div className="flex items-center justify-between mb-4 sm:mb-6">
           <h3 className="text-lg font-semibold text-foreground">Conversation Settings</h3>
           <button
+            type="button"
             onClick={onClose}
-            className="rounded-lg p-2 text-muted-foreground hover:bg-accent hover:text-foreground transition-colors"
+            className="inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-lg text-muted-foreground hover:bg-accent hover:text-foreground transition-colors"
             aria-label="Close settings"
           >
             <X size={20} />
@@ -235,9 +238,11 @@ export const ConversationSettings = ({ conversationId, onClose }: ConversationSe
           {/* Quick actions */}
           <div className="flex gap-2 pt-2">
             <button
+              type="button"
               onClick={handlePin}
+              aria-pressed={!!conversation?.isPinned}
               className={cn(
-                'flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium',
+                'flex items-center justify-center gap-2 px-4 py-2 rounded-lg text-sm font-medium max-sm:min-h-11 max-sm:flex-1',
                 'border border-border bg-card',
                 'hover:bg-accent transition-colors',
                 conversation?.isPinned && 'bg-primary/10 border-primary text-primary'
@@ -247,9 +252,11 @@ export const ConversationSettings = ({ conversationId, onClose }: ConversationSe
               {conversation?.isPinned ? 'Pinned' : 'Pin'}
             </button>
             <button
+              type="button"
               onClick={handleArchive}
+              aria-pressed={!!conversation?.isArchived}
               className={cn(
-                'flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium',
+                'flex items-center justify-center gap-2 px-4 py-2 rounded-lg text-sm font-medium max-sm:min-h-11 max-sm:flex-1',
                 'border border-border bg-card',
                 'hover:bg-accent transition-colors',
                 conversation?.isArchived && 'bg-warning/10 border-warning text-warning'
@@ -265,13 +272,14 @@ export const ConversationSettings = ({ conversationId, onClose }: ConversationSe
         <div className="mt-6 flex flex-wrap items-center justify-between gap-2 border-t border-border/50 pt-4">
           {/* Delete button */}
           {showDeleteConfirm ? (
-            <div className="flex items-center gap-2">
-              <span className="text-sm text-destructive">Delete this conversation?</span>
+            <div className="flex flex-wrap items-center gap-2 max-sm:w-full">
+              <span className="text-sm text-destructive max-sm:w-full">Delete this conversation?</span>
               <button
+                type="button"
                 onClick={handleDelete}
                 disabled={isDeleting}
                 className={cn(
-                  'px-3 py-1.5 rounded-lg text-sm font-medium',
+                  'inline-flex items-center justify-center px-3 py-1.5 rounded-lg text-sm font-medium max-sm:min-h-11 max-sm:flex-1',
                   'bg-destructive text-destructive-foreground',
                   'hover:bg-destructive-hover transition-colors',
                   'disabled:opacity-50'
@@ -280,17 +288,19 @@ export const ConversationSettings = ({ conversationId, onClose }: ConversationSe
                 {isDeleting ? <Loader2 size={14} className="animate-spin" /> : 'Yes, delete'}
               </button>
               <button
+                type="button"
                 onClick={() => setShowDeleteConfirm(false)}
-                className="px-3 py-1.5 rounded-lg text-sm font-medium text-muted-foreground hover:text-foreground"
+                className="px-3 py-1.5 rounded-lg text-sm font-medium text-muted-foreground hover:text-foreground max-sm:min-h-11 max-sm:flex-1"
               >
                 Cancel
               </button>
             </div>
           ) : (
             <button
+              type="button"
               onClick={() => setShowDeleteConfirm(true)}
               className={cn(
-                'flex shrink-0 items-center gap-2 whitespace-nowrap rounded-lg px-3 py-2 text-sm font-medium sm:px-4',
+                'flex shrink-0 items-center gap-2 whitespace-nowrap rounded-lg px-3 py-2 text-sm font-medium sm:px-4 max-sm:min-h-11',
                 'text-destructive hover:bg-destructive/10 transition-colors'
               )}
             >
@@ -301,10 +311,11 @@ export const ConversationSettings = ({ conversationId, onClose }: ConversationSe
 
           {/* Save button */}
           <button
+            type="button"
             onClick={handleSave}
             disabled={isSaving}
             className={cn(
-              'flex shrink-0 items-center gap-2 whitespace-nowrap rounded-lg px-3 py-2 text-sm font-medium sm:px-4',
+              'flex shrink-0 items-center justify-center gap-2 whitespace-nowrap rounded-lg px-3 py-2 text-sm font-medium sm:px-4 max-sm:min-h-11',
               'bg-primary text-primary-foreground',
               'hover:bg-primary-hover transition-colors',
               'disabled:opacity-50'

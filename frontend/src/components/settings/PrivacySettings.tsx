@@ -257,7 +257,7 @@ export const PrivacySettings = () => {
         description="Manage your stored data"
         icon={Database}
       >
-        <div className="p-5 space-y-3">
+        <div className="p-4 space-y-3 sm:p-5">
           <button
             onClick={handleExportAllData}
             disabled={isExporting}
@@ -267,8 +267,8 @@ export const PrivacySettings = () => {
               'disabled:opacity-50 disabled:cursor-not-allowed'
             )}
           >
-            <div className="flex items-center gap-3">
-              <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-primary/10">
+            <div className="flex min-w-0 items-center gap-3">
+              <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-primary/10">
                 {isExporting ? (
                   <Loader2 size={18} className="text-primary animate-spin" />
                 ) : (
@@ -282,7 +282,7 @@ export const PrivacySettings = () => {
                 <p className="text-xs text-muted-foreground">Download all your data in your preferred format</p>
               </div>
             </div>
-            <span className="text-muted-foreground group-hover:text-foreground transition-colors">&rarr;</span>
+            <span className="ml-3 shrink-0 text-muted-foreground group-hover:text-foreground transition-colors" aria-hidden="true">&rarr;</span>
           </button>
 
           <button
@@ -294,8 +294,8 @@ export const PrivacySettings = () => {
               'disabled:opacity-50 disabled:cursor-not-allowed'
             )}
           >
-            <div className="flex items-center gap-3">
-              <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-muted">
+            <div className="flex min-w-0 items-center gap-3">
+              <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-muted">
                 {isClearingHistory ? (
                   <Loader2 size={18} className="text-muted-foreground animate-spin" />
                 ) : (
@@ -309,7 +309,7 @@ export const PrivacySettings = () => {
                 <p className="text-xs text-muted-foreground">Remove all conversation history</p>
               </div>
             </div>
-            <span className="text-muted-foreground group-hover:text-foreground transition-colors">&rarr;</span>
+            <span className="ml-3 shrink-0 text-muted-foreground group-hover:text-foreground transition-colors" aria-hidden="true">&rarr;</span>
           </button>
 
           <button
@@ -319,8 +319,8 @@ export const PrivacySettings = () => {
               'hover:bg-destructive/10 transition-colors group'
             )}
           >
-            <div className="flex items-center gap-3">
-              <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-destructive/10">
+            <div className="flex min-w-0 items-center gap-3">
+              <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-destructive/10">
                 <Trash2 size={18} className="text-destructive" />
               </div>
               <div className="text-left">
@@ -328,7 +328,7 @@ export const PrivacySettings = () => {
                 <p className="text-xs text-destructive">Permanently delete your account and all data</p>
               </div>
             </div>
-            <span className="text-destructive transition-colors">&rarr;</span>
+            <span className="ml-3 shrink-0 text-destructive transition-colors" aria-hidden="true">&rarr;</span>
           </button>
         </div>
       </SettingSection>
@@ -340,12 +340,12 @@ export const PrivacySettings = () => {
             className="absolute inset-0 bg-black/60 backdrop-blur-sm"
             onClick={() => setShowDeleteConfirm(false)}
           />
-          <div className="relative z-10 w-full max-w-md rounded-2xl border border-border bg-card p-6 shadow-2xl">
+          <div className="relative z-10 max-h-[calc(100dvh-2rem)] w-full max-w-md overflow-y-auto overscroll-contain rounded-2xl border border-border bg-card p-4 shadow-2xl sm:p-6">
             <div className="flex items-start gap-3">
               <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-destructive/10">
                 <AlertTriangle className="text-destructive" size={20} />
               </div>
-              <div className="flex-1">
+              <div className="min-w-0 flex-1">
                 <h3 className="text-lg font-semibold text-foreground">Delete Account</h3>
                 <p className="text-sm text-muted-foreground mt-2">
                   Are you sure you want to delete your account? This will permanently remove:
@@ -359,12 +359,13 @@ export const PrivacySettings = () => {
                 <p className="text-sm text-destructive mt-3 font-medium">
                   This action cannot be undone.
                 </p>
-                <div className="mt-6 flex justify-end gap-3">
+                <div className="mt-6 flex flex-col-reverse gap-3 sm:flex-row sm:justify-end">
                   <button
+                    type="button"
                     onClick={() => setShowDeleteConfirm(false)}
                     disabled={isDeletingAccount}
                     className={cn(
-                      'px-4 py-2 rounded-xl text-sm font-medium',
+                      'px-4 py-2 rounded-xl text-sm font-medium max-sm:min-h-11',
                       'bg-muted text-muted-foreground hover:bg-accent hover:text-foreground',
                       'transition-colors disabled:opacity-50'
                     )}
@@ -372,10 +373,11 @@ export const PrivacySettings = () => {
                     Cancel
                   </button>
                   <button
+                    type="button"
                     onClick={handleDeleteAccount}
                     disabled={isDeletingAccount}
                     className={cn(
-                      'inline-flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-medium',
+                      'inline-flex items-center justify-center gap-2 px-4 py-2 rounded-xl text-sm font-medium max-sm:min-h-11',
                       'bg-destructive text-destructive-foreground hover:bg-destructive/90',
                       'transition-colors disabled:opacity-50'
                     )}
@@ -405,7 +407,7 @@ export const PrivacySettings = () => {
         description="Overview of your security settings"
         icon={Shield}
       >
-        <div className="p-5 space-y-4">
+        <div className="p-4 space-y-4 sm:p-5">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2">
               <EyeOff size={14} className="text-muted-foreground" />

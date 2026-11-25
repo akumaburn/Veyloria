@@ -205,15 +205,15 @@ export const DataExportImport: React.FC = () => {
   return (
     <div className="space-y-6">
       {/* Export Section */}
-      <div className="rounded-2xl border border-border bg-card p-6">
+      <div className="rounded-2xl border border-border bg-card p-4 sm:p-6">
         <div className="flex items-center gap-3 mb-4">
           <div className={cn(
-            'flex h-10 w-10 items-center justify-center rounded-xl',
+            'flex h-10 w-10 shrink-0 items-center justify-center rounded-xl',
             'bg-primary/10 text-primary'
           )}>
             <Download size={20} />
           </div>
-          <div>
+          <div className="min-w-0">
             <h3 className="text-lg font-semibold text-foreground">Export Data</h3>
             <p className="text-sm text-muted-foreground">
               Download your data as a JSON file for backup or migration
@@ -221,9 +221,9 @@ export const DataExportImport: React.FC = () => {
           </div>
         </div>
 
-        <div className="space-y-3 mb-6">
+        <div className="space-y-1 mb-6 sm:space-y-3">
           {exportItems.map((item) => (
-            <label key={item.key} className="flex items-center gap-3 cursor-pointer">
+            <label key={item.key} className="flex min-h-10 items-center gap-3 cursor-pointer sm:min-h-0">
               <input
                 type="checkbox"
                 checked={exportOptions[item.key as keyof ExportOptions]}
@@ -231,7 +231,7 @@ export const DataExportImport: React.FC = () => {
                   ...prev,
                   [item.key]: e.target.checked
                 }))}
-                className="h-4 w-4 rounded border-border bg-muted text-primary focus:ring-primary/50 focus:ring-offset-0"
+                className="h-5 w-5 shrink-0 rounded border-border bg-muted text-primary focus:ring-primary/50 focus:ring-offset-0 sm:h-4 sm:w-4"
               />
               <span className="text-sm text-foreground">{item.label}</span>
             </label>
@@ -242,7 +242,7 @@ export const DataExportImport: React.FC = () => {
           onClick={handleExport}
           disabled={exportLoading || (!exportOptions.conversations && !exportOptions.messages && !exportOptions.characters && !exportOptions.settings)}
           className={cn(
-            'inline-flex items-center gap-2 rounded-xl px-4 py-2.5 text-sm font-medium',
+            'inline-flex min-h-11 w-full items-center justify-center gap-2 rounded-xl px-4 py-2.5 text-sm font-medium sm:min-h-0 sm:w-auto',
             'bg-primary text-primary-foreground hover:bg-primary-hover',
             'disabled:opacity-50 disabled:cursor-not-allowed transition-colors'
           )}
@@ -262,15 +262,15 @@ export const DataExportImport: React.FC = () => {
       </div>
 
       {/* Import Section */}
-      <div className="rounded-2xl border border-border bg-card p-6">
+      <div className="rounded-2xl border border-border bg-card p-4 sm:p-6">
         <div className="flex items-center gap-3 mb-4">
           <div className={cn(
-            'flex h-10 w-10 items-center justify-center rounded-xl',
+            'flex h-10 w-10 shrink-0 items-center justify-center rounded-xl',
             'bg-secondary/10 text-secondary'
           )}>
             <Upload size={20} />
           </div>
-          <div>
+          <div className="min-w-0">
             <h3 className="text-lg font-semibold text-foreground">Import Data</h3>
             <p className="text-sm text-muted-foreground">
               Import data from a previously exported JSON file
@@ -299,7 +299,7 @@ export const DataExportImport: React.FC = () => {
               <button
                 onClick={() => fileInputRef.current?.click()}
                 className={cn(
-                  'mt-3 inline-flex items-center gap-2 rounded-xl px-4 py-2 text-sm font-medium',
+                  'mt-3 inline-flex min-h-11 items-center gap-2 rounded-xl px-4 py-2 text-sm font-medium sm:min-h-0',
                   'border border-border bg-muted text-foreground',
                   'hover:bg-accent transition-colors'
                 )}
@@ -309,11 +309,11 @@ export const DataExportImport: React.FC = () => {
             </div>
           ) : (
             <div>
-              <div className="flex items-center justify-between mb-4">
-                <div className="flex items-center gap-3">
-                  <FileText className="text-muted-foreground" size={32} />
-                  <div>
-                    <p className="text-sm font-medium text-foreground">
+              <div className="flex items-center justify-between gap-3 mb-4">
+                <div className="flex min-w-0 items-center gap-3">
+                  <FileText className="shrink-0 text-muted-foreground" size={32} />
+                  <div className="min-w-0">
+                    <p className="text-sm font-medium text-foreground break-all">
                       {importFile.name}
                     </p>
                     <p className="text-xs text-muted-foreground">
@@ -326,7 +326,7 @@ export const DataExportImport: React.FC = () => {
                     setImportFile(null);
                     setImportPreview(null);
                   }}
-                  className="text-sm text-destructive hover:underline transition-colors"
+                  className="-mr-2 min-h-10 shrink-0 rounded-lg px-2 text-sm text-destructive hover:underline transition-colors sm:mr-0 sm:min-h-0 sm:px-0"
                 >
                   Remove
                 </button>
@@ -373,7 +373,7 @@ export const DataExportImport: React.FC = () => {
                 onClick={handleImport}
                 disabled={importLoading}
                 className={cn(
-                  'w-full inline-flex justify-center items-center gap-2 rounded-xl px-4 py-2.5 text-sm font-medium',
+                  'w-full inline-flex justify-center items-center gap-2 rounded-xl px-4 py-2.5 text-sm font-medium max-sm:min-h-11',
                   'bg-success text-success-foreground hover:bg-success/90',
                   'disabled:opacity-50 transition-colors'
                 )}
@@ -396,15 +396,15 @@ export const DataExportImport: React.FC = () => {
       </div>
 
       {/* Danger Zone */}
-      <div className="rounded-2xl border border-destructive/30 bg-destructive/5 p-6">
+      <div className="rounded-2xl border border-destructive/30 bg-destructive/5 p-4 sm:p-6">
         <div className="flex items-center gap-3 mb-4">
           <div className={cn(
-            'flex h-10 w-10 items-center justify-center rounded-xl',
+            'flex h-10 w-10 shrink-0 items-center justify-center rounded-xl',
             'bg-destructive/10 text-destructive'
           )}>
             <AlertCircle size={20} />
           </div>
-          <div>
+          <div className="min-w-0">
             <h3 className="text-lg font-semibold text-destructive">Danger Zone</h3>
             <p className="text-sm text-destructive">
               These actions are permanent and cannot be undone
@@ -415,7 +415,7 @@ export const DataExportImport: React.FC = () => {
         <button
           onClick={() => setShowDeleteConfirm(true)}
           className={cn(
-            'inline-flex items-center gap-2 rounded-xl px-4 py-2.5 text-sm font-medium',
+            'inline-flex min-h-11 w-full items-center justify-center gap-2 rounded-xl px-4 py-2.5 text-sm font-medium sm:min-h-0 sm:w-auto',
             'border border-destructive/50 bg-destructive/10 text-destructive',
             'hover:bg-destructive/20 transition-colors'
           )}
@@ -479,7 +479,7 @@ export const DataExportImport: React.FC = () => {
                 setDeleteConfirmText('');
               }}
               className={cn(
-                'flex-1 rounded-xl px-4 py-2.5 text-sm font-medium',
+                'flex-1 rounded-xl px-4 py-2.5 text-sm font-medium max-sm:min-h-11',
                 'border border-border bg-muted text-foreground',
                 'hover:bg-accent transition-colors'
               )}
@@ -491,7 +491,7 @@ export const DataExportImport: React.FC = () => {
               onClick={handleDeleteAll}
               disabled={deleteConfirmText !== 'DELETE ALL DATA' || deleteLoading}
               className={cn(
-                'flex-1 inline-flex justify-center items-center gap-2 rounded-xl px-4 py-2.5 text-sm font-medium',
+                'flex-1 inline-flex justify-center items-center gap-2 rounded-xl px-4 py-2.5 text-sm font-medium max-sm:min-h-11',
                 'bg-destructive text-destructive-foreground hover:bg-destructive/90',
                 'disabled:opacity-50 disabled:cursor-not-allowed transition-colors'
               )}

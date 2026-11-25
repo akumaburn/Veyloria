@@ -97,15 +97,17 @@ export default function KnowledgeView({ conversationId, characterId }: Knowledge
     <div className="flex flex-col gap-4">
       {/* Filter bar */}
       <div className="flex items-start gap-2">
-        <Filter size={14} className="mt-1 flex-shrink-0 text-muted-foreground" />
+        <Filter size={14} className="mt-3 flex-shrink-0 text-muted-foreground sm:mt-1" aria-hidden="true" />
         <div className="min-w-0 flex-1">
-          <div className="flex flex-wrap gap-1">
+          <div className="flex flex-wrap gap-1" role="group" aria-label="Filter by importance">
             {FILTER_OPTIONS.map((option) => (
               <button
                 key={option.value}
+                type="button"
+                aria-pressed={filter === option.value}
                 onClick={() => setFilter(option.value)}
                 className={cn(
-                  'rounded-md px-2.5 py-1 text-xs font-medium transition-colors',
+                  'h-10 rounded-md px-3 text-xs font-medium transition-colors sm:h-auto sm:px-2.5 sm:py-1',
                   filter === option.value
                     ? 'bg-primary/15 text-primary'
                     : 'bg-muted text-muted-foreground hover:bg-accent hover:text-foreground'
@@ -141,7 +143,7 @@ export default function KnowledgeView({ conversationId, characterId }: Knowledge
             className="rounded-xl border border-border bg-card p-4 transition-colors hover:border-border-hover"
           >
             {/* Header row */}
-            <div className="mb-2 flex items-start justify-between">
+            <div className="mb-2 flex flex-wrap items-start justify-between gap-2">
               <span
                 className={cn(
                   'inline-flex items-center gap-1.5 rounded-md px-2 py-0.5 text-xs font-medium',
@@ -162,7 +164,7 @@ export default function KnowledgeView({ conversationId, characterId }: Knowledge
             </div>
 
             {/* Summary */}
-            <p className="text-sm leading-relaxed text-foreground">{entry.summary}</p>
+            <p className="text-sm leading-relaxed break-words text-foreground">{entry.summary}</p>
 
             {/* Tags */}
             {entry.tags && entry.tags.length > 0 && (

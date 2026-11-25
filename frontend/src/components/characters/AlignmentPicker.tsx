@@ -9,7 +9,7 @@ import {
 } from './alignment';
 
 const axisButton =
-  'flex h-8 min-w-9 items-center justify-center rounded-lg border border-border bg-background px-2 text-xs font-medium tabular-nums text-foreground transition-colors hover:bg-accent disabled:opacity-40';
+  'flex h-10 min-w-11 items-center justify-center rounded-lg border border-border bg-background px-2 text-xs font-medium tabular-nums text-foreground transition-colors hover:bg-accent disabled:opacity-40 sm:h-8 sm:min-w-9';
 
 /**
  * Controlled alignment chart. The nine cells set representative anchor points;
@@ -52,7 +52,7 @@ export function AlignmentPicker({
           <span className="flex items-center">Morality</span>
           <span className="flex items-center">Evil ↓</span>
         </div>
-        <div className="relative grid min-h-[15rem] grid-cols-3 grid-rows-3 gap-1">
+        <div className="relative grid min-h-[13rem] grid-cols-3 grid-rows-3 gap-1 sm:min-h-[15rem]">
           {ALIGNMENT_ORDER.map((option) => {
             const optionMeta = ALIGNMENTS[option];
             const active = alignment === option;

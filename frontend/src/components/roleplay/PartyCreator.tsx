@@ -90,10 +90,10 @@ export default function PartyCreator({ isOpen: externalOpen, onClose, onCreated 
             <p className="mt-1 text-xs text-muted-foreground">Share this invite code with others</p>
           </div>
           <div className="flex items-center gap-2 rounded-lg bg-card px-4 py-3">
-            <span className="flex-1 text-center font-mono text-lg font-semibold tracking-wider text-foreground">
+            <span className="min-w-0 flex-1 text-center font-mono text-lg font-semibold tracking-wider break-all text-foreground">
               {createdCode}
             </span>
-            <Button size="sm" variant="ghost" onClick={handleCopyCode}>
+            <Button size="sm" variant="ghost" className="h-10 shrink-0 sm:h-8" onClick={handleCopyCode}>
               <Copy size={14} />
               <span className="ml-1 text-xs">{copied ? 'Copied' : 'Copy'}</span>
             </Button>

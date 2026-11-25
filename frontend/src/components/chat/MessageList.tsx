@@ -1282,23 +1282,23 @@ export const MessageList = ({
         <div
           ref={containerRef}
           onScroll={handleScroll}
-          className="flex h-full flex-col overflow-y-auto custom-scrollbar px-4 py-6"
+          className="flex h-full flex-col overflow-y-auto custom-scrollbar px-3 py-4 sm:px-4 sm:py-6"
         >
-          <div className="mx-auto w-full max-w-3xl space-y-6">
+          <div className="mx-auto w-full max-w-3xl space-y-4 sm:space-y-6">
             {/* Character greeting message */}
             <div className="animate-fade-up">
-              <div className="flex gap-4">
+              <div className="flex gap-2.5 sm:gap-4">
                 {/* Avatar */}
                 <div className="flex-shrink-0">
                   {characterAvatar ? (
                     <img
                       src={characterAvatar}
                       alt={characterName}
-                      className="h-10 w-10 rounded-xl object-cover shadow-md"
+                      className="h-8 w-8 rounded-xl object-cover shadow-md sm:h-10 sm:w-10"
                     />
                   ) : (
                     <div className={cn(
-                      'flex h-10 w-10 items-center justify-center rounded-xl',
+                      'flex h-8 w-8 items-center justify-center rounded-xl sm:h-10 sm:w-10',
                       'bg-gradient-to-br from-secondary to-secondary-hover shadow-md'
                     )}>
                       <Bot size={20} className="text-secondary-foreground" />
@@ -1309,11 +1309,11 @@ export const MessageList = ({
                 {/* Message content */}
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center gap-2 mb-1">
-                    <span className="text-sm font-medium text-foreground">{characterName}</span>
-                    <span className="text-xs text-muted-foreground">Just now</span>
+                    <span className="truncate text-sm font-medium text-foreground">{characterName}</span>
+                    <span className="shrink-0 text-xs text-muted-foreground">Just now</span>
                   </div>
                   <div className={cn(
-                    'rounded-2xl rounded-tl-md px-4 py-3',
+                    'rounded-2xl rounded-tl-md px-3 py-2.5 sm:px-4 sm:py-3',
                     'bg-muted text-foreground',
                     'shadow-sm'
                   )}>
@@ -1343,9 +1343,9 @@ export const MessageList = ({
     <div
       ref={containerRef}
       onScroll={handleScroll}
-      className="flex h-full flex-col overflow-y-auto custom-scrollbar px-4 py-6"
+      className="flex h-full flex-col overflow-y-auto custom-scrollbar px-3 py-4 sm:px-4 sm:py-6"
     >
-      <div className="mx-auto w-full max-w-3xl space-y-6">
+      <div className="mx-auto w-full max-w-3xl space-y-4 sm:space-y-6">
         {conversationId && <ConversationReadout conversationId={conversationId} messages={messages} />}
         {messages.map((message: Message, index: number) => (
           <div
@@ -1456,9 +1456,10 @@ export const MessageList = ({
         {isCurrentlyGenerating && (
           <div className="flex justify-center animate-fade-up">
             <button
+              type="button"
               onClick={handleStopGeneration}
               className={cn(
-                'flex items-center gap-2 rounded-full px-4 py-2',
+                'flex items-center gap-2 rounded-full px-4 py-2 max-md:min-h-11',
                 'bg-destructive/10 text-destructive',
                 'hover:bg-destructive/20 transition-colors duration-150',
                 'border border-destructive/30'
@@ -1473,22 +1474,27 @@ export const MessageList = ({
         <div ref={messagesEndRef} />
       </div>
 
-      {/* Scroll to bottom button */}
+      {/* Pinned to the foot of the transcript's own scroll area so it never
+          lands on the composer or the tool panel. */}
       {!autoScroll && (
-        <button
-          onClick={scrollToBottom}
-          className={cn(
-            'fixed bottom-28 right-8 z-10',
-            'flex items-center gap-2 rounded-full',
-            'bg-card border border-border px-4 py-2',
-            'text-sm text-foreground shadow-lg',
-            'hover:bg-accent transition-all duration-200',
-            'animate-fade-up'
-          )}
-        >
-          <ArrowDown size={16} />
-          <span>New messages</span>
-        </button>
+        <div className="pointer-events-none sticky bottom-3 z-10 h-0">
+          <button
+            type="button"
+            onClick={scrollToBottom}
+            title="Scroll to the newest message"
+            className={cn(
+              'pointer-events-auto absolute bottom-0 right-0',
+              'flex h-11 w-11 items-center justify-center gap-2 rounded-full sm:h-auto sm:w-auto sm:px-4 sm:py-2',
+              'bg-card border border-border',
+              'text-sm text-foreground shadow-lg',
+              'hover:bg-accent transition-all duration-200',
+              'animate-fade-up'
+            )}
+          >
+            <ArrowDown size={16} aria-hidden="true" />
+            <span className="max-sm:sr-only">New messages</span>
+          </button>
+        </div>
       )}
     </div>
   );

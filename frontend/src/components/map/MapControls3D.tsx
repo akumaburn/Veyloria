@@ -215,6 +215,10 @@ export default function MapControls3D({ mapScale, controlsRef: externalRef, onDo
         MIDDLE: THREE.MOUSE.ROTATE,
         RIGHT: THREE.MOUSE.ROTATE,
       }}
+      touches={{
+        ONE: THREE.TOUCH.PAN,
+        TWO: THREE.TOUCH.DOLLY_ROTATE,
+      }}
       screenSpacePanning={false}
       enableDamping
       dampingFactor={0.08}

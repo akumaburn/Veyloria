@@ -83,29 +83,19 @@ export default function StoryReader({
   }
 
   return (
-    <div className={cn('space-y-6', className)}>
-      {/* Back button */}
-      <Button
-        variant="ghost"
-        size="sm"
-        leftIcon={<ArrowLeft size={16} />}
-        onClick={onBack}
-      >
-        Back to Stories
-      </Button>
-
+    <div className={cn('space-y-4 sm:space-y-6', className)}>
       {/* Story Header */}
-      <Card className="p-6">
+      <Card className="p-4 sm:p-6">
         <div className="space-y-4">
           {/* Title */}
-          <h2 className="text-xl font-bold text-foreground">{story.title}</h2>
+          <h2 className="text-xl font-bold break-words text-foreground">{story.title}</h2>
 
           {/* Meta row */}
-          <div className="flex flex-wrap items-center gap-3 text-sm text-muted-foreground">
+          <div className="flex flex-wrap items-center gap-x-3 gap-y-2 text-sm text-muted-foreground">
             {/* Author */}
-            <div className="flex items-center gap-1.5">
-              <User size={14} />
-              <span>{story.userId}</span>
+            <div className="flex min-w-0 max-w-full items-center gap-1.5">
+              <User size={14} className="shrink-0" />
+              <span className="truncate">{story.userId}</span>
             </div>
 
             {/* Genre badge */}
@@ -152,13 +142,13 @@ export default function StoryReader({
       </Card>
 
       {/* Story Content / Description */}
-      <Card className="p-6">
+      <Card className="p-4 sm:p-6">
         <h3 className="mb-3 text-sm font-semibold uppercase tracking-wider text-muted-foreground">
           Synopsis
         </h3>
         {story.synopsis ? (
           <div className="max-w-none">
-            <p className="whitespace-pre-wrap leading-relaxed text-foreground">
+            <p className="whitespace-pre-wrap break-words leading-relaxed text-foreground">
               {story.synopsis}
             </p>
           </div>
@@ -177,7 +167,7 @@ export default function StoryReader({
       </Card>
 
       {/* Rating Section */}
-      <Card className="p-6">
+      <Card className="p-4 sm:p-6">
         <h3 className="mb-3 text-sm font-semibold uppercase tracking-wider text-muted-foreground">
           Rate this Story
         </h3>

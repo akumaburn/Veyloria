@@ -57,9 +57,9 @@ export default function ImageGallery({ conversationId }: ImageGalleryProps) {
 
   return (
     <div className="space-y-4">
-      <div className="flex items-center justify-between">
+      <div className="flex items-center justify-between gap-2">
         <h3 className="text-sm font-semibold text-foreground">Image Gallery</h3>
-        <Button size="sm" onClick={() => setIsFormOpen(true)} leftIcon={<Plus size={14} />}>
+        <Button size="sm" className="h-10 sm:h-8" onClick={() => setIsFormOpen(true)} leftIcon={<Plus size={14} />}>
           Generate Image
         </Button>
       </div>
@@ -70,9 +70,10 @@ export default function ImageGallery({ conversationId }: ImageGalleryProps) {
           <div className="flex items-center justify-between mb-2">
             <span className="text-xs font-medium text-foreground">Generating...</span>
             <button
+              type="button"
               onClick={() => cancelImageGeneration(progress.promptId)}
               disabled={cancelling}
-              className="text-xs text-destructive hover:text-destructive/80 flex items-center gap-1"
+              className="-my-2 -mr-2 flex min-h-10 items-center gap-1 rounded-md px-2 text-xs text-destructive hover:bg-destructive/10 sm:-my-1 sm:-mr-1 sm:min-h-8"
             >
               <XCircle size={12} />
               Cancel
@@ -98,12 +99,14 @@ export default function ImageGallery({ conversationId }: ImageGalleryProps) {
           <p className="text-sm text-muted-foreground">No images generated yet</p>
         </div>
       ) : (
-        <div className="columns-2 gap-3 space-y-3 sm:columns-3">
-          {images.map((image: GeneratedImageType) => (
-            <div key={image.imageId} className="break-inside-avoid">
-              <GeneratedImage image={image} />
-            </div>
-          ))}
+        <div className="@container">
+          <div className="columns-2 gap-3 space-y-3 @lg:columns-3">
+            {images.map((image: GeneratedImageType) => (
+              <div key={image.imageId} className="break-inside-avoid">
+                <GeneratedImage image={image} />
+              </div>
+            ))}
+          </div>
         </div>
       )}
 
@@ -113,7 +116,7 @@ export default function ImageGallery({ conversationId }: ImageGalleryProps) {
         onClose={() => setIsFormOpen(false)}
         title="Generate New Image"
         footer={
-          <div className="flex justify-end gap-3">
+          <div className="flex flex-col-reverse gap-2 sm:flex-row sm:justify-end sm:gap-3">
             <Button variant="ghost" onClick={() => setIsFormOpen(false)}>Cancel</Button>
             <Button onClick={handleGenerate} isLoading={generating} disabled={!prompt.trim()}>
               Generate

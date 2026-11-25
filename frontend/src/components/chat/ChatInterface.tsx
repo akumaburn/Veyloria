@@ -7,7 +7,7 @@ import { createPortal } from 'react-dom';
 import * as DropdownMenu from '@radix-ui/react-dropdown-menu';
 import { ChatToolbarContext } from '@/components/layout/ChatToolbarContext';
 import { useParams, useNavigate, useLocation } from 'react-router-dom';
-import { Settings, Bot, Users, Volume2, MoreHorizontal, Check, Globe, Map as MapIcon, Wand2 } from 'lucide-react';
+import { Settings, Bot, Users, Volume2, MoreHorizontal, Check } from 'lucide-react';
 import { useQuery, useMutation } from '@apollo/client';
 import { gql } from '@apollo/client';
 import { print } from 'graphql';
@@ -19,7 +19,7 @@ import { CharacterSelector, type SelectedCharacter } from './CharacterSelector';
 import { ConversationSettings } from './ConversationSettings';
 import { TypingIndicator } from './TypingIndicator';
 import { GroupConversationCreator } from './GroupConversationCreator';
-import { GroupChatHeader } from './GroupChatHeader';
+import { GroupChatHeader, type RoleplayHeaderControls } from './GroupChatHeader';
 import { InterjectionModal } from './InterjectionModal';
 import { ParticipantList } from './ParticipantList';
 import { InviteNotificationBadge } from './InviteNotifications';
@@ -657,56 +657,19 @@ export const ChatInterface = ({ className }: ChatInterfaceProps) => {
   const isWelcome = !conversationId && !selectedCharacter?.greeting && !useGroupPath && !isGenerating;
   const chatToolbarHost = useContext(ChatToolbarContext);
 
-  // Roleplay controls, shared by the mobile header row (standalone, right-aligned)
-  // and the desktop header (inlined into the action cluster to avoid a wasted band).
-  const rpControls = isRoleplay && (
-    <>
-      <button
-        onClick={() => conversationId && navigate(`/map/${conversationId}`)}
-        className={cn(
-          'flex items-center gap-1.5 rounded-lg px-2.5 py-1.5 text-xs font-medium',
-          'transition-colors duration-150',
-          'text-muted-foreground hover:bg-accent hover:text-foreground'
-        )}
-      >
-        <MapIcon size={14} />
-        Map
-      </button>
-      <label className={cn(
-        'flex items-center gap-1.5 rounded-lg px-2.5 py-1.5 text-xs font-medium cursor-pointer',
-        'transition-colors duration-150',
-        narratorMode
-          ? 'bg-warning/10 text-warning'
-          : 'text-muted-foreground hover:bg-accent hover:text-foreground'
-      )}>
-        <input
-          type="checkbox"
-          checked={narratorMode}
-          onChange={(e) => setNarratorMode(e.target.checked)}
-          className="sr-only"
-        />
-        <Wand2 size={14} />
-        Narrator
-      </label>
-      <button
-        onClick={() => setShowWorldState(!showWorldState)}
-        className={cn(
-          'flex items-center gap-1.5 rounded-lg px-2.5 py-1.5 text-xs font-medium',
-          'transition-colors duration-150',
-          showWorldState
-            ? 'bg-primary/10 text-primary'
-            : 'text-muted-foreground hover:bg-accent hover:text-foreground'
-        )}
-      >
-        <Globe size={14} />
-        RP Tools
-      </button>
-    </>
-  );
+  const toolsTakeOver = isRoleplay && showWorldState && !!conversationId;
+  const roleplayControls: RoleplayHeaderControls | undefined = isRoleplay
+    ? {
+        narratorMode,
+        onNarratorModeChange: setNarratorMode,
+        toolsOpen: showWorldState,
+        onToggleTools: () => setShowWorldState((open) => !open),
+      }
+    : undefined;
   const regularToolbar = <>
     <InviteNotificationBadge />
     <button type="button" onClick={() => { setShowCharacterSelector(open => !open); setShowConversationSettings(false); }}
-      className={cn('flex h-9 min-w-0 items-center gap-1.5 rounded-lg px-2 text-xs text-muted-foreground transition-colors hover:bg-accent hover:text-foreground', showCharacterSelector && 'bg-accent text-foreground')}
+      className={cn('flex h-10 min-w-10 items-center justify-center gap-1.5 rounded-lg px-2 text-xs text-muted-foreground transition-colors hover:bg-accent hover:text-foreground', showCharacterSelector && 'bg-accent text-foreground')}
       aria-label="Select character" title={selectedCharacter ? `Character: ${selectedCharacter.name}` : 'Select character'} aria-expanded={showCharacterSelector}>
       {selectedCharacter?.avatar ? <img src={selectedCharacter.avatar} alt="" className="h-5 w-5 rounded object-cover" /> : <Bot size={18} />}
       <span className="hidden max-w-28 truncate xl:inline">{selectedCharacter?.name || 'Character'}</span>
@@ -719,11 +682,12 @@ export const ChatInterface = ({ className }: ChatInterfaceProps) => {
 
   return (
     <div className={cn('flex h-full min-h-0 min-w-0 flex-col bg-background', className)}>
-      {/* Header wrapper - relative positioning for dropdown panels */}
-      <div className="relative">
+      {/* Header wrapper - relative positioning for dropdown panels. On phones
+          the open roleplay tools take over this space; their back button
+          returns to the conversation and its header. */}
+      <div className={cn('relative', toolsTakeOver && 'max-md:hidden')}>
         {/* Render different header based on conversation type (useGroupPath includes roleplay) */}
         {useGroupPath ? (
-          <div>
             <GroupChatHeader
               title={conversation?.title || (isRoleplay ? 'Roleplay' : 'Group Chat')}
               participants={participants}
@@ -742,17 +706,8 @@ export const ChatInterface = ({ className }: ChatInterfaceProps) => {
                 setShowConversationSettings(!showConversationSettings);
                 setShowCharacterSelector(false);
               }}
-              trailingActions={rpControls}
+              roleplay={roleplayControls}
             />
-            {/* RP Tools + Map + Narrator: standalone row on mobile (no room in
-                the action cluster), inlined into the header row on md+ via
-                GroupChatHeader's trailingActions. */}
-            {rpControls && (
-              <div className="flex items-center justify-end gap-1 border-b border-border/50 px-3 py-1 md:hidden">
-                {rpControls}
-              </div>
-            )}
-          </div>
         ) : (
           chatToolbarHost ? createPortal(regularToolbar, chatToolbarHost) : (
             <div aria-label="Chat controls" className="flex shrink-0 items-center justify-end gap-1 border-b border-border px-3 py-1">{regularToolbar}</div>
@@ -783,7 +738,7 @@ export const ChatInterface = ({ className }: ChatInterfaceProps) => {
       {isRoleplay && conversationId && (
         <SceneIndicator
           conversationId={conversationId}
-          className="border-b border-border/50 px-4 py-2"
+          className={cn('border-b border-border/50 px-4 py-2', toolsTakeOver && 'max-md:hidden')}
         />
       )}
 

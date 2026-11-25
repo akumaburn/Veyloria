@@ -118,8 +118,8 @@ export default function StoryBrowser({
             onClear={() => setSearchQuery('')}
           />
         </div>
-        <div className="flex flex-col gap-2 sm:flex-row sm:items-center">
-          <div className="w-full sm:w-40">
+        <div className="grid grid-cols-2 gap-2 sm:flex sm:items-center">
+          <div className="min-w-0 sm:w-40">
             <Select
               size="sm"
               options={GENRE_OPTIONS}
@@ -128,7 +128,7 @@ export default function StoryBrowser({
               leftIcon={<Filter size={14} />}
             />
           </div>
-          <div className="w-full sm:w-40">
+          <div className="min-w-0 sm:w-40">
             <Select
               size="sm"
               options={SORT_OPTIONS}
@@ -184,7 +184,7 @@ export default function StoryBrowser({
                 >
                   <div className="space-y-2">
                     {/* Title */}
-                    <h4 className="text-sm font-semibold leading-tight text-foreground">
+                    <h4 className="text-sm font-semibold leading-tight break-words text-foreground">
                       {story.title}
                     </h4>
 
@@ -218,8 +218,8 @@ export default function StoryBrowser({
                     </div>
 
                     {/* Author */}
-                    <div className="ml-auto flex items-center gap-1 text-muted-foreground">
-                      <User size={12} />
+                    <div className="ml-auto flex min-w-0 items-center gap-1 text-muted-foreground">
+                      <User size={12} className="shrink-0" />
                       <span className="truncate max-w-[80px]">
                         {story.userId}
                       </span>
@@ -236,6 +236,7 @@ export default function StoryBrowser({
               <Button
                 variant="outline"
                 size="sm"
+                className="h-10 sm:h-8"
                 onClick={handleLoadMore}
                 isLoading={isLoading}
                 loadingText="Loading..."

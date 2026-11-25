@@ -37,9 +37,9 @@ export default function RatingWidget({
   };
 
   return (
-    <div className={cn('flex items-center gap-2', className)}>
+    <div className={cn('flex flex-wrap items-center gap-2', className)}>
       {/* Interactive stars */}
-      <div className="flex items-center gap-0.5">
+      <div className="-mx-1.5 flex items-center sm:mx-0 sm:gap-0.5">
         {[1, 2, 3, 4, 5].map((star) => {
           const isFilled = star <= displayRating;
           const isHovered = hoveredStar !== null && star <= hoveredStar;
@@ -52,7 +52,7 @@ export default function RatingWidget({
               onMouseEnter={() => setHoveredStar(star)}
               onMouseLeave={() => setHoveredStar(null)}
               className={cn(
-                'transition-colors duration-150',
+                'rounded-md p-1.5 transition-colors duration-150 sm:p-0',
                 'hover:scale-110 active:scale-95',
                 isFilled || isHovered
                   ? 'text-warning'

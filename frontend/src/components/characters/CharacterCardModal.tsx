@@ -216,22 +216,22 @@ function CharacterCardBody({
 
   return (
     <div className="space-y-5">
-      <div className="flex flex-col gap-4 sm:flex-row sm:items-center">
+      <div className="flex items-center gap-3 sm:gap-4">
         {character.avatar ? (
           <img
             src={character.avatar}
             alt={character.name}
-            className="h-20 w-20 shrink-0 rounded-2xl object-cover shadow-lg"
+            className="h-16 w-16 shrink-0 rounded-2xl object-cover shadow-lg sm:h-20 sm:w-20"
           />
         ) : (
           <div
             className={cn(
-              'flex h-20 w-20 shrink-0 items-center justify-center rounded-2xl',
+              'flex h-16 w-16 shrink-0 items-center justify-center rounded-2xl sm:h-20 sm:w-20',
               'bg-gradient-to-br from-secondary to-secondary-hover shadow-lg',
             )}
             aria-hidden="true"
           >
-            <Bot size={32} className="text-secondary-foreground" />
+            <Bot size={28} className="text-secondary-foreground sm:size-8" />
           </div>
         )}
         <div className="min-w-0">

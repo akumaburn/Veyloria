@@ -33,7 +33,7 @@ function StatusBadge({ status }: { status: string }) {
   return (
     <span
       className={cn(
-        'rounded-full px-2 py-0.5 text-xs font-medium ring-1',
+        'shrink-0 rounded-full px-2 py-0.5 text-xs font-medium ring-1',
         styles[status] ?? styles.FAILED
       )}
     >
@@ -74,15 +74,15 @@ export default function CharacterProposalCard({
   const isPending = proposal.status === 'PENDING';
 
   return (
-    <div className="rounded-xl border border-border/60 bg-card p-5">
+    <div className="@container rounded-xl border border-border/60 bg-card p-4 sm:p-5">
       {/* Header */}
-      <div className="mb-4 flex items-start justify-between">
-        <div className="flex items-center gap-3">
-          <div className="flex h-10 w-10 items-center justify-center rounded-full bg-purple-500/15">
+      <div className="mb-4 flex items-start justify-between gap-2">
+        <div className="flex min-w-0 items-center gap-3">
+          <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-primary/10">
             <UserPlus size={20} className="text-primary" />
           </div>
-          <div>
-            <h3 className="text-lg font-semibold text-foreground">
+          <div className="min-w-0">
+            <h3 className="text-lg font-semibold break-words text-foreground">
               {proposal.proposedName || 'Unnamed Character'}
             </h3>
             {proposal.proposedDescription && (
@@ -143,7 +143,7 @@ export default function CharacterProposalCard({
 
       {/* Review Summaries */}
       {(proposal.accountantReview || proposal.skepticReview) && (
-        <div className="mb-4 flex gap-3">
+        <div className="mb-4 flex flex-col gap-3 @md:flex-row">
           {proposal.accountantReview && (
             <div className="flex-1 rounded-lg bg-muted/60 p-2.5">
               <div className="mb-1 flex items-center gap-1">
@@ -171,10 +171,11 @@ export default function CharacterProposalCard({
 
       {/* Actions */}
       {isPending && (
-        <div className="flex items-center gap-2 border-t border-border/60 pt-4">
+        <div className="flex flex-wrap items-center gap-2 border-t border-border/60 pt-4">
           <Button
             variant="primary"
             size="sm"
+            className="h-10 sm:h-8"
             onClick={() => onApprove(proposal.proposalId)}
             isLoading={approveLoading}
             disabled={rejectLoading}
@@ -185,6 +186,7 @@ export default function CharacterProposalCard({
           <Button
             variant="ghost"
             size="sm"
+            className="h-10 sm:h-8"
             onClick={() => onReject(proposal.proposalId)}
             isLoading={rejectLoading}
             disabled={approveLoading}

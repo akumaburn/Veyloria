@@ -27,23 +27,44 @@ export default function CharacterProposalList({
     }
   }, [newProposal, refetch]);
 
+  const pendingCount = proposals?.filter((p: any) => p.status === 'PENDING').length ?? 0;
+  const heading = (
+    <div className="flex flex-wrap items-center gap-2">
+      <UserPlus size={16} className="shrink-0 text-primary" />
+      <h3 className="text-sm font-semibold text-foreground uppercase tracking-wider">
+        Character Proposals
+      </h3>
+      {pendingCount > 0 && (
+        <span className="rounded-full bg-warning/15 px-2 py-0.5 text-xs text-warning">
+          {pendingCount} pending
+        </span>
+      )}
+    </div>
+  );
+
   if (loading) {
     return (
-      <div className="flex items-center justify-center rounded-xl border border-border bg-card p-8">
-        <div className="h-5 w-5 animate-spin rounded-full border-2 border-input border-t-foreground" />
-        <span className="ml-3 text-sm text-muted-foreground">Loading proposals...</span>
+      <div className="flex flex-col gap-4">
+        {heading}
+        <div className="flex items-center justify-center rounded-xl border border-border bg-card p-8">
+          <div className="h-5 w-5 animate-spin rounded-full border-2 border-input border-t-foreground" />
+          <span className="ml-3 text-sm text-muted-foreground">Loading proposals...</span>
+        </div>
       </div>
     );
   }
 
   if (!proposals || proposals.length === 0) {
     return (
-      <div className="rounded-xl border border-border bg-card p-6 text-center">
-        <UserPlus size={24} className="mx-auto mb-2 text-muted-foreground/70" />
-        <p className="text-sm text-muted-foreground">
-          No character proposals yet. The Casting Director will suggest new characters
-          when the story calls for them.
-        </p>
+      <div className="flex flex-col gap-4">
+        {heading}
+        <div className="rounded-xl border border-border bg-card p-6 text-center">
+          <UserPlus size={24} className="mx-auto mb-2 text-muted-foreground/70" />
+          <p className="text-sm text-muted-foreground">
+            No character proposals yet. The Casting Director will suggest new characters
+            when the story calls for them.
+          </p>
+        </div>
       </div>
     );
   }
@@ -65,17 +86,7 @@ export default function CharacterProposalList({
 
   return (
     <div className="flex flex-col gap-4">
-      <div className="flex items-center gap-2">
-        <UserPlus size={16} className="text-primary" />
-        <h3 className="text-sm font-semibold text-foreground uppercase tracking-wider">
-          Character Proposals
-        </h3>
-        {proposals.filter((p: any) => p.status === 'PENDING').length > 0 && (
-          <span className="rounded-full bg-warning/15 px-2 py-0.5 text-xs text-warning">
-            {proposals.filter((p: any) => p.status === 'PENDING').length} pending
-          </span>
-        )}
-      </div>
+      {heading}
       {sorted.map((proposal) => (
         <CharacterProposalCard
           key={proposal.proposalId}

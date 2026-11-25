@@ -299,7 +299,7 @@ export const UISettings = () => {
         description="See how your settings look"
         icon={Eye}
       >
-        <div className="p-5">
+        <div className="p-4 sm:p-5">
           <div
             className={cn(
               'rounded-xl border border-border bg-background p-4',

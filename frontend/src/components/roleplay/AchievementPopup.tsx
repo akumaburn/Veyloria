@@ -45,7 +45,7 @@ export default function AchievementPopup({ achievement, onDismiss }: Achievement
   return (
     <div
       className={cn(
-        'pointer-events-auto w-80 overflow-hidden rounded-xl border border-warning/30 bg-card shadow-2xl shadow-yellow-500/10 transition-all duration-300',
+        'pointer-events-auto w-80 max-w-[calc(100vw-2rem)] overflow-hidden rounded-xl border border-warning/30 bg-card shadow-2xl shadow-yellow-500/10 transition-all duration-300',
         isVisible && !isLeaving ? 'translate-y-0 opacity-100' : 'translate-y-4 opacity-0'
       )}
     >
@@ -55,8 +55,11 @@ export default function AchievementPopup({ achievement, onDismiss }: Achievement
       <div className="relative p-4">
         {/* Dismiss button */}
         <button
+          type="button"
           onClick={handleDismiss}
-          className="absolute right-2 top-2 rounded-md p-1 text-muted-foreground hover:bg-muted hover:text-foreground"
+          aria-label="Dismiss achievement"
+          title="Dismiss"
+          className="absolute right-1 top-1 inline-flex h-10 w-10 items-center justify-center rounded-md text-muted-foreground hover:bg-muted hover:text-foreground sm:right-2 sm:top-2 sm:h-7 sm:w-7"
         >
           <X size={14} />
         </button>
@@ -72,7 +75,7 @@ export default function AchievementPopup({ achievement, onDismiss }: Achievement
           </div>
 
           {/* Content */}
-          <div className="min-w-0 flex-1">
+          <div className="min-w-0 flex-1 pr-8 sm:pr-6">
             <p className="text-xs font-medium uppercase tracking-wider text-warning">
               Achievement Unlocked
             </p>

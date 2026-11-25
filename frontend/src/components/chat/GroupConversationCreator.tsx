@@ -172,32 +172,39 @@ export const GroupConversationCreator = ({
 
   return (
     <div className={cn(
-      'fixed inset-0 z-50 flex items-center justify-center',
+      'fixed inset-0 z-50 flex items-center justify-center p-4',
       'bg-black/50 backdrop-blur-sm'
     )}>
-      <div className={cn(
-        'w-full max-w-3xl max-h-[90vh] overflow-hidden',
-        'rounded-2xl border border-border bg-background',
-        'shadow-2xl animate-fade-up'
-      )}>
+      <div
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="group-creator-title"
+        className={cn(
+          'flex w-full max-w-3xl max-h-[calc(100dvh-2rem)] flex-col overflow-hidden sm:max-h-[90dvh]',
+          'rounded-2xl border border-border bg-background',
+          'shadow-2xl animate-fade-up'
+        )}
+      >
         {/* Header */}
-        <div className="flex items-center justify-between border-b border-border p-4">
-          <div className="flex items-center gap-3">
+        <div className="flex shrink-0 items-center justify-between gap-3 border-b border-border p-4">
+          <div className="flex min-w-0 items-center gap-3">
             <div className={cn(
-              'flex h-10 w-10 items-center justify-center rounded-xl',
+              'flex h-10 w-10 shrink-0 items-center justify-center rounded-xl',
               'bg-gradient-to-br from-secondary to-secondary-hover shadow-lg'
             )}>
               <Users size={20} className="text-secondary-foreground" />
             </div>
-            <div>
-              <h2 className="text-lg font-semibold text-foreground">Create Group Chat</h2>
+            <div className="min-w-0">
+              <h2 id="group-creator-title" className="text-lg font-semibold text-foreground">Create Group Chat</h2>
               <p className="text-xs text-muted-foreground">Select 2-{MAX_CHARACTERS} characters to chat with</p>
             </div>
           </div>
           <button
+            type="button"
             onClick={onClose}
+            aria-label="Close"
             className={cn(
-              'rounded-lg p-2 text-muted-foreground',
+              'inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-lg text-muted-foreground',
               'hover:bg-accent hover:text-foreground',
               'transition-colors duration-150'
             )}
@@ -206,7 +213,7 @@ export const GroupConversationCreator = ({
           </button>
         </div>
 
-        <div className="overflow-y-auto max-h-[calc(90vh-180px)] p-4 space-y-4">
+        <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain p-4 space-y-4">
           {/* Title input */}
           <div>
             <label className="block text-sm font-medium text-foreground mb-1.5">
@@ -237,9 +244,11 @@ export const GroupConversationCreator = ({
                 return (
                   <button
                     key={mode.id}
+                    type="button"
                     onClick={() => setTurnMode(mode.id as TurnMode)}
+                    aria-pressed={turnMode === mode.id}
                     className={cn(
-                      'flex flex-col items-center gap-2 rounded-xl border p-3',
+                      'flex flex-col items-center gap-1 rounded-xl border p-2 sm:gap-2 sm:p-3',
                       'transition-all duration-150',
                       turnMode === mode.id
                         ? 'border-primary bg-primary/10'
@@ -247,12 +256,15 @@ export const GroupConversationCreator = ({
                     )}
                   >
                     <Icon size={20} className={turnMode === mode.id ? 'text-primary' : 'text-muted-foreground'} />
-                    <span className="text-sm font-medium">{mode.name}</span>
-                    <span className="text-xs text-muted-foreground text-center">{mode.description}</span>
+                    <span className="text-center text-sm font-medium">{mode.name}</span>
+                    <span className="text-xs text-muted-foreground text-center max-sm:hidden">{mode.description}</span>
                   </button>
                 );
               })}
             </div>
+            <p className="mt-1.5 text-xs text-muted-foreground sm:hidden">
+              {turnModes.find((mode) => mode.id === turnMode)?.description}
+            </p>
           </div>
 
           {/* Max consecutive responses */}
@@ -305,7 +317,7 @@ export const GroupConversationCreator = ({
                 <button
                   type="button"
                   onClick={clearCharacters}
-                  className="text-xs text-muted-foreground transition-colors hover:text-foreground"
+                  className="shrink-0 text-xs text-muted-foreground transition-colors hover:text-foreground max-md:-my-2 max-md:min-h-10 max-md:px-2"
                 >
                   Clear
                 </button>
@@ -329,10 +341,10 @@ export const GroupConversationCreator = ({
                         <Bot size={12} className="text-secondary-foreground" />
                       </div>
                     )}
-                    <span className="text-sm font-medium min-w-[80px]">{char.name}</span>
+                    <span className="min-w-[80px] max-w-[6rem] truncate text-sm font-medium sm:max-w-[10rem]">{char.name}</span>
 
                     {turnMode === 'WEIGHTED' && (
-                      <div className="flex-1 flex items-center gap-3 ml-2">
+                      <div className="flex min-w-0 flex-1 items-center gap-2 sm:ml-2 sm:gap-3">
                         <input
                           type="range"
                           min={0.1}
@@ -340,9 +352,10 @@ export const GroupConversationCreator = ({
                           step={0.1}
                           value={characterWeights[char.id] ?? 1.0}
                           onChange={(e) => updateWeight(char.id, parseFloat(e.target.value))}
-                          className="flex-1 accent-secondary h-1.5"
+                          aria-label={`${char.name} response weight`}
+                          className="min-w-0 flex-1 accent-secondary h-1.5"
                         />
-                        <span className="text-xs text-muted-foreground w-10 text-right">
+                        <span className="w-10 shrink-0 text-right text-xs text-muted-foreground">
                           {(characterWeights[char.id] ?? 1.0).toFixed(1)}x
                         </span>
                       </div>
@@ -352,7 +365,7 @@ export const GroupConversationCreator = ({
                       type="button"
                       onClick={() => toggleCharacter(char)}
                       aria-label={`Remove ${char.name}`}
-                      className="text-muted-foreground hover:text-destructive transition-colors ml-auto"
+                      className="-my-2.5 -mr-2.5 ml-auto inline-flex h-10 w-10 shrink-0 items-center justify-center text-muted-foreground hover:text-destructive transition-colors"
                     >
                       <X size={14} />
                     </button>
@@ -398,7 +411,9 @@ export const GroupConversationCreator = ({
                 return (
                   <button
                     key={character.id}
+                    type="button"
                     onClick={() => toggleCharacter(character)}
+                    aria-pressed={isSelected}
                     className={cn(
                       'group relative rounded-xl border p-3 text-left',
                       'transition-all duration-200',
@@ -444,7 +459,7 @@ export const GroupConversationCreator = ({
         </div>
 
         {/* Footer */}
-        <div className="flex flex-col gap-3 border-t border-border p-4 bg-background-secondary/50 sm:flex-row sm:items-center sm:justify-between">
+        <div className="flex shrink-0 flex-col gap-3 border-t border-border p-4 bg-background-secondary/50 sm:flex-row sm:items-center sm:justify-between">
           <span className="text-sm text-muted-foreground">
             {selectedCharacters.length < 2
               ? `Select ${2 - selectedCharacters.length} more character${2 - selectedCharacters.length > 1 ? 's' : ''}`
@@ -452,9 +467,10 @@ export const GroupConversationCreator = ({
           </span>
           <div className="flex gap-2">
             <button
+              type="button"
               onClick={onClose}
               className={cn(
-                'rounded-lg px-4 py-2 text-sm font-medium',
+                'rounded-lg px-4 py-2 text-sm font-medium max-sm:min-h-11',
                 'bg-muted text-muted-foreground',
                 'hover:bg-accent hover:text-foreground',
                 'transition-colors duration-150'
@@ -463,10 +479,11 @@ export const GroupConversationCreator = ({
               Cancel
             </button>
             <button
+              type="button"
               onClick={handleCreate}
               disabled={selectedCharacters.length < 2 || creating}
               className={cn(
-                'flex flex-1 items-center justify-center gap-2 whitespace-nowrap rounded-lg px-4 py-2 text-sm font-medium sm:flex-none',
+                'flex flex-1 items-center justify-center gap-2 whitespace-nowrap rounded-lg px-4 py-2 text-sm font-medium sm:flex-none max-sm:min-h-11',
                 'bg-primary text-primary-foreground',
                 'hover:bg-primary-hover',
                 'disabled:opacity-50 disabled:cursor-not-allowed',

@@ -6,7 +6,7 @@ import { BackLink } from '@/components/layout/BackLink';
 
 const TermsPage: React.FC = () => {
   return (
-    <div className="bg-background min-h-screen">
+    <div className="bg-background min-h-dvh">
       <PageHeader
         sticky
         icon={FileText}
@@ -15,9 +15,9 @@ const TermsPage: React.FC = () => {
         lead={<BackLink to="/login" label="Back to sign in" />}
       />
 
-      <main className="px-4 py-8 sm:px-6">
+      <main className="px-4 py-6 sm:px-6 sm:py-8">
         <div className="mx-auto max-w-2xl">
-          <div className="rounded-2xl border border-border bg-card p-6 sm:p-8">
+          <div className="rounded-2xl border border-border bg-card p-5 sm:p-8">
             <p className="text-sm text-muted-foreground mb-6">
               Last updated: {new Date().toLocaleDateString()}
             </p>

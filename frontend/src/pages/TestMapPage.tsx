@@ -63,9 +63,9 @@ const TestMapPage: React.FC = () => {
   }, []);
 
   const tabs: { id: TabId; label: string; icon: React.ReactNode }[] = [
-    { id: '3d', label: '3D View', icon: <Box size={14} /> },
-    { id: '2d', label: '2D View', icon: <Grid3X3 size={14} /> },
-    { id: 'generate', label: 'Generate', icon: <Wand2 size={14} /> },
+    { id: '3d', label: '3D View', icon: <Box size={14} aria-hidden="true" /> },
+    { id: '2d', label: '2D View', icon: <Grid3X3 size={14} aria-hidden="true" /> },
+    { id: 'generate', label: 'Generate', icon: <Wand2 size={14} aria-hidden="true" /> },
   ];
 
   return (
@@ -82,10 +82,13 @@ const TestMapPage: React.FC = () => {
               <Button
                 variant="outline"
                 size="sm"
-                leftIcon={<RotateCcw size={16} />}
+                leftIcon={<RotateCcw size={16} aria-hidden="true" />}
                 onClick={handleReset}
+                aria-label="New session"
+                title="New session"
+                className="h-10 w-10 px-0 sm:h-8 sm:w-auto sm:px-3"
               >
-                New Session
+                <span className="hidden sm:inline">New Session</span>
               </Button>
             )}
             {currentMap && (
@@ -95,16 +98,18 @@ const TestMapPage: React.FC = () => {
                     key={tab.id}
                     type="button"
                     aria-pressed={activeTab === tab.id}
+                    aria-label={tab.label}
+                    title={tab.label}
                     onClick={() => setActiveTab(tab.id)}
                     className={cn(
-                      'flex h-8 items-center gap-1.5 rounded-md px-2.5 text-xs font-medium transition-colors',
+                      'flex h-10 min-w-10 items-center justify-center gap-1.5 rounded-md px-2.5 text-xs font-medium transition-colors sm:h-8',
                       activeTab === tab.id
                         ? 'bg-card text-foreground shadow-sm'
                         : 'text-muted-foreground hover:text-foreground'
                     )}
                   >
                     {tab.icon}
-                    {tab.label}
+                    <span className="hidden sm:inline">{tab.label}</span>
                   </button>
                 ))}
               </div>
@@ -182,47 +187,49 @@ function ConversationGatedGenerator({
 
   // Show a "create & generate" interstitial
   return (
-    <div className="mx-auto max-w-lg space-y-6 p-6 pt-12">
-      <div className="text-center">
-        <Wand2 className="mx-auto h-10 w-10 text-primary mb-3" />
-        <h2 className="text-lg font-semibold text-foreground">Test Map Generator</h2>
-        <p className="mt-1 text-sm text-muted-foreground">
-          A throwaway conversation will be created automatically to host the map data.
-        </p>
+    <div className="h-full overflow-y-auto">
+      <div className="mx-auto max-w-lg space-y-6 px-4 py-8 sm:p-6 sm:pt-12">
+        <div className="text-center">
+          <Wand2 className="mx-auto h-10 w-10 text-primary mb-3" />
+          <h2 className="text-lg font-semibold text-foreground">Test Map Generator</h2>
+          <p className="mt-1 text-sm text-muted-foreground">
+            A throwaway conversation will be created automatically to host the map data.
+          </p>
+        </div>
+        <button
+          onClick={async () => {
+            setResolving(true);
+            try {
+              const id = await ensureConversation();
+              setResolvedId(id);
+            } catch {
+              toast.error('Failed to set up test session');
+            } finally {
+              setResolving(false);
+            }
+          }}
+          disabled={resolving || creatingConversation}
+          className={cn(
+            'flex w-full items-center justify-center gap-2 rounded-lg px-4 py-3',
+            'text-sm font-medium transition-colors',
+            resolving || creatingConversation
+              ? 'bg-accent text-muted-foreground cursor-not-allowed'
+              : 'bg-primary text-primary-foreground hover:bg-primary-hover'
+          )}
+        >
+          {resolving || creatingConversation ? (
+            <>
+              <span className="h-4 w-4 animate-spin rounded-full border-2 border-border-hover border-t-foreground" />
+              Setting up...
+            </>
+          ) : (
+            <>
+              <Wand2 className="h-4 w-4" />
+              Start Generating
+            </>
+          )}
+        </button>
       </div>
-      <button
-        onClick={async () => {
-          setResolving(true);
-          try {
-            const id = await ensureConversation();
-            setResolvedId(id);
-          } catch {
-            toast.error('Failed to set up test session');
-          } finally {
-            setResolving(false);
-          }
-        }}
-        disabled={resolving || creatingConversation}
-        className={cn(
-          'flex w-full items-center justify-center gap-2 rounded-lg px-4 py-3',
-          'text-sm font-medium transition-colors',
-          resolving || creatingConversation
-            ? 'bg-accent text-muted-foreground cursor-not-allowed'
-            : 'bg-primary text-primary-foreground hover:bg-primary-hover'
-        )}
-      >
-        {resolving || creatingConversation ? (
-          <>
-            <span className="h-4 w-4 animate-spin rounded-full border-2 border-border-hover border-t-foreground" />
-            Setting up...
-          </>
-        ) : (
-          <>
-            <Wand2 className="h-4 w-4" />
-            Start Generating
-          </>
-        )}
-      </button>
     </div>
   );
 }

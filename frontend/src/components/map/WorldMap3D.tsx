@@ -34,7 +34,11 @@ import type {
   CulturalRegion,
 } from '@/graphql/types';
 
-import { Crosshair, Maximize2 } from 'lucide-react';
+import { Crosshair, Flag, Maximize2 } from 'lucide-react';
+import { cn } from '@/lib/utils';
+
+const MAP_CONTROL_CLASS =
+  'inline-flex h-10 min-w-10 items-center justify-center gap-1.5 rounded-lg border border-border bg-card px-2.5 text-xs font-medium text-foreground shadow-sm transition-colors hover:bg-accent disabled:pointer-events-none disabled:opacity-50 sm:h-9 sm:justify-start sm:px-3';
 
 interface WorldMap3DProps {
   map: WorldMap;
@@ -398,6 +402,7 @@ export default function WorldMap3D({
     <div className="relative h-full w-full">
       <Canvas
         key={map.mapId}
+        className="isolate"
         onCreated={({ gl }) => {
           gl.domElement.tabIndex = 0;
           gl.domElement.setAttribute('aria-label', '3D world map. Drag to pan, right drag to orbit, scroll to zoom, and use arrow keys to move.');
@@ -442,29 +447,48 @@ export default function WorldMap3D({
         </Suspense>
       </Canvas>
 
-      {/* Controls */}
-      <div className="absolute left-4 top-4 flex flex-col gap-2">
+      <div
+        role="group"
+        aria-label="Map view controls"
+        className="absolute left-3 top-3 flex gap-2 sm:left-4 sm:top-4 sm:flex-col"
+      >
         <button
+          type="button"
           onClick={handleCenterOnMe}
           disabled={!userPosition}
-          className="inline-flex items-center gap-1.5 rounded-lg border border-border/60 bg-card/90 px-3 py-2 text-xs font-medium text-foreground shadow-sm backdrop-blur-sm transition-colors hover:bg-accent"
+          aria-label="Center on me"
+          title="Center on me"
+          className={MAP_CONTROL_CLASS}
         >
-          <Crosshair size={14} /> Center on me
+          <Crosshair size={16} aria-hidden="true" />
+          <span className="hidden sm:inline">Center on me</span>
         </button>
 
         <button
+          type="button"
           onClick={handleFitAll}
-          className="inline-flex items-center gap-1.5 rounded-lg border border-border/60 bg-card/90 px-3 py-2 text-xs font-medium text-foreground shadow-sm backdrop-blur-sm transition-colors hover:bg-accent"
+          aria-label="Fit all"
+          title="Fit all"
+          className={MAP_CONTROL_CLASS}
         >
-          <Maximize2 size={14} /> Fit all
+          <Maximize2 size={16} aria-hidden="true" />
+          <span className="hidden sm:inline">Fit all</span>
         </button>
 
         {culturalRegions.length > 0 && (
           <button
+            type="button"
             onClick={() => setShowEmpires((prev) => !prev)}
-            className="inline-flex items-center gap-1.5 rounded-lg border border-primary/50 bg-primary px-3 py-2 text-xs font-medium text-primary-foreground shadow-sm transition-colors hover:bg-primary-hover"
+            aria-pressed={showEmpires}
+            aria-label="Show empires"
+            title={showEmpires ? 'Hide empires' : 'Show empires'}
+            className={cn(
+              MAP_CONTROL_CLASS,
+              showEmpires && 'border-primary bg-primary text-primary-foreground hover:bg-primary-hover',
+            )}
           >
-            {showEmpires ? 'Hide Empires' : 'Show Empires'}
+            <Flag size={16} aria-hidden="true" />
+            <span className="hidden sm:inline">{showEmpires ? 'Hide empires' : 'Show empires'}</span>
           </button>
         )}
       </div>

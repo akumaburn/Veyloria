@@ -62,8 +62,11 @@ export default function BookmarkList({ conversationId }: BookmarkListProps) {
           <div className="mb-3 flex items-center justify-between">
             <h4 className="text-sm font-medium text-foreground">Create Bookmark</h4>
             <button
+              type="button"
               onClick={() => setShowCreateForm(false)}
-              className="rounded-md p-1 text-muted-foreground transition-colors hover:bg-accent hover:text-foreground"
+              aria-label="Close bookmark form"
+              title="Close"
+              className="-my-2 -mr-2 inline-flex h-10 w-10 items-center justify-center rounded-md text-muted-foreground transition-colors hover:bg-accent hover:text-foreground sm:-my-1 sm:-mr-1 sm:h-8 sm:w-8"
             >
               <X size={16} />
             </button>
@@ -89,6 +92,7 @@ export default function BookmarkList({ conversationId }: BookmarkListProps) {
             />
             <Button
               size="sm"
+              className="h-10 sm:h-8"
               onClick={() => void handleCreate()}
               isLoading={createLoading}
               disabled={!newLabel.trim()}
@@ -101,6 +105,7 @@ export default function BookmarkList({ conversationId }: BookmarkListProps) {
         <Button
           variant="outline"
           size="sm"
+          className="h-10 sm:h-8"
           leftIcon={<Plus size={14} />}
           onClick={() => setShowCreateForm(true)}
         >
@@ -122,23 +127,23 @@ export default function BookmarkList({ conversationId }: BookmarkListProps) {
           >
             {/* Header */}
             <div className="flex items-start gap-3 p-4">
-              <div className="flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-lg bg-indigo-500/15">
+              <div className="flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-lg bg-primary/10">
                 <Bookmark size={16} className="text-primary" />
               </div>
 
               <div className="min-w-0 flex-1">
-                <div className="flex items-center justify-between">
-                  <h4 className="text-sm font-medium text-foreground">{bookmark.label}</h4>
-                  <div className="flex items-center gap-1">
-                    <button
-                      onClick={() => void handleDelete(bookmark.bookmarkId)}
-                      disabled={deleteLoading}
-                      className="rounded-md p-1 text-muted-foreground transition-colors hover:bg-destructive/15 hover:text-destructive"
-                      title="Delete bookmark"
-                    >
-                      <Trash2 size={14} />
-                    </button>
-                  </div>
+                <div className="flex items-start justify-between gap-2">
+                  <h4 className="min-w-0 pt-1 text-sm font-medium break-words text-foreground">{bookmark.label}</h4>
+                  <button
+                    type="button"
+                    onClick={() => void handleDelete(bookmark.bookmarkId)}
+                    disabled={deleteLoading}
+                    className="-my-1.5 -mr-2 inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-md text-muted-foreground transition-colors hover:bg-destructive/15 hover:text-destructive sm:-my-1 sm:-mr-1 sm:h-8 sm:w-8"
+                    aria-label={`Delete bookmark ${bookmark.label}`}
+                    title="Delete bookmark"
+                  >
+                    <Trash2 size={14} />
+                  </button>
                 </div>
 
                 {bookmark.description && (

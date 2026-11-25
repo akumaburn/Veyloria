@@ -81,7 +81,7 @@ export default function StoryPublisher({
       description="Share your story with the community."
       size="lg"
       footer={
-        <div className="flex items-center justify-between">
+        <div className="flex flex-wrap items-center justify-between gap-3">
           <div className="flex items-center gap-2">
             <Switch
               size="sm"
@@ -90,12 +90,13 @@ export default function StoryPublisher({
               label="Preview"
             />
           </div>
-          <div className="flex items-center gap-3">
-            <Button variant="ghost" size="sm" onClick={onClose}>
+          <div className="flex items-center gap-2 sm:gap-3">
+            <Button variant="ghost" size="sm" className="h-10 sm:h-8" onClick={onClose}>
               Cancel
             </Button>
             <Button
               size="sm"
+              className="h-10 sm:h-8"
               onClick={() => void handlePublish()}
               disabled={!canPublish}
               isLoading={isLoading}
@@ -112,7 +113,7 @@ export default function StoryPublisher({
         /* Preview Mode */
         <div className="space-y-4">
           <Card className="p-4">
-            <h3 className="text-lg font-bold text-foreground">
+            <h3 className="text-lg font-bold break-words text-foreground">
               {title || 'Untitled Story'}
             </h3>
             <div className="mt-2 flex items-center gap-2">
@@ -194,9 +195,11 @@ export default function StoryPublisher({
                     <button
                       type="button"
                       onClick={() => handleRemoveTag(tag)}
-                      className="ml-0.5 rounded-sm text-muted-foreground transition-colors hover:text-foreground"
+                      aria-label={`Remove tag ${tag}`}
+                      title="Remove tag"
+                      className="-my-1 -mr-1.5 ml-0.5 inline-flex h-7 w-7 items-center justify-center rounded-sm text-muted-foreground transition-colors hover:text-foreground sm:-my-0.5 sm:-mr-1 sm:h-5 sm:w-5"
                     >
-                      <X size={10} />
+                      <X size={12} />
                     </button>
                   </span>
                 ))}

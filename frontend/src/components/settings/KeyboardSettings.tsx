@@ -205,14 +205,14 @@ export const KeyboardSettings = () => {
                   <div
                     key={shortcut.key}
                     className={cn(
-                      'flex flex-wrap items-center justify-between gap-3 px-5 py-4',
+                      'flex flex-wrap items-center justify-between gap-3 px-4 py-4 sm:px-5',
                       isRecording && 'bg-primary/5'
                     )}
                   >
                     <div className="flex min-w-44 flex-1 items-center gap-3">
                       <div
                         className={cn(
-                          'flex h-9 w-9 items-center justify-center rounded-lg',
+                          'flex h-9 w-9 shrink-0 items-center justify-center rounded-lg',
                           hasConflictFlag
                             ? 'bg-warning/10'
                             : isRecording
@@ -257,7 +257,9 @@ export const KeyboardSettings = () => {
                       ) : (
                         <>
                           <button
+                            type="button"
                             onClick={() => startRecording(shortcut.key)}
+                            aria-label={`Change shortcut for ${shortcut.label}`}
                             className={cn(
                               'rounded-lg px-3 py-2 font-mono text-sm transition-all',
                               hasConflictFlag
@@ -268,9 +270,11 @@ export const KeyboardSettings = () => {
                             <SettingKeybind keys={getShortcutDisplay(currentShortcut)} />
                           </button>
                           <button
+                            type="button"
                             onClick={() => resetShortcut(shortcut.key)}
-                            className="rounded-lg p-2 text-muted-foreground hover:bg-muted hover:text-foreground transition-colors"
-                            title="Reset to default"
+                            className="flex h-10 w-10 items-center justify-center rounded-lg text-muted-foreground hover:bg-muted hover:text-foreground transition-colors sm:h-[1.875rem] sm:w-[1.875rem]"
+                            title={`Reset ${shortcut.label} to default`}
+                            aria-label={`Reset ${shortcut.label} to default`}
                           >
                             <RotateCcw size={14} />
                           </button>
@@ -291,8 +295,8 @@ export const KeyboardSettings = () => {
         description="Restore all keyboard shortcuts to their default values"
         icon={RotateCcw}
       >
-        <div className="flex items-center justify-between px-5 py-4">
-          <div>
+        <div className="flex flex-wrap items-center justify-between gap-3 px-4 py-4 sm:px-5">
+          <div className="min-w-44 flex-1">
             <p className="text-sm font-medium text-foreground">Reset All Shortcuts</p>
             <p className="text-xs text-muted-foreground mt-0.5">
               This will reset all shortcuts to their default values
@@ -314,8 +318,8 @@ export const KeyboardSettings = () => {
         description="Modifier keys and special keys"
         icon={Keyboard}
       >
-        <div className="p-5">
-          <div className="grid grid-cols-2 gap-6 text-xs">
+        <div className="p-4 sm:p-5">
+          <div className="grid grid-cols-1 gap-6 text-xs min-[400px]:grid-cols-2">
             <div className="space-y-3">
               <p className="text-muted-foreground font-medium">Modifier Keys</p>
               <div className="space-y-2">

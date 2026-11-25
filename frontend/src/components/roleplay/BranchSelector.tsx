@@ -64,25 +64,27 @@ export default function BranchSelector({ conversationId }: BranchSelectorProps) 
     <div className="relative">
       {/* Trigger */}
       <button
+        type="button"
         onClick={() => setIsOpen(!isOpen)}
+        aria-expanded={isOpen}
         className={cn(
-          'flex items-center gap-2 rounded-lg border border-border bg-muted px-3 py-2 text-sm transition-colors',
+          'flex min-h-10 max-w-full items-center gap-2 rounded-lg border border-border bg-muted px-3 py-2 text-sm transition-colors',
           'hover:border-border-hover hover:bg-accent/80',
           isOpen && 'border-primary ring-1 ring-primary'
         )}
       >
-        <GitBranch size={14} className="text-muted-foreground" />
-        <span className="text-foreground">
+        <GitBranch size={14} className="shrink-0 text-muted-foreground" />
+        <span className="min-w-0 truncate text-foreground">
           {activeBranch?.label ?? 'Main Branch'}
         </span>
-        <ChevronDown size={14} className={cn('text-muted-foreground transition-transform', isOpen && 'rotate-180')} />
+        <ChevronDown size={14} className={cn('shrink-0 text-muted-foreground transition-transform', isOpen && 'rotate-180')} />
       </button>
 
       {/* Dropdown */}
       {isOpen && (
         <>
           <div className="fixed inset-0 z-10" onClick={() => setIsOpen(false)} />
-          <div className="absolute left-0 z-20 mt-1 w-64 rounded-lg border border-border bg-muted py-1 shadow-xl">
+          <div className="absolute left-0 z-20 mt-1 w-64 max-w-[calc(100vw-2rem)] rounded-lg border border-border bg-muted py-1 shadow-xl">
             {loading ? (
               <div className="flex justify-center py-4">
                 <Loader2 className="h-4 w-4 animate-spin text-muted-foreground" />
@@ -93,7 +95,7 @@ export default function BranchSelector({ conversationId }: BranchSelectorProps) 
                 <button
                   onClick={() => { setActiveBranchId(null); setIsOpen(false); }}
                   className={cn(
-                    'flex w-full items-center gap-2 px-3 py-2 text-left text-sm transition-colors hover:bg-accent',
+                    'flex min-h-10 w-full items-center gap-2 px-3 py-2 text-left text-sm transition-colors hover:bg-accent',
                     !activeBranchId && 'bg-primary/10 text-primary'
                   )}
                 >
@@ -107,7 +109,7 @@ export default function BranchSelector({ conversationId }: BranchSelectorProps) 
                     key={branch.branchId}
                     onClick={() => handleSelectBranch(branch)}
                     className={cn(
-                      'flex w-full items-center gap-2 px-3 py-2 text-left text-sm transition-colors hover:bg-accent',
+                      'flex min-h-10 w-full items-center gap-2 px-3 py-2 text-left text-sm transition-colors hover:bg-accent',
                       activeBranchId === branch.branchId && 'bg-primary/10 text-primary'
                     )}
                   >
@@ -125,7 +127,7 @@ export default function BranchSelector({ conversationId }: BranchSelectorProps) 
                 <div className="border-t border-border mt-1 pt-1">
                   <button
                     onClick={() => { setIsOpen(false); setShowCreateForm(true); }}
-                    className="flex w-full items-center gap-2 px-3 py-2 text-left text-sm text-muted-foreground hover:bg-accent hover:text-foreground"
+                    className="flex min-h-10 w-full items-center gap-2 px-3 py-2 text-left text-sm text-muted-foreground hover:bg-accent hover:text-foreground"
                   >
                     <Plus size={14} />
                     <span>New Branch</span>
@@ -143,7 +145,7 @@ export default function BranchSelector({ conversationId }: BranchSelectorProps) 
         onClose={() => setShowCreateForm(false)}
         title="Create Story Branch"
         footer={
-          <div className="flex justify-end gap-3">
+          <div className="flex flex-col-reverse gap-2 sm:flex-row sm:justify-end sm:gap-3">
             <Button variant="ghost" onClick={() => setShowCreateForm(false)}>Cancel</Button>
             <Button onClick={handleCreate} isLoading={creating} disabled={!label.trim() || !selectedBookmarkMessageId}>
               Create Branch

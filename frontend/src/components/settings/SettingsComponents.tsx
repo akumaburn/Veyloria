@@ -38,14 +38,14 @@ export const SettingSection = ({
   // Uses shared badgeStyles from utils (DRY)
   return (
     <div className={cn('rounded-2xl border border-border bg-card overflow-hidden', className)}>
-      <div className="flex items-center gap-3 border-b border-border px-5 py-4">
+      <div className="flex items-center gap-3 border-b border-border px-4 py-4 sm:px-5">
         {Icon && (
-          <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-primary/10">
+          <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-primary/10">
             <Icon size={18} className="text-primary" />
           </div>
         )}
-        <div className="flex-1">
-          <div className="flex items-center gap-2">
+        <div className="min-w-0 flex-1">
+          <div className="flex flex-wrap items-center gap-x-2 gap-y-1">
             <h3 className="text-sm font-semibold text-foreground">{title}</h3>
             {badge && (
               <span className={cn('rounded-full px-2 py-0.5 text-xs font-medium', badgeStyles[badgeVariant])}>
@@ -96,7 +96,7 @@ export const SettingRow = ({
     <SettingLabelContext.Provider value={{ labelId, disabled, describedBy: [description && `${labelId}-description`, warning && `${labelId}-warning`, info && `${labelId}-info`].filter(Boolean).join(' ') || undefined }}>
       <div
         className={cn(
-          'px-5 py-4',
+          'px-4 py-4 sm:px-5',
           vertical ? 'space-y-3' : 'flex flex-wrap items-start justify-between gap-4',
           disabled && 'opacity-50',
           className
@@ -105,9 +105,10 @@ export const SettingRow = ({
         {/*
           A wide control wraps under the label instead of squeezing it.
           Without a minimum, a 220px select leaves the label a few characters wide.
+          Below 640px every control except a switch takes the full row.
         */}
         <div className={cn('min-w-44 flex-1', vertical && 'mb-2')}>
-          <div className="flex items-center gap-2">
+          <div className="flex flex-wrap items-center gap-x-2 gap-y-1">
             <label id={labelId} htmlFor={`${labelId}-control`} className="text-sm font-medium text-foreground">{label}</label>
             {info && (
               <span id={`${labelId}-info`} title={info} aria-label={info} className="cursor-help text-muted-foreground hover:text-foreground transition-colors">
@@ -130,7 +131,16 @@ export const SettingRow = ({
             </div>
           )}
         </div>
-        <div className={cn('max-w-full shrink-0', vertical && 'w-full')}>{children}</div>
+        {children != null && (
+          <div
+            className={cn(
+              'max-w-full shrink-0',
+              vertical ? 'w-full' : 'max-sm:w-full max-sm:has-[[role=switch]]:w-auto'
+            )}
+          >
+            {children}
+          </div>
+        )}
       </div>
     </SettingLabelContext.Provider>
   );
@@ -171,6 +181,7 @@ export const SettingToggle = forwardRef<HTMLButtonElement, SettingToggleProps>(
         onClick={() => !disabled && onChange(!checked)}
         className={cn(
           'relative inline-flex shrink-0 rounded-full transition-all duration-200',
+          'before:absolute before:-inset-x-1 before:-inset-y-2.5',
           styles.track,
           checked
             ? 'bg-primary shadow-lg shadow-primary/25'
@@ -258,14 +269,16 @@ export const SettingSlider = ({
           onChange={(e) => onChange(parseFloat(e.target.value))}
           disabled={disabled}
           className={cn(
-            'relative w-full h-8 bg-transparent appearance-none cursor-pointer',
+            'relative w-full h-10 sm:h-8 bg-transparent appearance-none cursor-pointer',
             '[&::-webkit-slider-thumb]:appearance-none',
-            '[&::-webkit-slider-thumb]:w-4 [&::-webkit-slider-thumb]:h-4',
+            '[&::-webkit-slider-thumb]:w-5 [&::-webkit-slider-thumb]:h-5',
+            'sm:[&::-webkit-slider-thumb]:w-4 sm:[&::-webkit-slider-thumb]:h-4',
             '[&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:bg-white',
             '[&::-webkit-slider-thumb]:shadow-lg [&::-webkit-slider-thumb]:shadow-primary/30',
             '[&::-webkit-slider-thumb]:border-2 [&::-webkit-slider-thumb]:border-primary',
             '[&::-webkit-slider-thumb]:transition-transform [&::-webkit-slider-thumb]:hover:scale-110',
-            '[&::-moz-range-thumb]:w-4 [&::-moz-range-thumb]:h-4',
+            '[&::-moz-range-thumb]:w-5 [&::-moz-range-thumb]:h-5',
+            'sm:[&::-moz-range-thumb]:w-4 sm:[&::-moz-range-thumb]:h-4',
             '[&::-moz-range-thumb]:rounded-full [&::-moz-range-thumb]:bg-white',
             '[&::-moz-range-thumb]:border-2 [&::-moz-range-thumb]:border-primary',
             disabled && 'opacity-50 cursor-not-allowed'
@@ -318,7 +331,7 @@ export const SettingSelect = ({
         aria-labelledby={labelId}
         aria-describedby={describedBy}
         className={cn(
-          'flex items-center justify-between w-full rounded-xl border border-input bg-background px-3 py-2.5 text-sm text-foreground',
+          'flex items-center justify-between gap-2 w-full min-w-0 rounded-xl border border-input bg-background px-3 py-2.5 text-sm text-foreground max-sm:min-h-11 max-sm:w-full',
           'focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20',
           'transition-all duration-150',
           'data-[placeholder]:text-muted-foreground',
@@ -326,8 +339,10 @@ export const SettingSelect = ({
           className
         )}
       >
-        <SelectPrimitive.Value placeholder={placeholder} />
-        <SelectPrimitive.Icon>
+        <span className="min-w-0 truncate">
+          <SelectPrimitive.Value placeholder={placeholder} />
+        </span>
+        <SelectPrimitive.Icon className="shrink-0">
           <ChevronDown size={16} className="text-muted-foreground" />
         </SelectPrimitive.Icon>
       </SelectPrimitive.Trigger>
@@ -335,7 +350,8 @@ export const SettingSelect = ({
       <SelectPrimitive.Portal>
         <SelectPrimitive.Content
           className={cn(
-            'relative z-50 min-w-[8rem] overflow-hidden rounded-xl border border-border',
+            'relative z-50 min-w-[max(8rem,var(--radix-select-trigger-width))] max-w-[calc(100vw-2rem)] overflow-hidden rounded-xl border border-border',
+            'max-h-[var(--radix-select-content-available-height)]',
             'bg-popover text-popover-foreground shadow-lg',
             'data-[state=open]:animate-in data-[state=closed]:animate-out',
             'data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0',
@@ -351,7 +367,7 @@ export const SettingSelect = ({
                 key={option.value}
                 value={String(option.value)}
                 className={cn(
-                  'relative flex w-full cursor-pointer select-none items-center rounded-lg py-2 pl-8 pr-3 text-sm outline-none',
+                  'relative flex w-full cursor-pointer select-none items-center rounded-lg py-2.5 pl-8 pr-3 text-sm outline-none sm:py-2',
                   'focus:bg-accent focus:text-accent-foreground',
                   'data-[disabled]:pointer-events-none data-[disabled]:opacity-50'
                 )}
@@ -400,7 +416,7 @@ export const SettingRadioCards = ({
 }: SettingRadioCardsProps) => {
   const gridCols = {
     2: 'grid-cols-2',
-    3: 'grid-cols-2 sm:grid-cols-3',
+    3: options.length <= 3 ? 'grid-cols-3' : 'grid-cols-2 sm:grid-cols-3',
     4: 'grid-cols-2 sm:grid-cols-4',
   };
 
@@ -418,7 +434,7 @@ export const SettingRadioCards = ({
             onClick={() => !disabled && onChange(option.value)}
             disabled={disabled}
             className={cn(
-              'flex flex-col items-center gap-2 rounded-xl border p-3 transition-all duration-150',
+              'flex min-w-0 flex-col items-center gap-2 rounded-xl border p-3 transition-all duration-150',
               isSelected
                 ? 'border-primary/50 bg-primary/10 text-primary shadow-sm shadow-primary/10'
                 : 'border-border bg-muted/30 text-muted-foreground hover:border-border-hover hover:bg-muted/50 hover:text-foreground',
@@ -426,9 +442,9 @@ export const SettingRadioCards = ({
             )}
           >
             {Icon && <Icon size={20} />}
-            <span className="text-xs font-medium">{option.label}</span>
+            <span className="max-w-full text-xs font-medium text-center break-words">{option.label}</span>
             {option.description && (
-              <span className="text-xs text-muted-foreground text-center">{option.description}</span>
+              <span className="max-w-full text-xs text-muted-foreground text-center break-words">{option.description}</span>
             )}
           </button>
         );
@@ -549,7 +565,7 @@ export const SettingInput = ({
       max={max}
       step={step}
       className={cn(
-        'w-full rounded-xl border border-input bg-background px-3 py-2.5 text-sm text-foreground',
+        'w-full rounded-xl border border-input bg-background px-3 py-2.5 text-sm text-foreground max-sm:min-h-11 max-sm:w-full',
         'placeholder:text-muted-foreground',
         'focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20',
         'transition-all duration-150',
@@ -608,7 +624,7 @@ export const SettingNotice = ({
     <div className={cn('rounded-xl border p-4', variantStyles.bg, className)}>
       <div className="flex items-start gap-3">
         <Icon size={20} className={cn('mt-0.5 shrink-0', variantStyles.title)} />
-        <div className="flex-1">
+        <div className="min-w-0 flex-1">
           {title && (
             <h4 className={cn('text-sm font-semibold', variantStyles.title)}>{title}</h4>
           )}
@@ -651,8 +667,8 @@ export const SettingActionButton = ({
   };
 
   const sizeStyles = {
-    sm: 'px-3 py-1.5 text-xs gap-1.5',
-    md: 'px-4 py-2.5 text-sm gap-2',
+    sm: 'min-h-10 sm:min-h-0 px-3 py-1.5 text-xs gap-1.5',
+    md: 'max-sm:min-h-11 px-4 py-2.5 text-sm gap-2',
     lg: 'px-5 py-3 text-base gap-2.5',
   };
 

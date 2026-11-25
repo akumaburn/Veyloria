@@ -201,9 +201,10 @@ export const CharacterSettings = () => {
           </div>
           <div className="flex shrink-0 gap-2">
             <button
+              type="button"
               onClick={() => setShowGenerateModal(true)}
               className={cn(
-                'inline-flex items-center gap-2 rounded-xl px-3 py-2 text-sm font-medium',
+                'inline-flex items-center gap-2 rounded-xl px-3 py-2 text-sm font-medium max-sm:min-h-11',
                 'border-border bg-card text-foreground border',
                 'hover:bg-accent transition-colors duration-150',
               )}
@@ -212,9 +213,10 @@ export const CharacterSettings = () => {
               Generate
             </button>
             <button
+              type="button"
               onClick={handleCreateNew}
               className={cn(
-                'inline-flex items-center gap-2 rounded-xl px-4 py-2 text-sm font-medium',
+                'inline-flex items-center gap-2 rounded-xl px-4 py-2 text-sm font-medium max-sm:min-h-11',
                 'bg-primary text-primary-foreground',
                 'shadow-primary/25 hover:shadow-primary/40 hover:bg-primary-hover shadow-lg',
                 'transition-all duration-200',
@@ -230,8 +232,14 @@ export const CharacterSettings = () => {
         {error && (
           <div className="bg-destructive/10 border-destructive/30 flex items-start gap-3 rounded-xl border p-4">
             <AlertCircle size={18} className="text-destructive mt-0.5 shrink-0" />
-            <div className="text-destructive flex-1 text-sm">{error}</div>
-            <button onClick={clearError} className="text-destructive hover:bg-destructive/10">
+            <div className="text-destructive min-w-0 flex-1 text-sm break-words">{error}</div>
+            <button
+              type="button"
+              onClick={clearError}
+              aria-label="Dismiss error"
+              title="Dismiss error"
+              className="text-destructive hover:bg-destructive/10 -my-2 -mr-2 flex h-10 w-10 shrink-0 items-center justify-center rounded-lg sm:h-8 sm:w-8"
+            >
               <X size={16} />
             </button>
           </div>
@@ -251,19 +259,21 @@ export const CharacterSettings = () => {
               placeholder="Search characters..."
               className={cn(
                 'border-border bg-muted/50 w-full rounded-xl border',
-                'text-foreground placeholder-muted-foreground py-2.5 pr-3 pl-10 text-sm',
+                'text-foreground placeholder-muted-foreground py-2.5 pr-3 pl-10 text-sm max-sm:min-h-11',
                 'focus:border-primary focus:ring-primary/20 focus:ring-2 focus:outline-none',
                 'transition-all duration-150',
               )}
             />
           </div>
-          <div className="flex flex-wrap gap-2">
+          <div className="flex gap-2">
             {(['all', 'mine', 'public'] as const).map((filter) => (
               <button
                 key={filter}
+                type="button"
+                aria-pressed={selectedFilter === filter}
                 onClick={() => setSelectedFilter(filter)}
                 className={cn(
-                  'rounded-xl px-3 py-1.5 text-xs font-medium capitalize whitespace-nowrap sm:px-4 sm:py-2 sm:text-sm',
+                  'min-h-10 flex-1 rounded-xl px-3 py-1.5 text-xs font-medium capitalize whitespace-nowrap sm:min-h-0 sm:flex-none sm:px-4 sm:py-2 sm:text-sm',
                   'transition-all duration-150',
                   selectedFilter === filter
                     ? 'bg-primary text-primary-foreground shadow-md'
@@ -377,7 +387,7 @@ export const CharacterSettings = () => {
                         e.stopPropagation();
                         handleEdit(character);
                       }}
-                      className="hover:bg-accent text-muted-foreground hover:text-foreground rounded-lg p-1.5 transition-colors"
+                      className="hover:bg-accent text-muted-foreground hover:text-foreground flex h-10 w-10 items-center justify-center rounded-lg transition-colors sm:h-7 sm:w-7"
                       title="Edit"
                       aria-label={`Edit ${character.name}`}
                     >
@@ -388,7 +398,7 @@ export const CharacterSettings = () => {
                         e.stopPropagation();
                         void handleClone(character.id, character.name);
                       }}
-                      className="hover:bg-accent text-muted-foreground hover:text-foreground rounded-lg p-1.5 transition-colors"
+                      className="hover:bg-accent text-muted-foreground hover:text-foreground flex h-10 w-10 items-center justify-center rounded-lg transition-colors sm:h-7 sm:w-7"
                       title="Clone"
                       aria-label={`Clone ${character.name}`}
                     >
@@ -399,7 +409,7 @@ export const CharacterSettings = () => {
                         e.stopPropagation();
                         void handleDelete(character.id);
                       }}
-                      className="hover:bg-destructive/10 text-muted-foreground hover:text-destructive rounded-lg p-1.5 transition-colors"
+                      className="hover:bg-destructive/10 text-muted-foreground hover:text-destructive flex h-10 w-10 items-center justify-center rounded-lg transition-colors sm:h-7 sm:w-7"
                       title="Delete"
                       aria-label={`Delete ${character.name}`}
                     >
@@ -420,8 +430,8 @@ export const CharacterSettings = () => {
             aria-label="Generate with AI"
             className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm"
           >
-            <div className="bg-card border-border mx-4 w-full max-w-md overflow-hidden rounded-2xl border shadow-2xl">
-              <div className="border-border flex items-center justify-between border-b p-4">
+            <div className="bg-card border-border mx-4 flex max-h-[calc(100dvh-2rem)] w-full max-w-md flex-col overflow-hidden rounded-2xl border shadow-2xl">
+              <div className="border-border flex shrink-0 items-center justify-between border-b p-4">
                 <div className="flex items-center gap-3">
                   <div className="from-secondary to-secondary-hover flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-br">
                     <Sparkles size={20} className="text-secondary-foreground" />
@@ -429,14 +439,17 @@ export const CharacterSettings = () => {
                   <h3 className="text-foreground text-lg font-semibold">Generate with AI</h3>
                 </div>
                 <button
+                  type="button"
                   onClick={closeGenerateModal}
-                  className="hover:bg-accent text-muted-foreground hover:text-foreground rounded-lg p-2"
+                  aria-label="Close"
+                  title="Close"
+                  className="hover:bg-accent text-muted-foreground hover:text-foreground flex h-10 w-10 shrink-0 items-center justify-center rounded-lg"
                 >
                   <X size={18} />
                 </button>
               </div>
 
-              <div className="space-y-4 p-4">
+              <div className="min-h-0 space-y-4 overflow-y-auto overscroll-contain p-4">
                 <p className="text-muted-foreground text-sm">
                   Describe the character you want to create, and AI will generate it for you.
                 </p>
@@ -454,11 +467,12 @@ export const CharacterSettings = () => {
                   )}
                   rows={4}
                 />
-                <div className="flex justify-end gap-3">
+                <div className="flex flex-col-reverse gap-3 sm:flex-row sm:justify-end">
                   <button
+                    type="button"
                     onClick={closeGenerateModal}
                     className={cn(
-                      'rounded-xl px-4 py-2 text-sm font-medium',
+                      'rounded-xl px-4 py-2 text-sm font-medium max-sm:min-h-11',
                       'bg-muted text-muted-foreground hover:bg-accent hover:text-foreground',
                       'transition-colors',
                     )}
@@ -466,10 +480,11 @@ export const CharacterSettings = () => {
                     Cancel
                   </button>
                   <button
+                    type="button"
                     onClick={() => void handleGenerate()}
                     disabled={isGenerating || !generatePrompt.trim()}
                     className={cn(
-                      'inline-flex items-center gap-2 rounded-xl px-4 py-2 text-sm font-medium',
+                      'inline-flex items-center justify-center gap-2 rounded-xl px-4 py-2 text-sm font-medium max-sm:min-h-11',
                       'from-secondary to-secondary-hover text-secondary-foreground bg-gradient-to-r',
                       'shadow-secondary/25 hover:shadow-secondary/40 shadow-lg',
                       'transition-all duration-200 disabled:opacity-50',
@@ -502,9 +517,10 @@ export const CharacterSettings = () => {
       {/* Header */}
       <div className="flex items-center justify-between">
         <button
+          type="button"
           onClick={() => setShowEditor(false)}
           className={cn(
-            'inline-flex items-center gap-2 text-sm font-medium',
+            'inline-flex items-center gap-2 text-sm font-medium max-sm:min-h-11',
             'text-muted-foreground hover:text-foreground',
             'transition-colors',
           )}

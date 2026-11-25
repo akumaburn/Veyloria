@@ -350,7 +350,7 @@ export function CharacterRosterModal({
               return (
                 <li
                   key={character.id}
-                  className="border-border bg-background min-w-0 rounded-xl border p-4"
+                  className="border-border bg-background min-w-0 rounded-xl border p-3 sm:p-4"
                 >
                   <div className="flex items-start gap-2">
                     <span className="bg-accent text-muted-foreground flex h-6 w-6 shrink-0 items-center justify-center rounded-md text-xs">
@@ -404,7 +404,7 @@ export function CharacterRosterModal({
                           updateAlignment(index, event.target.value as Alignment)
                         }
                         className={cn(
-                          'min-h-8 rounded-md border px-2 text-xs font-medium focus:ring-1 focus:outline-none',
+                          'min-h-10 rounded-md border px-2 text-xs font-medium focus:ring-1 focus:outline-none sm:min-h-8',
                           meta.cell,
                           meta.text,
                         )}
@@ -450,7 +450,7 @@ export function CharacterRosterModal({
                                 updateFeeling(index, relationship.targetName, event.target.value)
                               }
                               className={cn(
-                                'text-2xs min-h-8 rounded-md border px-1.5 font-medium focus:ring-1 focus:outline-none',
+                                'text-2xs min-h-10 rounded-md border px-1.5 font-medium focus:ring-1 focus:outline-none sm:min-h-8',
                                 tierStyle(relationship.tier),
                               )}
                             >
@@ -464,7 +464,8 @@ export function CharacterRosterModal({
                               type="button"
                               onClick={() => removeFeeling(index, relationship.targetName)}
                               aria-label={`Remove ${character.name}'s feeling toward ${relationship.targetName}`}
-                              className="text-muted-foreground hover:text-destructive hover:bg-destructive/10 rounded-md p-1"
+                              title="Remove feeling"
+                              className="text-muted-foreground hover:text-destructive hover:bg-destructive/10 flex h-10 w-10 shrink-0 items-center justify-center rounded-md sm:h-auto sm:w-auto sm:p-1"
                             >
                               <X size={13} />
                             </button>
@@ -488,7 +489,7 @@ export function CharacterRosterModal({
                               [character.id]: event.target.value,
                             }))
                           }
-                          className="border-border bg-background text-foreground min-h-8 min-w-0 flex-1 rounded-md border px-2 text-xs focus:ring-1 focus:outline-none"
+                          className="border-border bg-background text-foreground min-h-10 min-w-0 flex-1 rounded-md border px-2 text-xs focus:ring-1 focus:outline-none sm:min-h-8"
                         >
                           <option value="">Choose a cast member…</option>
                           {available.map((name) => (
@@ -501,7 +502,7 @@ export function CharacterRosterModal({
                           type="button"
                           disabled={!newTargets[character.id]}
                           onClick={() => addFeeling(index, character.id)}
-                          className="border-border bg-background hover:bg-accent min-h-8 rounded-md border px-2 text-xs font-medium disabled:opacity-40"
+                          className="border-border bg-background hover:bg-accent min-h-10 rounded-md border px-3 text-xs font-medium disabled:opacity-40 sm:min-h-8 sm:px-2"
                         >
                           Add
                         </button>

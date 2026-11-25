@@ -83,7 +83,7 @@ interface PageLoadingProps {
 export const PageLoading = ({ message = 'Loading...', className }: PageLoadingProps) => {
   return (
     <div className={cn(
-      'flex min-h-screen items-center justify-center bg-background',
+      'flex min-h-dvh items-center justify-center bg-background',
       className
     )}>
       <div className="text-center">

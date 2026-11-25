@@ -119,30 +119,31 @@ export const CharacterSelector = ({
 
   return (
     <div className={cn(
-      'absolute left-0 right-0 top-full z-50',
-      'border-b border-border/50 bg-background-secondary/95 backdrop-blur-md',
+      'absolute left-0 right-0 top-full z-50 flex max-h-[75dvh] flex-col',
+      'border-b border-border/50 bg-background-secondary',
       'shadow-2xl animate-fade-down'
     )}>
-      <div className="mx-auto max-w-6xl p-4">
+      <div className="mx-auto flex min-h-0 w-full max-w-6xl flex-col p-3 sm:p-4">
         {/* Header */}
-        <div className="mb-4 flex items-center justify-between">
-          <div className="flex items-center gap-3">
+        <div className="mb-3 flex shrink-0 items-center justify-between gap-3 sm:mb-4">
+          <div className="flex min-w-0 items-center gap-3">
             <div className={cn(
-              'flex h-10 w-10 items-center justify-center rounded-xl',
+              'flex h-10 w-10 shrink-0 items-center justify-center rounded-xl',
               'bg-gradient-to-br from-secondary to-secondary-hover shadow-lg'
             )}>
               <Bot size={20} className="text-secondary-foreground" />
             </div>
-            <div>
+            <div className="min-w-0">
               <h3 className="text-lg font-semibold text-foreground">Select Character</h3>
-              <p className="text-xs text-muted-foreground">Choose an AI personality for your conversation</p>
+              <p className="text-xs text-muted-foreground max-sm:hidden">Choose an AI personality for your conversation</p>
             </div>
           </div>
           <button
+            type="button"
             aria-label="Close character selector"
             onClick={onClose}
             className={cn(
-              'rounded-lg p-2 text-muted-foreground',
+              'inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-lg text-muted-foreground',
               'hover:bg-accent hover:text-foreground',
               'transition-colors duration-150'
             )}
@@ -152,7 +153,7 @@ export const CharacterSelector = ({
         </div>
 
         {/* Search and filters */}
-        <div className="mb-4 flex flex-col gap-3 sm:flex-row">
+        <div className="mb-3 flex shrink-0 flex-col gap-2 sm:mb-4 sm:flex-row sm:gap-3">
           <div className="relative flex-1">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" size={18} />
             <input
@@ -169,22 +170,25 @@ export const CharacterSelector = ({
             />
           </div>
 
-          <div className="flex flex-wrap gap-2">
+          <div className="grid grid-cols-4 gap-1.5 sm:flex sm:flex-wrap sm:gap-2">
             {categories.map((category) => {
               const Icon = category.icon;
               return (
                 <button
                   key={category.id}
+                  type="button"
                   onClick={() => setSelectedCategory(category.id)}
+                  aria-pressed={selectedCategory === category.id}
                   className={cn(
-                    'flex items-center gap-2 rounded-lg px-3 py-2 text-sm font-medium',
+                    'flex items-center justify-center gap-2 rounded-lg px-3 py-2 text-sm font-medium',
+                    'max-sm:min-h-10 max-sm:px-1.5 max-sm:text-xs',
                     'transition-all duration-150 whitespace-nowrap',
                     selectedCategory === category.id
                       ? 'bg-primary text-primary-foreground shadow-lg shadow-primary/25'
                       : 'bg-muted text-muted-foreground hover:bg-accent hover:text-foreground'
                   )}
                 >
-                  <Icon size={14} />
+                  <Icon size={14} className="max-sm:hidden" aria-hidden="true" />
                   {category.name}
                 </button>
               );
@@ -194,20 +198,21 @@ export const CharacterSelector = ({
 
         {/* Characters grid */}
         {isLoading ? (
-          <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">
+          <div className="grid min-h-0 flex-auto grid-cols-1 gap-2 overflow-hidden sm:grid-cols-2 sm:gap-3 lg:grid-cols-3">
             {[...Array(6)].map((_, i) => (
               <div key={i} className="animate-pulse rounded-xl bg-muted/30 h-32" />
             ))}
           </div>
         ) : (
-          <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3 max-h-[400px] overflow-y-auto custom-scrollbar pr-2">
+          <div className="grid min-h-0 flex-auto grid-cols-1 gap-2 overflow-y-auto overscroll-contain custom-scrollbar pr-1 sm:max-h-[400px] sm:grid-cols-2 sm:gap-3 sm:pr-2 lg:grid-cols-3">
             {/* Character cards from backend */}
             {filteredCharacters.map((character) => (
               <button
                 key={character.id}
+                type="button"
                 onClick={() => handleSelect(character)}
                 className={cn(
-                  'group relative rounded-xl border p-4 text-left',
+                  'group relative rounded-xl border p-3 text-left sm:p-4',
                   'transition-all duration-200',
                   selectedCharacterId === character.id
                     ? 'border-secondary bg-secondary/10 shadow-lg shadow-secondary/10'
@@ -316,10 +321,10 @@ export const CharacterSelector = ({
 
         {/* Footer info */}
         <div className={cn(
-          'mt-4 flex items-center gap-2 pt-3 border-t border-border/50',
+          'mt-4 flex shrink-0 items-center gap-2 pt-3 border-t border-border/50 max-sm:hidden',
           'text-xs text-muted-foreground'
         )}>
-          <Info size={14} />
+          <Info size={14} className="shrink-0" />
           <span>Characters define the AI's personality, response style, and capabilities</span>
         </div>
       </div>

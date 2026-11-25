@@ -178,7 +178,7 @@ export const Textarea = forwardRef<HTMLTextAreaElement, TextareaProps>(
               onClick={() => setIsFullscreen(true)}
               disabled={disabled}
               aria-label="Expand text editor"
-              className="text-muted-foreground hover:bg-accent hover:text-foreground absolute top-1 right-1 flex h-9 w-9 items-center justify-center rounded-lg disabled:opacity-50"
+              className="text-muted-foreground hover:bg-accent hover:text-foreground absolute top-1 right-1 flex h-10 w-10 items-center justify-center rounded-lg disabled:opacity-50 sm:h-9 sm:w-9"
             >
               <Maximize2 size={16} />
             </button>
@@ -232,7 +232,7 @@ export const MarkdownTextarea = forwardRef<HTMLTextAreaElement, MarkdownTextarea
             type="button"
             onClick={togglePreview}
             aria-pressed={showPreview}
-            className="bg-muted text-muted-foreground hover:bg-accent min-h-9 rounded-lg px-3 py-1 text-xs"
+            className="bg-muted text-muted-foreground hover:bg-accent min-h-10 rounded-lg px-3 py-1 text-xs sm:min-h-9"
           >
             {showPreview ? 'Edit' : 'Preview'}
           </button>

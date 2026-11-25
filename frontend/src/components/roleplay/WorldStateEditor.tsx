@@ -8,6 +8,9 @@ interface WorldStateEditorProps {
   conversationId: string;
 }
 
+const ICON_BUTTON =
+  'inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-md transition-colors sm:h-7 sm:w-7';
+
 const TIME_OPTIONS = [
   'dawn', 'morning', 'midday', 'afternoon', 'dusk', 'evening', 'night', 'midnight',
 ] as const;
@@ -44,14 +47,14 @@ function EditableField({ label, value, fieldKey, type = 'text', options, onSave,
 
   if (editing) {
     return (
-      <div className="flex items-center gap-2">
-        <label className="w-24 flex-shrink-0 text-xs text-muted-foreground">{label}</label>
+      <div className="flex items-center gap-1.5 sm:gap-2">
+        <label className="w-20 flex-shrink-0 text-xs text-muted-foreground sm:w-24">{label}</label>
         {type === 'select' && options ? (
           <select
             value={draft}
             onChange={(e) => setDraft(e.target.value)}
             className={cn(
-              'flex-1 rounded-lg border border-border bg-muted/50 px-2 py-1.5',
+              'min-w-0 flex-1 rounded-lg border border-border bg-muted/50 px-2 py-1.5',
               'text-xs text-foreground',
               'focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary/30'
             )}
@@ -68,7 +71,7 @@ function EditableField({ label, value, fieldKey, type = 'text', options, onSave,
             value={draft}
             onChange={(e) => setDraft(e.target.value)}
             className={cn(
-              'flex-1 rounded-lg border border-border bg-muted/50 px-2 py-1.5',
+              'min-w-0 flex-1 rounded-lg border border-border bg-muted/50 px-2 py-1.5',
               'text-xs text-foreground',
               'focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary/30'
             )}
@@ -80,15 +83,21 @@ function EditableField({ label, value, fieldKey, type = 'text', options, onSave,
           />
         )}
         <button
+          type="button"
           onClick={() => void handleSave()}
           disabled={saving}
-          className="rounded p-1 text-success hover:bg-success/10 transition-colors"
+          aria-label={`Save ${label}`}
+          title="Save"
+          className={cn(ICON_BUTTON, 'text-success hover:bg-success/10')}
         >
           {saving ? <Loader2 size={14} className="animate-spin" /> : <Check size={14} />}
         </button>
         <button
+          type="button"
           onClick={handleCancel}
-          className="rounded p-1 text-muted-foreground hover:bg-muted transition-colors"
+          aria-label={`Cancel editing ${label}`}
+          title="Cancel"
+          className={cn(ICON_BUTTON, 'text-muted-foreground hover:bg-muted')}
         >
           <X size={14} />
         </button>
@@ -99,12 +108,18 @@ function EditableField({ label, value, fieldKey, type = 'text', options, onSave,
   return (
     <div className="group flex items-center gap-2">
       <label className="w-24 flex-shrink-0 text-xs text-muted-foreground">{label}</label>
-      <span className="flex-1 text-xs font-medium text-foreground capitalize truncate">
+      <span className="min-w-0 flex-1 text-xs font-medium text-foreground capitalize truncate">
         {value || 'Unset'}
       </span>
       <button
+        type="button"
         onClick={handleEdit}
-        className="rounded p-1 text-muted-foreground opacity-0 group-hover:opacity-100 hover:bg-muted transition-all"
+        aria-label={`Edit ${label}`}
+        title={`Edit ${label}`}
+        className={cn(
+          ICON_BUTTON,
+          'text-muted-foreground hover:bg-muted lg:opacity-0 lg:group-hover:opacity-100 lg:focus-visible:opacity-100',
+        )}
       >
         <Pencil size={12} />
       </button>

@@ -20,6 +20,7 @@ import { Textarea } from '../components/ui/Textarea';
 import { Button } from '../components/ui/Button';
 import { LoadingSpinner } from '../components/ui/LoadingStates';
 import { EmptyState } from '../components/ui/EmptyStates';
+import { Modal } from '../components/ui/Modal';
 import { toast } from 'react-hot-toast';
 import { cn } from '@/lib/utils';
 import { useCharacterStore } from '@/stores/characterStore';
@@ -28,7 +29,6 @@ import {
   Sparkles,
   Search,
   Bot,
-  Loader2,
   Star,
   Trash2,
   Users,
@@ -56,6 +56,10 @@ const filterCategories = [
   { value: 'technical', label: 'Technical', icon: Bot },
   { value: 'roleplay', label: 'Roleplay', icon: Bot },
 ];
+
+const toolButtonClass = 'h-10 w-10 rounded-lg px-0 sm:h-8 sm:w-auto sm:rounded-md sm:px-3';
+const cardIconButtonClass =
+  'text-muted-foreground flex h-10 w-10 items-center justify-center rounded-lg transition-colors sm:h-8 sm:w-8';
 
 const CharactersPage: React.FC = () => {
   const {
@@ -290,7 +294,7 @@ const CharactersPage: React.FC = () => {
           }
         />
 
-        <div className="custom-scrollbar flex-1 overflow-y-auto px-4 py-8 sm:px-6">
+        <div className="custom-scrollbar flex-1 overflow-y-auto px-4 pt-6 sm:px-6 sm:pt-8 xl:pb-8">
           <div className="mx-auto max-w-7xl">
             <CharacterForm
               formData={formData}
@@ -337,21 +341,21 @@ const CharactersPage: React.FC = () => {
         }
       />
 
-      <div className="custom-scrollbar flex-1 overflow-y-auto px-4 py-8 sm:px-6">
+      <div className="custom-scrollbar flex-1 overflow-y-auto px-4 py-6 sm:px-6 sm:py-8">
         <div className="mx-auto max-w-7xl">
           {/* View switcher and collection tools */}
-          <div className="mb-6 flex flex-wrap items-center justify-between gap-3">
+          <div className="mb-4 flex flex-wrap items-center justify-between gap-3 sm:mb-6">
             <div
               role="tablist"
               aria-label="Rosters or characters"
-              className="border-border bg-muted/40 inline-flex rounded-xl border p-1"
+              className="border-border bg-muted/40 flex w-full rounded-xl border p-1 sm:inline-flex sm:w-auto"
             >
               <button
                 role="tab"
                 aria-selected={view === 'groups'}
                 onClick={() => setView('groups')}
                 className={cn(
-                  'rounded-lg px-4 py-2 text-sm font-medium transition-colors',
+                  'min-h-10 flex-1 rounded-lg px-4 py-2 text-sm font-medium transition-colors sm:min-h-0 sm:flex-none',
                   view === 'groups'
                     ? 'bg-card text-foreground shadow-sm'
                     : 'text-muted-foreground hover:text-foreground',
@@ -365,7 +369,7 @@ const CharactersPage: React.FC = () => {
                 aria-selected={view === 'characters'}
                 onClick={() => setView('characters')}
                 className={cn(
-                  'rounded-lg px-4 py-2 text-sm font-medium transition-colors',
+                  'min-h-10 flex-1 rounded-lg px-4 py-2 text-sm font-medium transition-colors sm:min-h-0 sm:flex-none',
                   view === 'characters'
                     ? 'bg-card text-foreground shadow-sm'
                     : 'text-muted-foreground hover:text-foreground',
@@ -376,54 +380,66 @@ const CharactersPage: React.FC = () => {
               </button>
             </div>
 
-            <div className="flex flex-wrap items-center gap-2">
+            <div className="flex items-center gap-2 sm:flex-wrap">
               <Button
                 type="button"
                 variant="outline"
                 size="sm"
-                leftIcon={<Heart size={14} className="text-primary" />}
+                aria-label="Relationships"
+                title="Relationships"
+                className={toolButtonClass}
+                leftIcon={<Heart size={16} className="text-primary sm:size-3.5" />}
                 onClick={() => {
                   setRelationshipCharacter(null);
                   setShowRelationships(true);
                 }}
               >
-                Relationships
+                <span className="hidden sm:inline">Relationships</span>
               </Button>
               <Button
                 type="button"
                 variant="outline"
                 size="sm"
-                leftIcon={<Scale size={14} className="text-primary" />}
+                aria-label="Alignment"
+                title="Alignment"
+                className={toolButtonClass}
+                leftIcon={<Scale size={16} className="text-primary sm:size-3.5" />}
                 onClick={() => {
                   setAlignmentCharacter(null);
                   setShowAlignment(true);
                 }}
               >
-                Alignment
+                <span className="hidden sm:inline">Alignment</span>
               </Button>
               <Button
                 type="button"
                 variant="outline"
                 size="sm"
-                leftIcon={<Users size={14} className="text-primary" />}
+                aria-label="Generate roster"
+                title="Generate roster"
+                className={toolButtonClass}
+                leftIcon={<Users size={16} className="text-primary sm:size-3.5" />}
                 onClick={() => setShowRosterModal(true)}
               >
-                Generate roster
+                <span className="hidden sm:inline">Generate roster</span>
               </Button>
               <Button
                 type="button"
                 variant="outline"
                 size="sm"
-                leftIcon={<Sparkles size={14} className="text-secondary" />}
+                aria-label="Generate with AI"
+                title="Generate with AI"
+                className={toolButtonClass}
+                leftIcon={<Sparkles size={16} className="text-secondary sm:size-3.5" />}
                 onClick={() => setShowGenerateModal(true)}
               >
-                Generate with AI
+                <span className="hidden sm:inline">Generate with AI</span>
               </Button>
             </div>
           </div>
 
           {/* Filters */}
-          <div className="mb-6 flex flex-col gap-4 sm:flex-row">
+          <div className="mb-4 flex flex-col gap-3 sm:mb-6 sm:flex-row sm:gap-4">
             <div className="max-w-lg flex-1">
               <div className="relative">
                 <Search
@@ -446,16 +462,26 @@ const CharactersPage: React.FC = () => {
               </div>
             </div>
 
-            <div className={cn('flex flex-wrap gap-2', view === 'groups' && 'hidden')}>
+            <div
+              role="group"
+              aria-label="Filter by category"
+              className={cn(
+                'scrollbar-hide -mx-4 flex gap-2 overflow-x-auto px-4',
+                'sm:mx-0 sm:flex-wrap sm:overflow-visible sm:px-0',
+                view === 'groups' && 'hidden',
+              )}
+            >
               {filterCategories.map((cat) => {
                 const Icon = cat.icon;
                 return (
                   <button
                     key={cat.value}
+                    type="button"
+                    aria-pressed={selectedCategory === cat.value}
                     onClick={() => setSelectedCategory(cat.value)}
                     className={cn(
-                      'flex items-center gap-1.5 rounded-md px-2.5 py-1.5 text-xs font-medium',
-                      'whitespace-nowrap transition-colors duration-150',
+                      'flex min-h-10 shrink-0 items-center gap-1.5 rounded-md px-3 py-1.5 text-xs font-medium',
+                      'whitespace-nowrap transition-colors duration-150 sm:min-h-0 sm:px-2.5',
                       selectedCategory === cat.value
                         ? 'bg-primary/15 text-primary'
                         : 'bg-muted text-muted-foreground hover:bg-accent hover:text-foreground',
@@ -491,7 +517,7 @@ const CharactersPage: React.FC = () => {
                   <article
                     key={group.id}
                     className={cn(
-                      'border-border bg-card rounded-2xl border p-5',
+                      'border-border bg-card rounded-2xl border p-4 sm:p-5',
                       // A lone roster should claim the row: half-empty
                       // right column reads as a layout bug at desktop widths.
                       filteredGroups.length === 1 && 'lg:col-span-2'
@@ -510,12 +536,16 @@ const CharactersPage: React.FC = () => {
                           </p>
                         </div>
                       </div>
-                      <div className="flex items-center gap-1">
+                      <div className="flex shrink-0 items-center gap-1">
                         <button
                           type="button"
                           onClick={() => void handleRenameGroup(group)}
                           aria-label={`Rename ${group.name}`}
-                          className="hover:bg-accent text-muted-foreground hover:text-foreground rounded-lg p-1.5"
+                          title="Rename roster"
+                          className={cn(
+                            cardIconButtonClass,
+                            'hover:bg-accent hover:text-foreground',
+                          )}
                         >
                           <Edit3 size={14} />
                         </button>
@@ -523,7 +553,11 @@ const CharactersPage: React.FC = () => {
                           type="button"
                           onClick={() => void handleDeleteGroup(group)}
                           aria-label={`Delete ${group.name}`}
-                          className="hover:bg-destructive/10 text-muted-foreground hover:text-destructive rounded-lg p-1.5"
+                          title="Delete roster"
+                          className={cn(
+                            cardIconButtonClass,
+                            'hover:bg-destructive/10 hover:text-destructive',
+                          )}
                         >
                           <Trash2 size={14} />
                         </button>
@@ -542,12 +576,12 @@ const CharactersPage: React.FC = () => {
                         return (
                           <li
                             key={member.id}
-                            className="border-border/60 bg-muted/20 flex items-center gap-2 rounded-lg border px-2 py-1.5"
+                            className="border-border/60 bg-muted/20 flex items-center gap-2 rounded-lg border py-0.5 pr-0.5 pl-2 sm:py-1.5 sm:pr-2"
                           >
                             <button
                               type="button"
                               onClick={() => handleEdit(member)}
-                              className="flex min-w-0 flex-1 items-center gap-2 text-left"
+                              className="flex min-w-0 flex-1 items-center gap-2 self-stretch text-left"
                             >
                               {member.avatar ? (
                                 <img
@@ -578,7 +612,8 @@ const CharactersPage: React.FC = () => {
                               type="button"
                               onClick={() => void handleRemoveGroupMember(group, member)}
                               aria-label={`Remove ${member.name} from ${group.name}`}
-                              className="text-muted-foreground hover:text-destructive hover:bg-destructive/10 rounded p-1"
+                              title="Remove from roster"
+                              className="text-muted-foreground hover:text-destructive hover:bg-destructive/10 flex h-10 w-10 shrink-0 items-center justify-center rounded-md sm:h-5 sm:w-5 sm:rounded"
                             >
                               <X size={12} />
                             </button>
@@ -619,14 +654,14 @@ const CharactersPage: React.FC = () => {
                 <div
                   key={character.id}
                   className={cn(
-                    'group border-border bg-card relative rounded-2xl border p-5',
+                    'group border-border bg-card relative rounded-2xl border p-4 sm:p-5',
                     'hover:border-border cursor-pointer hover:shadow-lg',
                     'transition-all duration-200',
                   )}
                   onClick={() => handleEdit(character)}
                 >
-                  <div className="mb-4 flex items-start justify-between">
-                    <div className="flex items-start gap-3">
+                  <div className="mb-3 flex items-start justify-between sm:mb-4">
+                    <div className="flex min-w-0 items-start gap-3">
                       {character.avatar ? (
                         <img
                           src={character.avatar}
@@ -675,11 +710,11 @@ const CharactersPage: React.FC = () => {
 
                   </div>
 
-                  <p className="text-muted-foreground mb-4 line-clamp-2 text-sm">
+                  <p className="text-muted-foreground mb-3 line-clamp-2 text-sm break-words sm:mb-4">
                     {character.description || 'No description'}
                   </p>
 
-                  <div className="mb-4 flex flex-wrap gap-2">
+                  <div className="mb-3 flex flex-wrap gap-2 sm:mb-4">
                     <button
                       type="button"
                       onClick={(e) => {
@@ -714,33 +749,39 @@ const CharactersPage: React.FC = () => {
                       </span>
                       {/* Touch devices have no hover, so keep the actions visible. */}
                       <button
+                        type="button"
                         onClick={(e) => {
                           e.stopPropagation();
                           handleEdit(character);
                         }}
-                        className="hover:bg-accent text-muted-foreground hover:text-foreground rounded-lg p-1.5 transition-colors"
+                        className={cn(cardIconButtonClass, 'hover:bg-accent hover:text-foreground')}
                         title="Edit"
                         aria-label={`Edit ${character.name}`}
                       >
                         <Edit3 size={14} />
                       </button>
                       <button
+                        type="button"
                         onClick={(e) => {
                           e.stopPropagation();
                           void handleClone(character.id, character.name);
                         }}
-                        className="hover:bg-accent text-muted-foreground hover:text-foreground rounded-lg p-1.5 transition-colors"
+                        className={cn(cardIconButtonClass, 'hover:bg-accent hover:text-foreground')}
                         title="Clone"
                         aria-label={`Clone ${character.name}`}
                       >
                         <Copy size={14} />
                       </button>
                       <button
+                        type="button"
                         onClick={(e) => {
                           e.stopPropagation();
                           void handleDelete(character.id);
                         }}
-                        className="hover:bg-destructive/10 text-muted-foreground hover:text-destructive rounded-lg p-1.5 transition-colors"
+                        className={cn(
+                          cardIconButtonClass,
+                          'hover:bg-destructive/10 hover:text-destructive',
+                        )}
                         title="Delete"
                         aria-label={`Delete ${character.name}`}
                       >
@@ -754,82 +795,39 @@ const CharactersPage: React.FC = () => {
           )}
 
           {/* Generate Character Modal */}
-          {showGenerateModal && (
-            <div
-              role="dialog"
-              aria-modal="true"
-              aria-label="Generate with AI"
-              className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm"
-            >
-              <div className="bg-card border-border mx-4 w-full max-w-md overflow-hidden rounded-2xl border shadow-2xl">
-                <div className="border-border flex items-center justify-between border-b p-4">
-                  <div className="flex items-center gap-3">
-                    <div className="from-secondary to-secondary-hover flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-br">
-                      <Sparkles size={20} className="text-secondary-foreground" />
-                    </div>
-                    <h3 className="text-foreground text-lg font-semibold">Generate with AI</h3>
-                  </div>
-                  <button
-                    onClick={closeGenerateModal}
-                    className="hover:bg-accent text-muted-foreground hover:text-foreground rounded-lg p-2"
-                  >
-                    <X size={18} />
-                  </button>
-                </div>
-
-                <div className="space-y-4 p-4">
-                  <p className="text-muted-foreground text-sm">
-                    Describe the character you want to create, and AI will generate it for you.
-                  </p>
-
-                  <Textarea
-                    value={generatePrompt}
-                    disabled={isGenerating}
-                    aria-label="Character description"
-                    onChange={(e) => setGeneratePrompt(e.target.value)}
-                    placeholder="e.g., Create a friendly pirate captain who tells sea stories and speaks in nautical terms"
-                    rows={4}
-                  />
-
-                  <div className="flex justify-end gap-3 pt-2">
-                    <button
-                      onClick={closeGenerateModal}
-                      className={cn(
-                        'rounded-xl px-4 py-2.5 text-sm font-medium',
-                        'bg-muted text-muted-foreground hover:bg-accent hover:text-foreground',
-                        'transition-colors duration-150',
-                      )}
-                    >
-                      Cancel
-                    </button>
-
-                    <button
-                      onClick={() => void handleGenerate()}
-                      disabled={isGenerating || !generatePrompt.trim()}
-                      className={cn(
-                        'inline-flex items-center gap-2 rounded-xl px-4 py-2.5 text-sm font-medium',
-                        'from-secondary to-secondary-hover text-secondary-foreground bg-gradient-to-r',
-                        'shadow-secondary/25 hover:shadow-secondary/40 shadow-lg',
-                        'transition-all duration-200 disabled:opacity-50',
-                      )}
-                    >
-                      {isGenerating ? (
-                        <>
-                          <Loader2 className="animate-spin" size={16} />
-                          Generating...
-                        </>
-                      ) : (
-                        <>
-                          <Sparkles size={16} />
-                          Generate
-                        </>
-                      )}
-                    </button>
-                  </div>
-                </div>
+          <Modal
+            isOpen={showGenerateModal}
+            onClose={closeGenerateModal}
+            title="Generate with AI"
+            description="Describe the character you want to create, and AI will generate it for you."
+            size="sm"
+            footer={
+              <div className="flex flex-col-reverse gap-2 sm:flex-row sm:justify-end sm:gap-3">
+                <Button variant="ghost" onClick={closeGenerateModal}>
+                  Cancel
+                </Button>
+                <Button
+                  variant="secondary"
+                  leftIcon={<Sparkles size={16} />}
+                  isLoading={isGenerating}
+                  loadingText="Generating..."
+                  disabled={!generatePrompt.trim()}
+                  onClick={() => void handleGenerate()}
+                >
+                  Generate
+                </Button>
               </div>
-            </div>
-          )}
+            }
+          >
+            <Textarea
+              value={generatePrompt}
+              disabled={isGenerating}
+              aria-label="Character description"
+              onChange={(e) => setGeneratePrompt(e.target.value)}
+              placeholder="e.g., Create a friendly pirate captain who tells sea stories and speaks in nautical terms"
+              rows={4}
+            />
+          </Modal>
           {showRelationships && (
             <CharacterRelationshipsModal
               characterId={relationshipCharacter ?? undefined}

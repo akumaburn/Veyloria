@@ -28,9 +28,10 @@ interface LocationInfoPanelProps {
 
 /**
  * Self-contained location info panel with travel/journey support.
- * Renders two absolutely-positioned overlays:
- *  - Bottom-left: selected location details + travel controls
- *  - Bottom-right: journey progress overlay (when traveling)
+ * Renders one overlay region over the lower part of the map holding the
+ * selected location's details and the journey progress log. On narrow maps
+ * the two stack so neither covers the other; on wide maps the details sit
+ * bottom-left and the journey bottom-right.
  *
  * Must be placed inside a position:relative container.
  */
@@ -175,120 +176,132 @@ export default function LocationInfoPanel({
   }, [narratorMode, selectedLocation, removeMapLocation, onSelectLocation]);
 
   /* ─── render ─── */
+  if (!selectedLocation && !journeyMeta) return null;
+
   return (
-    <>
-      {/* Journey overlay — bottom right */}
-      {journeyMeta && (
-        <div className="absolute bottom-4 right-4 z-20 max-w-[calc(100%-2rem)]">
-          <TravelJourneyOverlay
-            conversationId={conversationId}
-            destinationName={journeyMeta.destinationName}
-            totalSteps={journeyMeta.totalSteps}
-            steps={journeySteps}
-            isComplete={journeySteps.some(s => s.journeyComplete)}
-            isInterrupted={journeySteps.some(s => s.journeyInterrupted)}
-            interruptReason={journeySteps.find(s => s.journeyInterrupted)?.interruptReason}
-            onCancel={handleCancelJourney}
-            onDismiss={handleDismissJourney}
-            cancelling={cancellingJourney}
-          />
-        </div>
-      )}
-
-      {/* Selected location info — bottom left */}
-      {selectedLocation && (
-        <div className="absolute bottom-4 left-4 max-h-[60%] w-[calc(100%-2rem)] max-w-xs overflow-y-auto rounded-lg bg-muted/95 p-4 backdrop-blur-sm border border-border/60 z-10">
-          <div className="flex items-start justify-between gap-2">
-            <div>
-              <h4 className="text-sm font-semibold text-foreground">
-                {isDiscovered ? selectedLocation.name : 'Unknown Location'}
-              </h4>
-              {isDiscovered && selectedLocation.locationType && (
-                <span
-                  className="inline-block mt-1 rounded-full px-2 py-0.5 text-xs capitalize"
-                  style={{
-                    backgroundColor: `${LOCATION_COLORS[selectedLocation.locationType] || '#9ca3af'}20`,
-                    color: LOCATION_COLORS[selectedLocation.locationType] || '#9ca3af',
-                  }}
-                >
-                  {selectedLocation.locationType}
-                </span>
-              )}
-            </div>
-            <div className="flex items-center gap-1">
-              {narratorMode && <button
-                aria-label="Delete location"
-                onClick={handleDelete}
-                disabled={removing}
-                className={cn(
-                  'rounded p-1 text-destructive hover:bg-destructive/10 transition-colors',
-                  removing && 'opacity-50 pointer-events-none',
+    <div className="@container pointer-events-none absolute inset-x-3 top-16 bottom-3 z-20 sm:inset-x-4 sm:top-[40%] sm:bottom-4">
+      <div className="flex h-full flex-col items-start justify-end gap-2 @3xl:flex-row @3xl:items-end @3xl:justify-between">
+        {selectedLocation && (
+          <div className="pointer-events-auto flex min-h-0 w-full max-w-xs flex-col rounded-lg border border-border bg-card shadow-lg @3xl:max-h-full">
+            <div className="flex shrink-0 items-start justify-between gap-2 px-4 pt-4">
+              <div className="min-w-0">
+                <h4 className="text-sm font-semibold break-words text-foreground">
+                  {isDiscovered ? selectedLocation.name : 'Unknown Location'}
+                </h4>
+                {isDiscovered && selectedLocation.locationType && (
+                  <span
+                    className="inline-block mt-1 rounded-full px-2 py-0.5 text-xs capitalize"
+                    style={{
+                      backgroundColor: `${LOCATION_COLORS[selectedLocation.locationType] || '#9ca3af'}20`,
+                      color: LOCATION_COLORS[selectedLocation.locationType] || '#9ca3af',
+                    }}
+                  >
+                    {selectedLocation.locationType}
+                  </span>
                 )}
-              >
-                {removing ? <Loader2 size={12} className="animate-spin" /> : <Trash2 size={12} />}
-              </button>}
-              <button
-                aria-label="Close location details"
-                onClick={() => onSelectLocation(null)}
-                className="rounded p-1 text-muted-foreground hover:text-foreground hover:bg-accent/50 transition-colors"
-              >
-                <X size={14} />
-              </button>
+              </div>
+              <div className="-mr-2 -mt-2 flex shrink-0 items-center sm:-mr-1 sm:-mt-1">
+                {narratorMode && <button
+                  type="button"
+                  aria-label="Delete location"
+                  title="Delete location"
+                  onClick={handleDelete}
+                  disabled={removing}
+                  className={cn(
+                    'inline-flex h-10 w-10 items-center justify-center rounded-md text-destructive transition-colors hover:bg-destructive/10 sm:h-8 sm:w-8',
+                    removing && 'opacity-50 pointer-events-none',
+                  )}
+                >
+                  {removing ? <Loader2 size={14} className="animate-spin" /> : <Trash2 size={14} />}
+                </button>}
+                <button
+                  type="button"
+                  aria-label="Close location details"
+                  title="Close"
+                  onClick={() => onSelectLocation(null)}
+                  className="inline-flex h-10 w-10 items-center justify-center rounded-md text-muted-foreground transition-colors hover:bg-accent/50 hover:text-foreground sm:h-8 sm:w-8"
+                >
+                  <X size={16} />
+                </button>
+              </div>
             </div>
-          </div>
 
-          {isDiscovered && selectedLocation.description && (
-            <p className="mt-2 text-xs text-muted-foreground leading-relaxed">{selectedLocation.description}</p>
-          )}
+            {/* Details scroll on short maps; the title and travel actions stay put. */}
+            <div className="custom-scrollbar min-h-0 overflow-y-auto px-4 pb-4">
+              {isDiscovered && selectedLocation.description && (
+                <p className="mt-2 text-xs text-muted-foreground leading-relaxed">{selectedLocation.description}</p>
+              )}
 
-          <div className="mt-2 flex items-center gap-3 text-xs text-muted-foreground">
-            <span>({selectedLocation.x.toFixed(1)}, {selectedLocation.y.toFixed(1)}, {selectedLocation.z.toFixed(1)})</span>
-            {distanceFromUser !== null && (
-              <span className="flex items-center gap-1">
-                <Info size={10} />
-                {distanceFromUser.toFixed(1)} units away
-              </span>
+              <div className="mt-2 flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-muted-foreground">
+                <span>({selectedLocation.x.toFixed(1)}, {selectedLocation.y.toFixed(1)}, {selectedLocation.z.toFixed(1)})</span>
+                {distanceFromUser !== null && (
+                  <span className="flex items-center gap-1">
+                    <Info size={10} />
+                    {distanceFromUser.toFixed(1)} units away
+                  </span>
+                )}
+              </div>
+
+              {travelPreview && travelPreview.toLocationId === selectedLocation.locationId && (
+                <div className="mt-2 rounded bg-accent/50 px-2 py-1.5 text-xs text-foreground space-y-0.5">
+                  <div>Travel time: <span className="font-medium">{travelPreview.timePeriodsRequired} period{travelPreview.timePeriodsRequired > 1 ? 's' : ''}</span></div>
+                  {travelPreview.usesRoad && <div>Road: <span className="text-success">{travelPreview.roadType || 'trail'}</span></div>}
+                  {travelPreview.dominantBiome && <div>Terrain: <span className="capitalize">{travelPreview.dominantBiome.toLowerCase().replace('_', ' ')}</span></div>}
+                </div>
+              )}
+
+              {previewError && <p role="alert" className="mt-2 text-xs text-destructive">Could not load the travel preview. Try again.</p>}
+            </div>
+
+            {!isAtLocation && (
+              <div className="flex shrink-0 flex-wrap gap-2 border-t border-border px-4 py-3">
+                <button
+                  type="button"
+                  className={cn(
+                    'flex h-10 items-center gap-1.5 rounded-lg px-3 text-xs font-medium sm:h-8',
+                    'bg-primary text-primary-foreground hover:bg-primary-hover transition-colors',
+                    (beginningJourney || isTraveling) && 'opacity-60 pointer-events-none',
+                  )}
+                  disabled={beginningJourney || isTraveling || loadingJourney || !userPos || !!activeJourney}
+                  onClick={handleBeginJourney}
+                >
+                  {(beginningJourney || isTraveling) ? <Loader2 size={12} className="animate-spin" /> : <Navigation size={12} />}
+                  {isTraveling ? 'Traveling...' : 'Travel Here'}
+                </button>
+                {mapId && userPos?.locationId && !isTraveling && (
+                  <button
+                    type="button"
+                    className="flex h-10 items-center gap-1 rounded-lg px-3 text-xs bg-accent text-foreground hover:bg-border transition-colors sm:h-8 sm:px-2"
+                    disabled={loadingPreview}
+                    onClick={() => void fetchTravelPreview(mapId, userPos.locationId!, selectedLocation.locationId).catch(() => {})}
+                  >
+                    <Info size={10} />
+                    {loadingPreview ? 'Loading…' : 'Preview'}
+                  </button>
+                )}
+              </div>
             )}
           </div>
+        )}
 
-          {travelPreview && travelPreview.toLocationId === selectedLocation.locationId && (
-            <div className="mt-2 rounded bg-accent/50 px-2 py-1.5 text-xs text-foreground space-y-0.5">
-              <div>Travel time: <span className="font-medium">{travelPreview.timePeriodsRequired} period{travelPreview.timePeriodsRequired > 1 ? 's' : ''}</span></div>
-              {travelPreview.usesRoad && <div>Road: <span className="text-success">{travelPreview.roadType || 'trail'}</span></div>}
-              {travelPreview.dominantBiome && <div>Terrain: <span className="capitalize">{travelPreview.dominantBiome.toLowerCase().replace('_', ' ')}</span></div>}
-            </div>
-          )}
-
-          {previewError && <p role="alert" className="mt-2 text-xs text-destructive">Could not load the travel preview. Try again.</p>}
-
-          {!isAtLocation && (
-            <div className="mt-3 flex gap-2">
-              <button
-                className={cn(
-                  'flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-xs font-medium',
-                  'bg-primary text-primary-foreground hover:bg-primary-hover transition-colors',
-                  (beginningJourney || isTraveling) && 'opacity-60 pointer-events-none',
-                )}
-                disabled={beginningJourney || isTraveling || loadingJourney || !userPos || !!activeJourney}
-                onClick={handleBeginJourney}
-              >
-                {(beginningJourney || isTraveling) ? <Loader2 size={12} className="animate-spin" /> : <Navigation size={12} />}
-                {isTraveling ? 'Traveling...' : 'Travel Here'}
-              </button>
-              {mapId && userPos?.locationId && !isTraveling && (
-                <button
-                  className="flex items-center gap-1 rounded-lg px-2 py-1.5 text-xs bg-accent text-foreground hover:bg-border transition-colors"
-                  disabled={loadingPreview}
-                  onClick={() => void fetchTravelPreview(mapId, userPos.locationId!, selectedLocation.locationId).catch(() => {})}
-                >
-                  <Info size={10} />
-                  {loadingPreview ? 'Loading…' : 'Preview'}
-                </button>
-              )}
-            </div>
-          )}
-        </div>
-      )}
-    </>
+        {journeyMeta && (
+          <div className="pointer-events-auto flex min-h-0 w-full max-w-xs flex-col @3xl:ml-auto @3xl:max-h-full">
+            <TravelJourneyOverlay
+              className="min-h-0 w-full"
+              conversationId={conversationId}
+              destinationName={journeyMeta.destinationName}
+              totalSteps={journeyMeta.totalSteps}
+              steps={journeySteps}
+              isComplete={journeySteps.some(s => s.journeyComplete)}
+              isInterrupted={journeySteps.some(s => s.journeyInterrupted)}
+              interruptReason={journeySteps.find(s => s.journeyInterrupted)?.interruptReason}
+              onCancel={handleCancelJourney}
+              onDismiss={handleDismissJourney}
+              cancelling={cancellingJourney}
+            />
+          </div>
+        )}
+      </div>
+    </div>
   );
 }

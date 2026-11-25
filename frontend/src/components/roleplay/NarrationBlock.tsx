@@ -17,7 +17,7 @@ export default function NarrationBlock({
   return (
     <div
       className={cn(
-        'relative rounded-lg border border-amber-500/20 bg-amber-500/5 px-4 py-3',
+        'relative rounded-lg border border-amber-500/20 bg-amber-500/5 px-3 py-2.5 sm:px-4 sm:py-3',
         className
       )}
     >
@@ -32,7 +32,7 @@ export default function NarrationBlock({
       )}
 
       {/* Narration text */}
-      <p className="whitespace-pre-wrap text-sm italic leading-relaxed text-foreground/90">
+      <p className="whitespace-pre-wrap break-words text-sm italic leading-relaxed text-foreground/90">
         {content}
       </p>
 

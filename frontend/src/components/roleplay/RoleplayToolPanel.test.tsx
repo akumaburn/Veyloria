@@ -1,7 +1,7 @@
 import { render, screen, fireEvent } from '@testing-library/react';
 import { expect, it, vi } from 'vitest';
 import RoleplayToolPanel from './RoleplayToolPanel';
-vi.mock('@/components/map/hooks/useMapData', () => ({ useWorldMaps: () => ({ maps: [] }) }));
+vi.mock('@/components/map/WorldMapView', () => ({ default: () => <p>WorldMapView</p> }));
 vi.mock('./WorldStatePanel', () => ({ default: () => <p>WorldStatePanel</p> }));
 vi.mock('./WorldStateEditor', () => ({ default: () => <p>WorldStateEditor</p> }));
 vi.mock('./InventoryList', () => ({ default: () => <p>InventoryList</p> }));
@@ -15,9 +15,7 @@ vi.mock('./AgentInsights', () => ({ default: () => <p>AgentInsights</p> }));
 vi.mock('./AgentModelSettings', () => ({ default: () => <p>AgentModelSettings</p> }));
 vi.mock('./CharacterProposalList', () => ({ default: () => <p>CharacterProposalList</p> }));
 vi.mock('./BattleOverlay', () => ({ default: () => <p>BattleOverlay</p> }));
-vi.mock('@/components/map/MapEditor', () => ({ default: () => null }));
 vi.mock('@/components/map/LocalMapPanel', () => ({ default: () => null }));
-vi.mock('@/components/map/WorldMap2D', () => ({ default: () => null }));
 
 it('hides narrator tools and unmounts their active content when the mode is switched off', () => {
   const props = { conversationId: 'story', participants: [] };

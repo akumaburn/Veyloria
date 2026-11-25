@@ -41,9 +41,9 @@ export default function ProgressionBar({ userId }: ProgressionBarProps) {
   return (
     <div className="rounded-2xl border border-border bg-card p-4">
       {/* Level and title */}
-      <div className="flex items-center justify-between">
-        <div className="flex items-center gap-3">
-          <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-primary/20">
+      <div className="flex flex-wrap items-center justify-between gap-x-3 gap-y-2">
+        <div className="flex min-w-0 items-center gap-3">
+          <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-primary/20">
             <span className="text-sm font-bold text-primary">{level}</span>
           </div>
           <div>
@@ -72,10 +72,10 @@ export default function ProgressionBar({ userId }: ProgressionBarProps) {
       {/* Stats row */}
       <div className="mt-3 grid grid-cols-4 gap-2">
         {stats.map(({ icon: Icon, label, value }) => (
-          <div key={label} className="bg-muted/60 flex flex-col items-center rounded-lg py-2">
+          <div key={label} className="bg-muted/60 flex min-w-0 flex-col items-center rounded-lg px-1 py-2">
             <Icon size={14} className="text-muted-foreground mb-1" />
             <span className="text-foreground text-sm font-semibold">{value}</span>
-            <span className="text-muted-foreground text-xs">{label}</span>
+            <span className="text-muted-foreground max-w-full truncate text-xs">{label}</span>
           </div>
         ))}
       </div>

@@ -57,7 +57,7 @@ export default function TravelJourneyOverlay({
   return (
     <div
       className={cn(
-        'bg-card/95 border-border/60 w-80 max-w-full rounded-lg border shadow-xl backdrop-blur-sm',
+        'bg-card border-border w-80 max-w-full rounded-lg border shadow-lg',
         'flex max-h-96 flex-col',
         className,
       )}
@@ -83,23 +83,27 @@ export default function TravelJourneyOverlay({
         </div>
         {isActive ? (
           <button
+            type="button"
             onClick={onCancel}
             disabled={cancelling}
             className={cn(
-              'text-muted-foreground hover:text-foreground hover:bg-accent/50 flex-shrink-0 rounded p-1 transition-colors',
+              'text-muted-foreground hover:text-foreground hover:bg-accent/50 -my-1.5 -mr-1.5 inline-flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-md transition-colors sm:h-8 sm:w-8',
               cancelling && 'pointer-events-none opacity-50',
             )}
+            aria-label="Cancel journey"
             title="Cancel journey"
           >
-            <X size={14} />
+            <X size={16} />
           </button>
         ) : (
           <button
+            type="button"
             onClick={onDismiss}
-            className="text-muted-foreground hover:text-foreground hover:bg-accent/50 flex-shrink-0 rounded p-1 transition-colors"
+            className="text-muted-foreground hover:text-foreground hover:bg-accent/50 -my-1.5 -mr-1.5 inline-flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-md transition-colors sm:h-8 sm:w-8"
+            aria-label="Dismiss journey"
             title="Dismiss"
           >
-            <X size={14} />
+            <X size={16} />
           </button>
         )}
       </div>
@@ -189,7 +193,7 @@ export default function TravelJourneyOverlay({
         <div className="border-border border-t px-3 py-3">
           <Link
             to={`/chat/${conversationId}${steps.find((step) => step.battleId)?.battleId ? `?battle=${encodeURIComponent(steps.find((step) => step.battleId)!.battleId!)}` : ''}`}
-            className="text-primary hover:bg-accent inline-flex rounded-md px-3 py-2 text-sm font-medium"
+            className="text-primary hover:bg-accent inline-flex min-h-10 items-center rounded-md px-3 text-sm font-medium"
           >
             Continue encounter in chat
           </Link>

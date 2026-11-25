@@ -43,6 +43,9 @@ vi.mock('@/hooks/useRoleplay', () => ({
   useRemoveInventoryItem: () => ({ removeInventoryItem: state.remove }),
   useAddInventoryItem: () => ({ addInventoryItem: state.add }),
 }));
+vi.mock('@/stores/authStore', () => ({
+  useAuthStore: (select: (state: { user: { id: string } }) => unknown) => select({ user: { id: 'player' } }),
+}));
 vi.mock('react-hot-toast', () => ({ toast: { success: vi.fn(), error: vi.fn() } }));
 const potion = { inventoryId: 'potion', itemName: 'Potion', category: 'consumable', quantity: 3 };
 beforeEach(() => {
@@ -149,4 +152,20 @@ it('supports giving part of a stack', async () => {
   fireEvent.change(screen.getByLabelText('Quantity to give'), { target: { value: '1' } });
   fireEvent.click(screen.getByRole('button', { name: 'Confirm give' }));
   await waitFor(() => expect(state.give).toHaveBeenCalledWith('potion', 'elara', undefined, 1));
+});
+
+it('keeps other inventories read-only outside narrator mode', () => {
+  render(<InventoryList conversationId="game" characterId="elara" />);
+  expect(screen.queryByRole('button', { name: 'Use Potion' })).not.toBeInTheDocument();
+  expect(screen.queryByRole('button', { name: 'Give Potion' })).not.toBeInTheDocument();
+  expect(screen.getByText(/Ask for these items in the story/)).toBeInTheDocument();
+});
+it('keeps another player inventory read-only outside narrator mode', () => {
+  render(<InventoryList conversationId="game" userId="player-b" />);
+  expect(screen.queryByRole('button', { name: 'Use Potion' })).not.toBeInTheDocument();
+});
+it('lets the narrator act on a character inventory', () => {
+  render(<InventoryList conversationId="game" characterId="elara" narratorMode />);
+  expect(screen.getByRole('button', { name: 'Use Potion' })).toBeInTheDocument();
+  expect(screen.queryByText(/Ask for these items in the story/)).not.toBeInTheDocument();
 });

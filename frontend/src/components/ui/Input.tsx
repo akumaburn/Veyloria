@@ -45,6 +45,8 @@ export const Input = forwardRef<HTMLInputElement, InputProps>(
     const helperId = `${fieldId}-help`;
     const describedBy = [props['aria-describedby'], helperText ? helperId : undefined, error ? errorId : undefined].filter(Boolean).join(' ') || undefined;
 
+    const affixButtonSize = size === 'sm' ? 'h-9 w-9' : 'h-10 w-10 sm:h-9 sm:w-9';
+
     const sizeClasses = {
       sm: 'h-9 px-3 text-sm',
       md: 'h-11 px-3 text-sm',
@@ -105,7 +107,7 @@ export const Input = forwardRef<HTMLInputElement, InputProps>(
               variantClasses[variant],
               leftIcon && 'pl-10',
               (rightIcon || clearable || isPassword) && 'pr-12',
-              clearable && isPassword && 'pr-20',
+              clearable && isPassword && (size === 'sm' ? 'pr-20' : 'pr-[5.5rem] sm:pr-20'),
               className
             )}
             {...props}
@@ -120,7 +122,7 @@ export const Input = forwardRef<HTMLInputElement, InputProps>(
                 type="button"
                 onClick={() => { onClear(); inputRef.current?.focus(); }}
                 aria-label="Clear input"
-                className="flex h-9 w-9 items-center justify-center rounded-lg text-muted-foreground transition-colors hover:bg-accent hover:text-foreground"
+                className={cn('flex items-center justify-center rounded-lg text-muted-foreground transition-colors hover:bg-accent hover:text-foreground', affixButtonSize)}
               >
                 <X size={16} />
               </button>
@@ -132,7 +134,7 @@ export const Input = forwardRef<HTMLInputElement, InputProps>(
                 onClick={() => setShowPassword(!showPassword)}
                 aria-label={showPassword ? "Hide password" : "Show password"}
                 aria-pressed={showPassword}
-                className="flex h-9 w-9 items-center justify-center rounded-lg text-muted-foreground transition-colors hover:bg-accent hover:text-foreground"
+                className={cn('flex items-center justify-center rounded-lg text-muted-foreground transition-colors hover:bg-accent hover:text-foreground', affixButtonSize)}
                 disabled={disabled}
               >
                 {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}

@@ -44,9 +44,11 @@ export const InviteNotificationBadge = ({ className }: InviteNotificationBadgePr
   return (
     <>
       <button
+        type="button"
         onClick={() => setShowModal(true)}
+        title="Invitations"
         className={cn(
-          'relative rounded-lg p-2',
+          'relative inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-lg sm:h-9 sm:w-9',
           'text-muted-foreground hover:text-foreground',
           'hover:bg-accent transition-colors',
           className
@@ -164,10 +166,19 @@ const InviteCard = ({ invite, onAccept, onDecline, isLoading }: InviteCardProps)
       {/* Header */}
       <div
         className={cn(
-          'flex items-start gap-3 p-4 cursor-pointer',
+          'flex items-start gap-3 p-3 cursor-pointer sm:p-4',
           'hover:bg-muted/50 transition-colors'
         )}
+        role="button"
+        tabIndex={0}
+        aria-expanded={expanded}
         onClick={() => setExpanded(!expanded)}
+        onKeyDown={(event) => {
+          if (event.key === 'Enter' || event.key === ' ') {
+            event.preventDefault();
+            setExpanded(!expanded);
+          }
+        }}
       >
         {/* Inviter Avatar */}
         <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-primary/10">
@@ -184,20 +195,20 @@ const InviteCard = ({ invite, onAccept, onDecline, isLoading }: InviteCardProps)
 
         {/* Content */}
         <div className="flex-1 min-w-0">
-          <div className="flex items-center gap-2">
-            <span className="font-medium text-foreground">
+          <div className="flex flex-wrap items-baseline gap-x-2">
+            <span className="min-w-0 break-words font-medium text-foreground">
               {invite.inviter.displayName}
             </span>
             <span className="text-sm text-muted-foreground">invited you to</span>
           </div>
           <div className="flex items-center gap-2 mt-0.5">
-            <MessageSquare size={14} className="text-muted-foreground" />
+            <MessageSquare size={14} className="shrink-0 text-muted-foreground" />
             <span className="text-sm font-medium text-foreground truncate">
               {invite.conversation.title || 'Untitled Conversation'}
             </span>
           </div>
-          <div className="flex items-center gap-2 mt-1 text-xs text-muted-foreground">
-            <Clock size={12} />
+          <div className="flex flex-wrap items-center gap-x-2 mt-1 text-xs text-muted-foreground">
+            <Clock size={12} className="shrink-0" />
             <span>{timeAgo}</span>
             {expiresIn && (
               <>
@@ -211,8 +222,9 @@ const InviteCard = ({ invite, onAccept, onDecline, isLoading }: InviteCardProps)
         {/* Expand Arrow */}
         <ChevronRight
           size={18}
+          aria-hidden="true"
           className={cn(
-            'text-muted-foreground transition-transform',
+            'shrink-0 text-muted-foreground transition-transform',
             expanded && 'rotate-90'
           )}
         />
@@ -220,7 +232,7 @@ const InviteCard = ({ invite, onAccept, onDecline, isLoading }: InviteCardProps)
 
       {/* Expanded Content */}
       {expanded && (
-        <div className="border-t border-border/50 px-4 py-3 space-y-3">
+        <div className="border-t border-border/50 px-3 py-3 space-y-3 sm:px-4">
           {/* Message */}
           {invite.message && (
             <div className="text-sm text-muted-foreground bg-muted/50 rounded-lg p-3">
@@ -244,13 +256,14 @@ const InviteCard = ({ invite, onAccept, onDecline, isLoading }: InviteCardProps)
           {/* Actions */}
           <div className="flex gap-2 pt-1">
             <button
+              type="button"
               onClick={(e) => {
                 e.stopPropagation();
                 onDecline();
               }}
               disabled={isLoading}
               className={cn(
-                'flex-1 inline-flex items-center justify-center gap-2',
+                'flex-1 inline-flex min-h-11 items-center justify-center gap-2',
                 'rounded-xl px-4 py-2.5 text-sm font-medium',
                 'border border-border bg-muted/50',
                 'text-muted-foreground hover:text-foreground hover:bg-accent',
@@ -266,13 +279,14 @@ const InviteCard = ({ invite, onAccept, onDecline, isLoading }: InviteCardProps)
               <span>Decline</span>
             </button>
             <button
+              type="button"
               onClick={(e) => {
                 e.stopPropagation();
                 onAccept();
               }}
               disabled={isLoading}
               className={cn(
-                'flex-1 inline-flex items-center justify-center gap-2',
+                'flex-1 inline-flex min-h-11 items-center justify-center gap-2',
                 'rounded-xl px-4 py-2.5 text-sm font-medium',
                 'bg-primary text-primary-foreground',
                 'hover:bg-primary-hover',
@@ -371,10 +385,11 @@ export const PendingInvitesList = ({
           </div>
           <div className="flex gap-1">
             <button
+              type="button"
               onClick={() => handleRespond(invite.id, false)}
               disabled={respondingTo === invite.id}
               className={cn(
-                'rounded-lg p-1.5 text-muted-foreground',
+                'inline-flex items-center justify-center rounded-lg p-1.5 text-muted-foreground max-md:h-10 max-md:w-10',
                 'hover:bg-destructive/10 hover:text-destructive',
                 'disabled:opacity-50 transition-colors'
               )}
@@ -383,10 +398,11 @@ export const PendingInvitesList = ({
               <X size={14} />
             </button>
             <button
+              type="button"
               onClick={() => handleRespond(invite.id, true, invite.conversationId)}
               disabled={respondingTo === invite.id}
               className={cn(
-                'rounded-lg p-1.5 text-primary',
+                'inline-flex items-center justify-center rounded-lg p-1.5 text-primary max-md:h-10 max-md:w-10',
                 'hover:bg-primary/20',
                 'disabled:opacity-50 transition-colors'
               )}

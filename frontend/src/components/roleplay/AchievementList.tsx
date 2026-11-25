@@ -154,14 +154,20 @@ export default function AchievementList({ userId }: AchievementListProps) {
     <div className="space-y-4">
       {/* Category filter */}
       {categories.length > 2 && (
-        <div className="flex flex-wrap items-center gap-2">
-          <Filter size={14} className="flex-shrink-0 text-muted-foreground" />
+        <div
+          role="group"
+          aria-label="Filter by category"
+          className="-mx-4 flex items-center gap-2 overflow-x-auto px-4 sm:mx-0 sm:flex-wrap sm:overflow-visible sm:px-0"
+        >
+          <Filter size={14} className="flex-shrink-0 text-muted-foreground" aria-hidden="true" />
           {categories.map((cat) => (
             <button
               key={cat}
+              type="button"
+              aria-pressed={categoryFilter === cat}
               onClick={() => setCategoryFilter(cat)}
               className={cn(
-                'rounded-md px-2.5 py-1 text-xs font-medium whitespace-nowrap transition-colors',
+                'h-9 shrink-0 rounded-md px-3 text-xs font-medium whitespace-nowrap transition-colors sm:h-auto sm:px-2.5 sm:py-1',
                 categoryFilter === cat
                   ? 'bg-primary/20 text-primary'
                   : 'bg-muted text-muted-foreground hover:bg-accent'
@@ -174,14 +180,14 @@ export default function AchievementList({ userId }: AchievementListProps) {
       )}
 
       {/* Achievement grid */}
-      <div className="grid grid-cols-2 gap-4 sm:grid-cols-3">
+      <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 sm:gap-4">
         {filtered.map((achievement) => {
           const unlocked = unlockedIds.has(achievement.achievementId);
           return (
             <div
               key={achievement.achievementId}
               className={cn(
-                'relative flex flex-col items-center rounded-2xl border p-4 text-center transition-colors',
+                'relative flex min-w-0 flex-col items-center rounded-2xl border p-3 text-center transition-colors sm:p-4',
                 unlocked
                   ? 'border-warning/50 bg-warning/5 hover:border-warning'
                   : 'border-border bg-card hover:border-border-hover'
@@ -210,7 +216,7 @@ export default function AchievementList({ userId }: AchievementListProps) {
                 <AchievementIcon name={achievement.icon} />
               </div>
 
-              <h4 className="text-foreground text-sm font-semibold">{achievement.name}</h4>
+              <h4 className="text-foreground text-sm font-semibold break-words">{achievement.name}</h4>
               <p className="text-muted-foreground mt-1 line-clamp-2 text-xs">
                 {achievement.isHidden && !unlocked ? '???' : achievement.description}
               </p>

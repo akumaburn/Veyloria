@@ -176,7 +176,7 @@ export const NotificationSettings = () => {
         description="Choose which events trigger notifications"
         icon={MessageSquare}
       >
-        <div className="p-5 grid grid-cols-1 gap-3 sm:grid-cols-2">
+        <div className="p-4 grid grid-cols-1 gap-3 sm:grid-cols-2 sm:p-5">
           {notificationEvents.map((event) => {
             const Icon = event.icon;
             const isEnabled = notificationSettings[event.key as keyof typeof notificationSettings] as boolean;
@@ -184,6 +184,8 @@ export const NotificationSettings = () => {
             return (
               <button
                 key={event.key}
+                type="button"
+                aria-pressed={isEnabled}
                 onClick={() => updateNotificationSettings({ [event.key]: !isEnabled })}
                 className={cn(
                   'flex items-start gap-3 rounded-xl border p-3 transition-all text-left',
@@ -242,8 +244,8 @@ export const NotificationSettings = () => {
 
         {notificationSettings.schedule === 'custom' && notificationSettings.customSchedule && (
           <SettingRow label="Custom Hours" description="Set your notification hours" vertical>
-            <div className="flex items-center gap-3">
-              <div className="flex-1">
+            <div className="flex flex-wrap items-center gap-3">
+              <div className="min-w-32 flex-1">
                 <label className="text-xs text-muted-foreground mb-1 block">Start Time</label>
                 <input
                   type="time"
@@ -257,13 +259,13 @@ export const NotificationSettings = () => {
                     })
                   }
                   className={cn(
-                    'w-full rounded-xl border border-border bg-muted/50 px-3 py-2.5 text-sm text-foreground',
+                    'w-full rounded-xl border border-border bg-muted/50 px-3 py-2.5 text-sm text-foreground max-sm:min-h-11',
                     'focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20'
                   )}
                 />
               </div>
-              <span className="text-muted-foreground mt-5">to</span>
-              <div className="flex-1">
+              <span className="text-muted-foreground mt-5 hidden sm:inline">to</span>
+              <div className="min-w-32 flex-1">
                 <label className="text-xs text-muted-foreground mb-1 block">End Time</label>
                 <input
                   type="time"
@@ -277,7 +279,7 @@ export const NotificationSettings = () => {
                     })
                   }
                   className={cn(
-                    'w-full rounded-xl border border-border bg-muted/50 px-3 py-2.5 text-sm text-foreground',
+                    'w-full rounded-xl border border-border bg-muted/50 px-3 py-2.5 text-sm text-foreground max-sm:min-h-11',
                     'focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20'
                   )}
                 />
@@ -288,18 +290,21 @@ export const NotificationSettings = () => {
               <label className="text-xs text-muted-foreground mb-2 block">Active Days</label>
               <div className="flex gap-1.5">
                 {[
-                  { day: 1, label: 'M' },
-                  { day: 2, label: 'T' },
-                  { day: 3, label: 'W' },
-                  { day: 4, label: 'T' },
-                  { day: 5, label: 'F' },
-                  { day: 6, label: 'S' },
-                  { day: 7, label: 'S' },
-                ].map(({ day, label }) => {
+                  { day: 1, label: 'M', name: 'Monday' },
+                  { day: 2, label: 'T', name: 'Tuesday' },
+                  { day: 3, label: 'W', name: 'Wednesday' },
+                  { day: 4, label: 'T', name: 'Thursday' },
+                  { day: 5, label: 'F', name: 'Friday' },
+                  { day: 6, label: 'S', name: 'Saturday' },
+                  { day: 7, label: 'S', name: 'Sunday' },
+                ].map(({ day, label, name }) => {
                   const isActive = notificationSettings.customSchedule!.daysOfWeek.includes(day);
                   return (
                     <button
                       key={day}
+                      type="button"
+                      aria-label={name}
+                      aria-pressed={isActive}
                       onClick={() => {
                         const currentDays = notificationSettings.customSchedule!.daysOfWeek;
                         const newDays = isActive
@@ -313,7 +318,7 @@ export const NotificationSettings = () => {
                         });
                       }}
                       className={cn(
-                        'flex h-9 w-9 items-center justify-center rounded-lg text-sm font-medium transition-all',
+                        'flex h-10 min-w-0 flex-1 items-center justify-center rounded-lg text-sm font-medium transition-all sm:h-9 sm:w-9 sm:flex-none',
                         isActive
                           ? 'bg-primary text-primary-foreground'
                           : 'bg-muted text-muted-foreground hover:bg-accent hover:text-foreground'
@@ -336,8 +341,8 @@ export const NotificationSettings = () => {
           description="Verify your notification settings"
           icon={Bell}
         >
-          <div className="p-5 flex items-center justify-between">
-            <div>
+          <div className="p-4 flex flex-wrap items-center justify-between gap-3 sm:p-5">
+            <div className="min-w-44 flex-1">
               <p className="text-sm font-medium text-foreground">Send Test Notification</p>
               <p className="text-xs text-muted-foreground mt-0.5">
                 Send a test notification to verify settings
@@ -361,7 +366,7 @@ export const NotificationSettings = () => {
         description="View your recent notifications"
         icon={Bell}
       >
-        <div className="p-5">
+        <div className="p-4 sm:p-5">
           <div className="flex flex-col items-center justify-center py-6 text-center">
             <div className="flex h-12 w-12 items-center justify-center rounded-full bg-muted mb-3">
               <Bell size={20} className="text-muted-foreground" />

@@ -40,7 +40,7 @@ const RoleplayPage: React.FC = () => {
       </PageHeader>
 
       {/* Content */}
-      <div className="flex-1 overflow-y-auto px-4 py-8 sm:px-6">
+      <div className="flex-1 overflow-y-auto px-4 py-6 sm:px-6 sm:py-8">
         {activeTab === 'create' && (
           <div className="mx-auto max-w-4xl space-y-6">
             <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
@@ -71,6 +71,7 @@ const RoleplayPage: React.FC = () => {
                 },
               ].map((card) => (
                 <button
+                  type="button"
                   key={card.title}
                   onClick={() => {
                     if (card.title === 'From Template') {
@@ -81,13 +82,13 @@ const RoleplayPage: React.FC = () => {
                     }
                   }}
                   className={cn(
-                    'flex flex-col items-start gap-4 rounded-2xl border border-border bg-card p-5 text-left',
+                    'flex items-start gap-4 rounded-2xl border border-border bg-card p-4 text-left sm:flex-col sm:p-5',
                     'transition-colors',
                     card.hoverClass
                   )}
                 >
-                  <card.icon size={26} strokeWidth={1.5} className={card.iconClass} />
-                  <div>
+                  <card.icon size={26} strokeWidth={1.5} className={cn('shrink-0', card.iconClass)} aria-hidden="true" />
+                  <div className="min-w-0">
                     <h3 className="text-sm font-semibold text-foreground">{card.title}</h3>
                     <p className="mt-1 text-sm leading-relaxed text-muted-foreground">{card.description}</p>
                   </div>

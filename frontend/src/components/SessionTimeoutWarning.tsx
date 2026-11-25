@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState, useCallback, memo } from 'react';
-import { AlertTriangle, Clock, LogOut, RefreshCw } from 'lucide-react';
+import { AlertTriangle, Clock, LogOut, RefreshCw, X } from 'lucide-react';
 import { useMutation } from '@apollo/client';
 import { useAuthStore } from '../stores/authStore';
 import { REFRESH_TOKEN_MUTATION, LOGOUT_MUTATION } from '../graphql/operations';
@@ -184,27 +184,37 @@ const SessionTimeoutWarning = memo(function SessionTimeoutWarning({
     <>
       {/* Inline warning bar */}
       <div className="fixed top-0 left-0 right-0 z-40 bg-warning/10 border-b border-warning/30 px-4 py-2">
-        <div className="flex items-center justify-between max-w-7xl mx-auto">
-          <div className="flex items-center">
-            <AlertTriangle className="h-5 w-5 text-warning mr-2" />
+        <div className="flex items-center justify-between gap-3 max-w-7xl mx-auto">
+          <div className="flex min-w-0 items-center">
+            <AlertTriangle className="h-5 w-5 shrink-0 text-warning mr-2" />
             <span className="text-sm text-warning">
-              Your session will expire in {formatTime(timeRemaining)}
+              <span className="hidden sm:inline">Your session will expire in </span>
+              <span className="sm:hidden">Session expires in </span>
+              {formatTime(timeRemaining)}
             </span>
           </div>
-          <div className="flex items-center space-x-2">
+          <div className="flex shrink-0 items-center gap-1 sm:gap-2">
             <button
+              type="button"
               onClick={handleContinue}
               disabled={isRefreshing}
-              className="px-3 py-1 text-sm bg-warning hover:bg-warning/90 text-warning-foreground rounded-md disabled:opacity-50"
+              className="min-h-10 px-3 py-1 text-sm bg-warning hover:bg-warning/90 text-warning-foreground rounded-md disabled:opacity-50 sm:min-h-0"
             >
-              {isRefreshing ? 'Extending...' : 'Extend Session'}
+              {isRefreshing ? 'Extending...' : (
+                <>
+                  <span className="sm:hidden">Extend</span>
+                  <span className="hidden sm:inline">Extend Session</span>
+                </>
+              )}
             </button>
             <button
+              type="button"
               onClick={() => setShowWarning(false)}
-              className="text-warning hover:text-warning/80"
+              aria-label="Dismiss"
+              title="Dismiss"
+              className="flex h-10 w-10 items-center justify-center rounded-md text-warning hover:text-warning/80 sm:h-7 sm:w-7"
             >
-              <span className="sr-only">Dismiss</span>
-              ×
+              <X className="h-4 w-4" aria-hidden="true" />
             </button>
           </div>
         </div>
@@ -240,7 +250,7 @@ const SessionTimeoutWarning = memo(function SessionTimeoutWarning({
               <button
                 onClick={handleContinue}
                 disabled={isRefreshing}
-                className="inline-flex items-center justify-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-primary-foreground bg-primary hover:bg-primary-hover focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary disabled:opacity-50"
+                className="inline-flex items-center justify-center px-4 py-2 max-sm:min-h-11 border border-transparent text-sm font-medium rounded-md shadow-sm text-primary-foreground bg-primary hover:bg-primary-hover focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary disabled:opacity-50"
               >
                 {isRefreshing ? (
                   <>
@@ -257,7 +267,7 @@ const SessionTimeoutWarning = memo(function SessionTimeoutWarning({
 
               <button
                 onClick={handleLogout}
-                className="inline-flex items-center justify-center px-4 py-2 border border-border text-sm font-medium rounded-md text-foreground bg-muted hover:bg-accent focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary"
+                className="inline-flex items-center justify-center px-4 py-2 max-sm:min-h-11 border border-border text-sm font-medium rounded-md text-foreground bg-muted hover:bg-accent focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary"
               >
                 <LogOut className="-ml-1 mr-2 h-4 w-4" />
                 Log Out
