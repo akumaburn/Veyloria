@@ -5,7 +5,7 @@ import pytest
 
 torch = pytest.importorskip('torch')
 
-from audio_utils import NARRATOR_PAUSE_SECONDS, pace_narration
+from audio_utils import NARRATOR_PAUSE_SECONDS, normalize_level, pace_narration, speech_level
 from speech_plan import plan_speech
 from app import synthesize
 
@@ -29,6 +29,7 @@ def test_only_narrator_is_paced_and_reference_audio_is_not_slowed_twice():
     references = SimpleNamespace(
         options=lambda segment: ({'task': 'VOICE_DESIGN', 'text': segment.text}, True),
         save=lambda segment, pcm, rate: calls.append((segment.speaker, pcm)),
+        speech_level=lambda segment: None,
     )
     model = SimpleNamespace(device='cpu', sample_rate=16000, voice_references=references,
                             synthesize=lambda **kwargs: tone())
@@ -38,5 +39,6 @@ def test_only_narrator_is_paced_and_reference_audio_is_not_slowed_twice():
     character_audio, character_duration = synthesize(model, character)
     assert narrator_duration > character_duration
     assert calls[0][1] == calls[1][1]
-    assert base64.b64decode(character_audio) == calls[1][1]
+    saved = calls[1][1]
+    assert base64.b64decode(character_audio) == normalize_level(saved, 16000, speech_level(saved, 16000))
     assert len(base64.b64decode(narrator_audio)) > len(calls[0][1])

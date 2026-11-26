@@ -94,7 +94,6 @@ def character_instruction(character: dict) -> str:
     timbre = ' and '.join(textures[:2]) if textures else 'clear, natural'
     pitch = ('a low, resonant register' if positive(vocal, r'\b(?:deep|low[- ]pitched|low pitch)\b')
              else 'a bright upper register' if positive(vocal, r'\b(?:high[- ]pitched|high pitch)\b')
-             # Voice Design drifts toward a male voice unless a woman's register is explicit.
              else 'a natural feminine pitch' if female
              else 'a gentle mid-range pitch')
     pacing = ('unhurried, deliberate pacing with clear pauses' if positive(vocal, r'\b(?:slow(?:ly)?|unhurried|measured|deliberate)\b')
@@ -116,7 +115,10 @@ def character_instruction(character: dict) -> str:
         if positive(personality, expression):
             moods.append(mood)
     baseline = ', '.join(moods[:2]) if moods else 'calm, attentive'
-    return (f'{VOICE_DESIGN_PREFIX} {persona.capitalize()} with a {timbre} timbre and {pitch}. '
+    # Voice Design drifts toward a male voice for a woman unless the brief also
+    # opens with an explicit voice label.
+    label = ' female voice.' if female else ''
+    return (f'{VOICE_DESIGN_PREFIX}{label} {persona.capitalize()} with a {timbre} timbre and {pitch}. '
             f'Use {pacing} and {articulation}, with a {baseline} emotional baseline.')
 
 

@@ -5,14 +5,14 @@ from contextlib import asynccontextmanager
 import logging
 import os
 from pathlib import Path
-from dataclasses import replace
+from dataclasses import dataclass, replace
 
 from fastapi import FastAPI, WebSocket, WebSocketDisconnect
 from pydantic import BaseModel, Field, ValidationError
 
 from speech_plan import plan_speech, playback_groups
-from voice_design import SpeechLanguage
-from audio_utils import trim_pcm_tail, pace_narration, matches_voice_gender
+from voice_design import SpeechLanguage, without_tags
+from audio_utils import trim_pcm_tail, pace_narration, plausible_duration, pitch_mismatch, normalize_level, speech_level
 from voice_references import VoiceReferences
 
 log = logging.getLogger(__name__)
@@ -82,9 +82,21 @@ async def voices():
     }]}
 
 
-# Voice Design occasionally ignores the requested gender. A designed take that
-# contradicts it is retried with another seed and never pinned as the reference.
-DESIGN_ATTEMPTS = 3
+# Ming occasionally stops a take early, runs on past its text, or designs a voice
+# whose pitch contradicts the requested gender. Such a take is retried with the
+# next seed.
+TAKE_ATTEMPTS = 4
+
+
+@dataclass(frozen=True)
+class Take:
+    pcm: bytes
+    designed: bool
+    # The text exactly as synthesized: a pinned reference's transcript.
+    text: str
+    complete: bool
+    # Hz outside the requested gender's pitch range; only checked for new designs.
+    mismatch: float
 
 
 def generate(model, segment, attempt):
@@ -104,16 +116,51 @@ def generate(model, segment, attempt):
     return pcm_bytes, options, designed
 
 
+def take(model, segment, attempt) -> Take:
+    pcm, options, designed = generate(model, segment, attempt)
+    seconds = len(pcm) / (2 * model.sample_rate)
+    complete = plausible_duration(without_tags(options['text']), seconds, segment.language_id)
+    mismatch = pitch_mismatch(pcm, model.sample_rate, segment.voice_gender) if designed else 0.0
+    return Take(pcm, designed, options['text'], complete, mismatch)
+
+
+def best_take(model, segment, redesigned=False) -> bytes:
+    takes = []
+    for attempt in range(TAKE_ATTEMPTS):
+        current = take(model, segment, attempt)
+        takes.append(current)
+        if current.complete and not current.mismatch:
+            break
+        log.warning('%s take for %s %s (attempt %d of %d)',
+                    'Designed' if current.designed else 'Cloned', segment.identity or segment.speaker,
+                    'did not sound ' + segment.voice_gender if current.complete else 'was cut off or ran on',
+                    attempt + 1, TAKE_ATTEMPTS)
+    if not redesigned and not any(t.designed or t.complete for t in takes):
+        # Every line cloned from this reference was cut off, so the reference is
+        # unusable. A fresh voice is better than a character who cannot speak.
+        log.error('Voice reference for %s produces no usable speech; designing a new voice',
+                  segment.identity or segment.speaker)
+        model.voice_references.discard(segment)
+        return best_take(model, segment, redesigned=True)
+    chosen = min(takes, key=lambda t: (not t.complete, t.mismatch, -len(t.pcm)))
+    if chosen.designed and chosen.complete:
+        # Pin even the closest imperfect design: a character must keep one voice,
+        # and the next line would otherwise design a different one.
+        if chosen.mismatch:
+            log.warning('Pinning the closest design for %s, %.0f Hz from a %s range',
+                        segment.identity or segment.speaker, chosen.mismatch, segment.voice_gender)
+        model.voice_references.save(replace(segment, text=chosen.text), chosen.pcm, model.sample_rate)
+    return chosen.pcm
+
+
 def synthesize(model, segment):
-    for attempt in range(DESIGN_ATTEMPTS):
-        pcm_bytes, options, designed = generate(model, segment, attempt)
-        if not designed:
-            break
-        if matches_voice_gender(pcm_bytes, model.sample_rate, segment.voice_gender):
-            model.voice_references.save(replace(segment, text=options['text']), pcm_bytes, model.sample_rate)
-            break
-        log.warning('Designed %s voice for %s did not sound %s (attempt %d of %d)', segment.speaker,
-                    segment.identity or 'unknown', segment.voice_gender, attempt + 1, DESIGN_ATTEMPTS)
+    pcm_bytes = best_take(model, segment)
+    # A voice's saved reference sets its baseline, so lines keep their relative
+    # dynamics; a voice without one is measured on this take.
+    level = model.voice_references.speech_level(segment)
+    if level is None:
+        level = speech_level(pcm_bytes, model.sample_rate)
+    pcm_bytes = normalize_level(pcm_bytes, model.sample_rate, level)
     if segment.speaker == 'narrator' and segment.pause_after:
         pcm_bytes = pace_narration(pcm_bytes, model.sample_rate)
     return base64.b64encode(pcm_bytes).decode(), len(pcm_bytes) / (2 * model.sample_rate)

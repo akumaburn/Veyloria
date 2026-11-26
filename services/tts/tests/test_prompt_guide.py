@@ -12,7 +12,7 @@ ELARA = {'id': 'elara', 'gender': 'Woman', 'ageYears': 24, 'personality':
 
 def test_concise_character_brief_covers_four_dimensions_and_does_not_dump_biography():
     instruction = character_instruction(ELARA)
-    assert len(instruction.split('. ')) == 2
+    assert len(instruction.removeprefix('smooth voice, female voice. ').split('. ')) == 2
     assert 'young adult woman' in instruction
     assert 'timbre' in instruction and 'pitch' in instruction
     assert 'pacing' in instruction and 'articulation' in instruction
@@ -98,7 +98,10 @@ def test_cjk_sentence_punctuation_is_preserved():
 
 
 def test_female_brief_states_a_feminine_register_and_male_brief_is_unchanged():
-    assert 'a natural feminine pitch' in character_instruction({'gender': 'Woman', 'personality': 'Calm.'})
+    female = character_instruction({'gender': 'Woman', 'personality': 'Calm.'})
+    assert female.startswith('smooth voice, female voice. A')
+    assert 'a natural feminine pitch' in female
+    assert 'female voice' not in character_instruction({'gender': 'Man', 'personality': 'Calm.'})
     assert 'a gentle mid-range pitch' in character_instruction({'gender': 'Man', 'personality': 'Calm.'})
     assert 'a gentle mid-range pitch' in character_instruction({'personality': 'Calm.'})
     deep = character_instruction({'gender': 'Woman', 'personality': 'She speaks in a deep voice.'})

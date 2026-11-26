@@ -24,6 +24,7 @@ class VoiceReferences:
     def __init__(self, directory: Path, model_revision: str):
         self.directory = directory
         self.model_revision = model_revision
+        self._levels: dict[str, float | None] = {}
 
     def key(self, segment) -> str:
         identity = [CACHE_VERSION, self.model_revision, segment.speaker,
@@ -82,6 +83,28 @@ class VoiceReferences:
         except OSError:
             # Cache persistence must not discard successfully generated speech.
             log.exception('Could not persist voice reference %s', directory.name)
+
+    def speech_level(self, segment) -> float | None:
+        """The active speech level of a voice's reference: its loudness baseline."""
+        reference = self.get(segment)
+        if reference is None:
+            return None
+        audio_bytes = reference.path.read_bytes()
+        checksum = hashlib.sha256(audio_bytes).hexdigest()
+        if checksum not in self._levels:
+            from audio_utils import speech_level
+            with wave.open(str(reference.path), 'rb') as audio:
+                self._levels[checksum] = speech_level(audio.readframes(audio.getnframes()), audio.getframerate())
+        return self._levels[checksum]
+
+    def discard(self, segment) -> None:
+        """Forget a reference that no longer produces usable speech."""
+        directory = self.directory / self.key(segment)
+        try:
+            (directory / 'reference.json').unlink(missing_ok=True)
+            (directory / 'reference.wav').unlink(missing_ok=True)
+        except OSError:
+            log.exception('Could not discard voice reference %s', directory.name)
 
     def options(self, segment) -> tuple[dict, bool]:
         prompt = segment.prompt()

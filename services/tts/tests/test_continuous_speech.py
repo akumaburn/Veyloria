@@ -74,7 +74,8 @@ def test_both_design_and_reference_bypass_mings_internal_splitter(tmp_path):
 def test_continuations_have_no_added_narrator_pause():
     torch = pytest.importorskip('torch')
     options_seen = []
-    refs = SimpleNamespace(options=lambda s: ({'text': s.text}, False))
+    refs = SimpleNamespace(options=lambda s: ({'text': s.text}, False), discard=lambda s: None,
+                           speech_level=lambda s: None)
     def inference(**options):
         options_seen.append(options)
         return torch.ones(16000) * .2

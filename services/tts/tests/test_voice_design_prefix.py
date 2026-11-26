@@ -23,7 +23,8 @@ def test_every_voice_design_has_the_exact_smooth_prefix(tmp_path, profile):
         assert options['controls']['style'].startswith('smooth voice, ')
         assert not options['text'].startswith('smooth voice,')
         if profile and profile.get('personality') and segment.speaker == 'character':
-            assert len(options['controls']['style'].split('. ')) == 2
+            description = options['controls']['style'].removeprefix('smooth voice, female voice. ')
+            assert len(description.split('. ')) == 2
 
 
 def test_old_reference_does_not_bypass_the_updated_design_prefix(tmp_path):
