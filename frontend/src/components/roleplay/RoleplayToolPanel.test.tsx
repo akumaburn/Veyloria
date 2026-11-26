@@ -36,3 +36,20 @@ it('hides narrator tools and unmounts their active content when the mode is swit
   expect(screen.queryByText('CharacterProposalList')).not.toBeInTheDocument();
   expect(screen.getByText('WorldStatePanel')).toBeInTheDocument();
 });
+
+it('expands a map over the transcript and collapses it again', () => {
+  const { container } = render(<RoleplayToolPanel conversationId="story" participants={[]} />);
+  const panel = container.firstElementChild as HTMLElement;
+  expect(screen.queryByTitle('Expand map')).not.toBeInTheDocument();
+  fireEvent.click(screen.getByTitle('World map'));
+  expect(panel).toHaveClass('md:w-96');
+  fireEvent.click(screen.getByTitle('Expand map'));
+  expect(panel).not.toHaveClass('md:w-96');
+  expect(screen.getByTitle('Collapse map (Esc)')).toHaveAttribute('aria-pressed', 'true');
+  fireEvent.keyDown(window, { key: 'Escape' });
+  expect(panel).toHaveClass('md:w-96');
+  fireEvent.click(screen.getByTitle('Expand map'));
+  fireEvent.click(screen.getByTitle('Dice'));
+  expect(panel).toHaveClass('md:w-96');
+  expect(screen.queryByTitle('Expand map')).not.toBeInTheDocument();
+});

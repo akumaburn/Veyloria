@@ -328,7 +328,10 @@ Three regions hold the frame:
 2. The conversation rail at 240px, pinned from 1024px up and collapsible to zero
    with a tab handle on its edge.
 3. The roleplay tool panel at 320px on the right, with a 40px icon strip of nine
-   vertical tabs and a sticky header for the active tab.
+   vertical tabs and a sticky header for the active tab. From 768px up, the local and world
+   maps add an expand control at the end of that header: the panel then covers
+   the transcript region, leaving the composer in place, until the control or
+   Escape collapses it.
 
 A 4px sunset strip closes the shell at the bottom edge, running under the
 conversation rail and the main region.

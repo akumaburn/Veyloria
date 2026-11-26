@@ -19,6 +19,8 @@ import {
   ArrowLeft,
   Check,
   ChevronDown,
+  Maximize2,
+  Minimize2,
 } from 'lucide-react';
 import WorldStatePanel from './WorldStatePanel';
 import WorldStateEditor from './WorldStateEditor';
@@ -92,13 +94,32 @@ export default function RoleplayToolPanel({
   const activeTool = visibleTabs.find((t) => t.id === selectedTab) ?? visibleTabs[0];
   const ActiveIcon = activeTool.icon;
 
+  // From md up a map can take over the transcript area; the composer stays below.
+  const [expanded, setExpanded] = useState(false);
+  const mapTool = selectedTab === 'worldMap' || selectedTab === 'localMap';
+  const mapExpanded = expanded && mapTool;
+  useEffect(() => { setExpanded(false); }, [conversationId]);
+  useEffect(() => {
+    if (!mapExpanded) return undefined;
+    const collapseOnEscape = (event: KeyboardEvent) => {
+      if (event.key === 'Escape' && !event.defaultPrevented) setExpanded(false);
+    };
+    window.addEventListener('keydown', collapseOnEscape);
+    return () => window.removeEventListener('keydown', collapseOnEscape);
+  }, [mapExpanded]);
+
   const activeCharacters = useMemo(
     () => participants.filter((p) => p.isActive),
     [participants]
   );
 
   return (
-    <div className="absolute inset-0 z-20 flex h-full w-full flex-shrink-0 flex-row border-l border-border/50 bg-background md:static md:z-auto md:w-96 md:bg-background-secondary/30">
+    <div
+      className={cn(
+        'absolute inset-0 z-20 flex h-full w-full flex-shrink-0 flex-row border-l border-border/50 bg-background',
+        !mapExpanded && 'md:static md:z-auto md:w-96 md:bg-background-secondary/30',
+      )}
+    >
       {/* From md up the tools sit in a 40px rail beside the content. Phones use
           the single header bar below instead, with a tool picker. */}
       <div
@@ -205,6 +226,18 @@ export default function RoleplayToolPanel({
             {activeTool.label}
           </h3>
           <div ref={setToolbarSlot} className="ml-auto flex shrink-0 items-center gap-0.5" />
+          {mapTool && (
+            <button
+              type="button"
+              aria-pressed={mapExpanded}
+              onClick={() => setExpanded((value) => !value)}
+              className="hidden h-8 w-8 shrink-0 items-center justify-center rounded-md text-muted-foreground transition-colors hover:bg-accent hover:text-foreground md:flex"
+              aria-label={mapExpanded ? 'Collapse map (Esc)' : 'Expand map'}
+              title={mapExpanded ? 'Collapse map (Esc)' : 'Expand map'}
+            >
+              {mapExpanded ? <Minimize2 size={15} aria-hidden="true" /> : <Maximize2 size={15} aria-hidden="true" />}
+            </button>
+          )}
         </div>
 
         {/* The maps fill the panel; every other tool scrolls with padding. */}
