@@ -5,10 +5,11 @@ import re
 
 from voice_design import (
     SpeechPrompt, SpeechLanguage, LANGUAGES, VOICE_DESIGN_PREFIX,
-    NARRATOR_INSTRUCTION, character_instruction, sanitize_cues, normalize_script, without_tags,
+    NARRATOR_INSTRUCTION, character_instruction, voice_gender, sanitize_cues, normalize_script, without_tags,
 )
 
 NARRATOR_STYLE = NARRATOR_INSTRUCTION
+NARRATOR_GENDER = 'male'
 
 
 @dataclass(frozen=True)
@@ -20,6 +21,8 @@ class Segment:
     identity: str = ''
     language_id: SpeechLanguage = 'en'
     pause_after: bool = True
+    # The presentation a newly designed voice must match before it is pinned.
+    voice_gender: str = ''
 
     def prompt(self) -> SpeechPrompt:
         return SpeechPrompt(self.style, self.language_id, self.text)
@@ -96,6 +99,7 @@ def plan_speech(text: str, character: dict | None = None, language_id: SpeechLan
     style = character_style(character) if personality else NARRATOR_STYLE
     identity = (character or {}).get('id') or (character or {}).get('name', '')
     seed = int.from_bytes(hashlib.sha256(f'{identity}:{style}'.encode()).digest()[:4], 'big')
+    presentation = voice_gender(character) if personality else NARRATOR_GENDER
     narrator_seed = 42
     segments = []
 
@@ -107,10 +111,11 @@ def plan_speech(text: str, character: dict | None = None, language_id: SpeechLan
         speaker = 'character' if character_voice and personality else 'narrator'
         segment = Segment(value, speaker, style if speaker == 'character' else NARRATOR_STYLE,
                           seed if speaker == 'character' else narrator_seed,
-                          identity if speaker == 'character' else 'narrator', language_id)
+                          identity if speaker == 'character' else 'narrator', language_id,
+                          voice_gender=presentation if speaker == 'character' else NARRATOR_GENDER)
         if segments and segments[-1].speaker == speaker and (speaker == 'character' or not sentence_end(segments[-1].text)):
             previous = segments.pop()
-            segment = Segment(previous.text + ' ' + value, speaker, segment.style, segment.seed, segment.identity, segment.language_id)
+            segment = replace(segment, text=previous.text + ' ' + value)
         segments.append(segment)
 
     def add_narrative(value: str):

@@ -3,7 +3,7 @@ import struct
 import pytest
 
 from speech_plan import plan_speech
-from voice_design import TAGS, SpeechPrompt, character_instruction
+from voice_design import TAGS, SpeechPrompt, character_instruction, voice_gender
 from voice_references import VoiceReferences
 
 ELARA = {'id': 'elara', 'gender': 'Woman', 'ageYears': 24, 'personality':
@@ -95,3 +95,31 @@ def test_decimal_and_serial_readings_are_in_the_requested_language():
 
 def test_cjk_sentence_punctuation_is_preserved():
     assert [s.text for s in plan_speech('灯亮了。门开了。', language_id='zh')] == ['灯亮了。', '门开了。']
+
+
+def test_female_brief_states_a_feminine_register_and_male_brief_is_unchanged():
+    assert 'a natural feminine pitch' in character_instruction({'gender': 'Woman', 'personality': 'Calm.'})
+    assert 'a gentle mid-range pitch' in character_instruction({'gender': 'Man', 'personality': 'Calm.'})
+    assert 'a gentle mid-range pitch' in character_instruction({'personality': 'Calm.'})
+    deep = character_instruction({'gender': 'Woman', 'personality': 'She speaks in a deep voice.'})
+    assert 'low, resonant register' in deep and 'feminine pitch' not in deep
+
+
+@pytest.mark.parametrize('profile, expected', [
+    ({'gender': 'Woman', 'pronouns': 'he/him'}, 'female'),
+    ({'gender': 'nonbinary', 'pronouns': 'she/her'}, ''),
+    ({'pronouns': 'she/her'}, 'female'),
+    ({'pronouns': 'he/they'}, 'male'),
+    ({'personality': 'Weary. She speaks softly.'}, 'female'),
+    ({'personality': 'She leads. He follows.'}, ''),
+    ({'name': 'Elara'}, ''),
+])
+def test_voice_gender_prefers_declared_gender_then_pronouns_then_self_description(profile, expected):
+    assert voice_gender(profile) == expected
+
+
+def test_segments_carry_the_presentation_their_designed_voice_must_match():
+    segments = plan_speech('The rain falls. “Hold still.”', {'id': 'elara', 'gender': 'Woman', 'personality': 'Calm.'})
+    assert [(s.speaker, s.voice_gender) for s in segments] == [('narrator', 'male'), ('character', 'female')]
+    unknown = plan_speech('“Hold still.”', {'id': 'riven', 'gender': 'nonbinary', 'personality': 'Calm.'})[0]
+    assert unknown.voice_gender == ''

@@ -12,7 +12,7 @@ from pydantic import BaseModel, Field, ValidationError
 
 from speech_plan import plan_speech, playback_groups
 from voice_design import SpeechLanguage
-from audio_utils import trim_pcm_tail, pace_narration
+from audio_utils import trim_pcm_tail, pace_narration, matches_voice_gender
 from voice_references import VoiceReferences
 
 log = logging.getLogger(__name__)
@@ -82,13 +82,18 @@ async def voices():
     }]}
 
 
-def synthesize(model, segment):
+# Voice Design occasionally ignores the requested gender. A designed take that
+# contradicts it is retried with another seed and never pinned as the reference.
+DESIGN_ATTEMPTS = 3
+
+
+def generate(model, segment, attempt):
     import torch
     # Model inference and RNG access are serialized across connections. A stable
     # seed remains stable; saved acoustic references anchor follow-up identity.
     device_type = str(model.device).split(":", 1)[0]
     with torch.inference_mode(), torch.autocast(device_type=device_type, dtype=torch.bfloat16):
-        torch.manual_seed(segment.seed)
+        torch.manual_seed(segment.seed + attempt)
         options, designed = model.voice_references.options(segment)
         # Longer intact sentences need enough decoder steps to finish; the
         # checkpoint's fixed default can truncate deliberately unhurried speech.
@@ -96,8 +101,19 @@ def synthesize(model, segment):
         audio = model.synthesize(**options)
     pcm = (audio.detach().float().cpu().numpy().reshape(-1).clip(-1, 1) * 32767).astype('<i2')
     pcm_bytes = trim_pcm_tail(pcm.tobytes(), model.sample_rate, .12 if segment.pause_after else .02)
-    if designed:
-        model.voice_references.save(replace(segment, text=options['text']), pcm_bytes, model.sample_rate)
+    return pcm_bytes, options, designed
+
+
+def synthesize(model, segment):
+    for attempt in range(DESIGN_ATTEMPTS):
+        pcm_bytes, options, designed = generate(model, segment, attempt)
+        if not designed:
+            break
+        if matches_voice_gender(pcm_bytes, model.sample_rate, segment.voice_gender):
+            model.voice_references.save(replace(segment, text=options['text']), pcm_bytes, model.sample_rate)
+            break
+        log.warning('Designed %s voice for %s did not sound %s (attempt %d of %d)', segment.speaker,
+                    segment.identity or 'unknown', segment.voice_gender, attempt + 1, DESIGN_ATTEMPTS)
     if segment.speaker == 'narrator' and segment.pause_after:
         pcm_bytes = pace_narration(pcm_bytes, model.sample_rate)
     return base64.b64encode(pcm_bytes).decode(), len(pcm_bytes) / (2 * model.sample_rate)

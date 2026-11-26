@@ -6,6 +6,8 @@ from typing import Literal
 SpeechLanguage = Literal['zh', 'en', 'de', 'es', 'fr', 'ko', 'ja']
 LANGUAGES = ('zh', 'en', 'de', 'es', 'fr', 'ko', 'ja')
 VOICE_DESIGN_PREFIX = 'smooth voice,'
+FEMALE_GENDERS = {'female', 'woman', 'girl', 'f', 'feminine', 'cis woman', 'trans woman'}
+MALE_GENDERS = {'male', 'man', 'boy', 'm', 'masculine', 'cis man', 'trans man'}
 NARRATOR_INSTRUCTION = (
     f'{VOICE_DESIGN_PREFIX} A clear adult male storyteller with a natural, balanced timbre, '
     'gentle mid-range pitch and clean studio clarity. '
@@ -45,22 +47,31 @@ def positive(text: str, expression: str) -> bool:
     return False
 
 
+def voice_gender(character: dict) -> Literal['female', 'male', '']:
+    """The voice's gender presentation: declared gender, then pronouns, then self-description."""
+    gender = (character.get('gender') or '').strip().lower()
+    pronouns = (character.get('pronouns') or '').strip().lower()
+    if gender in FEMALE_GENDERS:
+        return 'female'
+    if gender in MALE_GENDERS:
+        return 'male'
+    if gender:
+        return ''
+    if pronouns:
+        she = bool(re.search(r'\b(she|her)\b', pronouns))
+        he = bool(re.search(r'\b(he|him)\b', pronouns))
+    else:
+        profile = (character.get('personality') or '') + ' ' + (character.get('description') or '')
+        she = bool(re.search(r'(?:^|[.!?]\s+)She\b', profile, re.I))
+        he = bool(re.search(r'(?:^|[.!?]\s+)He\b', profile, re.I))
+    return 'female' if she and not he else 'male' if he and not she else ''
+
+
 def character_instruction(character: dict) -> str:
     personality = (character.get('personality') or '').strip()
     gender = (character.get('gender') or '').strip().lower()
-    pronouns = (character.get('pronouns') or '').strip().lower()
-    female = gender in {'female', 'woman', 'girl', 'f', 'feminine', 'cis woman', 'trans woman'}
-    male = gender in {'male', 'man', 'boy', 'm', 'masculine', 'cis man', 'trans man'}
-    if not gender:
-        if pronouns:
-            female = bool(re.search(r'\b(she|her)\b', pronouns)) and not re.search(r'\b(he|him)\b', pronouns)
-            male = bool(re.search(r'\b(he|him)\b', pronouns)) and not re.search(r'\b(she|her)\b', pronouns)
-        else:
-            profile = personality + ' ' + (character.get('description') or '')
-            female = bool(re.search(r'(?:^|[.!?]\s+)She\b', profile, re.I))
-            male = bool(re.search(r'(?:^|[.!?]\s+)He\b', profile, re.I))
-            if female and male:
-                female = male = False
+    presentation = voice_gender(character)
+    female, male = presentation == 'female', presentation == 'male'
     age = character.get('ageYears')
     age_range = ('child' if age < 13 else 'teenage' if age < 18 else 'young adult' if age < 35
                  else 'adult' if age < 60 else 'older adult') if age is not None else 'adult'
@@ -83,6 +94,8 @@ def character_instruction(character: dict) -> str:
     timbre = ' and '.join(textures[:2]) if textures else 'clear, natural'
     pitch = ('a low, resonant register' if positive(vocal, r'\b(?:deep|low[- ]pitched|low pitch)\b')
              else 'a bright upper register' if positive(vocal, r'\b(?:high[- ]pitched|high pitch)\b')
+             # Voice Design drifts toward a male voice unless a woman's register is explicit.
+             else 'a natural feminine pitch' if female
              else 'a gentle mid-range pitch')
     pacing = ('unhurried, deliberate pacing with clear pauses' if positive(vocal, r'\b(?:slow(?:ly)?|unhurried|measured|deliberate)\b')
               else 'brisk, energetic pacing' if positive(vocal, r'\b(?:fast|rapid(?:ly)?|brisk)\b')

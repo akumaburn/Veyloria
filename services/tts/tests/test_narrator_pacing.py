@@ -12,7 +12,7 @@ from app import synthesize
 
 def tone(rate=16000):
     time = torch.arange(rate) / rate
-    return (.3 * torch.sin(2 * torch.pi * 220 * time)).unsqueeze(0)
+    return (.3 * torch.sin(2 * torch.pi * 110 * time)).unsqueeze(0)
 
 
 def test_narration_preserves_every_original_sample_and_only_adds_a_pause():
