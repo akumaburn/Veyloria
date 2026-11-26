@@ -641,9 +641,17 @@ function getVariablesKey(variables?: Record<string, any>): string {
 export function useWebSocketSubscription<T = any>(
   query: string,
   variables?: Record<string, any>,
-  skip = false
+  skip = false,
+  /**
+   * Called synchronously for every frame. `data` holds only the latest frame,
+   * and frames arriving before the next render replace each other; consumers
+   * that must see each frame (such as a playback queue) use this instead.
+   */
+  onData?: (data: T) => void,
 ): { data: T | null; error: Error | null; loading: boolean } {
   const [data, setData] = useState<T | null>(null);
+  const onDataRef = useRef(onData);
+  onDataRef.current = onData;
   const [error, setError] = useState<Error | null>(null);
   const [loading, setLoading] = useState(!skip);
   // Monotonic generation counter to discard stale frames from a previous
@@ -680,6 +688,7 @@ export function useWebSocketSubscription<T = any>(
       variables,
       (newData) => {
         if (generation !== subscriptionGenerationRef.current) return;
+        onDataRef.current?.(newData);
         setData(newData);
         setLoading(false);
         setError(null);

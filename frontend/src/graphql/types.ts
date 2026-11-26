@@ -301,6 +301,10 @@ export interface GenerationStats {
 export interface StreamingMessage extends Message {
   streamingContent?: string;
   isComplete: boolean;
+  /** In-band generation failure reported on the final frame. */
+  error?: string;
+  /** The conversation the frame belongs to; frames for any other are discarded. */
+  conversationId?: string;
   generationStats?: GenerationStats;
 }
 

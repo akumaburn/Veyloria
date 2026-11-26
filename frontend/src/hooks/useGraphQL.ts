@@ -11,6 +11,7 @@ import { useCallback, useEffect, useRef, useState, useMemo } from 'react';
 import { useAuthStore } from '@/stores/authStore';
 import { useWebSocketSubscription } from '@/lib/websocket-client';
 import { toTimestamp as toTs } from '@/lib/utils';
+import type { StreamingMessage } from '@/graphql/types';
 import {
   // User operations
   ME_QUERY,
@@ -888,14 +889,15 @@ const TURN_CHANGED_QUERY = `
  * - streamingContent null/undefined + content present → Delta, append to accumulated
  * - isComplete=true → Final message, use streamingContent as final content
  */
-export const useMessageStream = (conversationId: string) => {
-  const { data, loading, error } = useWebSocketSubscription(
-    MESSAGE_STREAM_QUERY,
-    { conversationId },
-    !conversationId
-  );
-
-  const rawMessage = data?.messageStream;
+/**
+ * The live message stream for a conversation. `message` is the latest frame for
+ * rendering; `onFrame` receives every accumulated frame in arrival order, so a
+ * complete narration frame followed at once by a character's first token is not
+ * lost before the next render.
+ */
+export const useMessageStream = (conversationId: string, onFrame?: (message: StreamingMessage) => void) => {
+  const onFrameRef = useRef(onFrame);
+  onFrameRef.current = onFrame;
 
   // OPTIMIZED: Track delta content directly without repeated join() calls.
   //
@@ -912,6 +914,8 @@ export const useMessageStream = (conversationId: string) => {
     hasCompleted: boolean;   // RACE CONDITION FIX: Track if message has completed
   }>({ conversationId: '', messageId: '', syncedContent: '', deltaContent: '', hasCompleted: false });
   const [message, setMessage] = useState<any>(null);
+  const conversationIdRef = useRef(conversationId);
+  conversationIdRef.current = conversationId;
 
   // Reset accumulator whenever the active conversation changes, so a late
   // frame from the previous subscription can't pollute the new conversation.
@@ -926,18 +930,10 @@ export const useMessageStream = (conversationId: string) => {
     setMessage(null);
   }, [conversationId]);
 
-  useEffect(() => {
-    if (!rawMessage) {
-      setMessage(null);
-      accumulatedRef.current = {
-        conversationId,
-        messageId: '',
-        syncedContent: '',
-        deltaContent: '',
-        hasCompleted: false,
-      };
-      return;
-    }
+  const acceptFrame = useCallback((data: { messageStream?: StreamingMessage | null } | null) => {
+    const rawMessage = data?.messageStream;
+    const conversationId = conversationIdRef.current;
+    if (!rawMessage) return;
 
     // Ignore frames whose conversationId doesn't match the currently subscribed
     // one. The server tags each streaming frame with its conversationId; when
@@ -1015,12 +1011,17 @@ export const useMessageStream = (conversationId: string) => {
       finalContent = acc.syncedContent + acc.deltaContent;
     }
 
-    // Update state with current accumulated content
-    setMessage({
-      ...rawMessage,
-      streamingContent: finalContent,
-    });
-  }, [rawMessage, conversationId]);
+    const frame = { ...rawMessage, streamingContent: finalContent };
+    onFrameRef.current?.(frame);
+    setMessage(frame);
+  }, []);
+
+  const { loading, error } = useWebSocketSubscription(
+    MESSAGE_STREAM_QUERY,
+    { conversationId },
+    !conversationId,
+    acceptFrame,
+  );
 
   return {
     message,

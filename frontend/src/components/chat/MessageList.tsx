@@ -7,6 +7,7 @@ import { useTTSStore } from '@/stores/ttsStore';
 import { useMessageStore } from '@/stores/messageStore';
 import { cn, normalizeTimestamp as normalizeTs } from '@/lib/utils';
 import { Base64 } from 'js-base64';
+import type { StreamingMessage } from '@/graphql/types';
 
 // SessionStorage-backed persistence for the in-memory completed-streaming buffer.
 // Survives a refresh during the brief window between streaming completion and DB
@@ -245,6 +246,43 @@ export const MessageList = ({
       finalizedVoiceStreams.current.clear();
     };
   }, [conversationId]);
+  // Automatic playback consumes every stream frame as it arrives. A narration
+  // event arrives as one complete frame, often immediately followed by the next
+  // speaker's first token; reading only the rendered latest frame would skip it.
+  const handleVoiceFrame = (stream: StreamingMessage) => {
+    if (readingConversationId || !voiceSettings.enabled || !voiceSettings.autoPlay) return;
+    if (stream.id === 'stopped' || stream.id === 'cancelled') {
+      voiceStreams.current.forEach((_, id) => stopVoice(id));
+      voiceStreams.current.clear();
+      return;
+    }
+    if (stream.role?.toLowerCase() === 'user' ||
+        ['OOC', 'SYSTEM', 'DICE'].includes(stream.messageType || '') ||
+        (stream.role?.toLowerCase() !== 'assistant' && stream.messageType !== 'NARRATION')) return;
+    const text = stream.streamingContent || stream.content || '';
+    if (!stream.isComplete) {
+      finalizedVoiceStreams.current.delete(stream.id);
+      const previous = voiceStreams.current.get(stream.id);
+      if (previous && text.length < previous.length - 20) stopVoice(stream.id);
+      voiceStreams.current.set(stream.id, text);
+      void addStreamingChunk(stream.id, text);
+    } else if (!finalizedVoiceStreams.current.has(stream.id)) {
+      // Story events (including opening narration) arrive as a single complete
+      // frame. They do not need a preceding token frame to join the voice queue.
+      finalizedVoiceStreams.current.add(stream.id);
+      voiceStreams.current.delete(stream.id);
+      const author = stream.character || (isGroupChat
+        ? participants.find(participant => participant.character.id === stream.characterId)?.character
+        : voiceCharacter);
+      const character = author && (!stream.messageType || ['DIALOGUE', 'ACTION'].includes(stream.messageType))
+        ? { id: author.id, name: author.name, personality: author.personality,
+            gender: author.gender, pronouns: author.pronouns, ageYears: author.ageYears } : undefined;
+      void finalizeStreaming(stream.id, stream.error ? '' : text, undefined, character);
+    }
+  };
+  const voiceFrameRef = useRef(handleVoiceFrame);
+  voiceFrameRef.current = handleVoiceFrame;
+  const onStreamFrame = useCallback((stream: StreamingMessage) => voiceFrameRef.current(stream), []);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
   const [autoScroll, setAutoScroll] = useState(true);
@@ -293,7 +331,7 @@ export const MessageList = ({
 
   // Use GraphQL query and subscription
   const { messages: messagesData, loading: isLoading, refetch } = useMessages(conversationId || '');
-  const { message: streamingMessage, error: streamError } = useMessageStream(conversationId || '');
+  const { message: streamingMessage, error: streamError } = useMessageStream(conversationId || '', onStreamFrame);
   const { stopGeneration } = useStopGeneration();
 
   // Surface transport-level subscription errors (not in-band rawMessage.error,
@@ -549,45 +587,19 @@ export const MessageList = ({
     }
   }, [regeneratingMessageId, streamingMessage?.id, streamingMessage?.isComplete, refetch]);
 
+
   useEffect(() => {
-    const stream = streamingMessage;
     if (readingConversationId) {
       // startReading already canceled live reservations. Do not cancel a new
       // read-through request that happens to reuse the just-completed stream ID.
       voiceStreams.current.clear();
       return;
     }
-    if (!voiceSettings.enabled || !voiceSettings.autoPlay ||
-        stream?.id === 'stopped' || stream?.id === 'cancelled') {
+    if (!voiceSettings.enabled || !voiceSettings.autoPlay) {
       voiceStreams.current.forEach((_, id) => stopVoice(id));
       voiceStreams.current.clear();
-      return;
     }
-    if (!stream || stream.role?.toLowerCase() === 'user' ||
-        ['OOC', 'SYSTEM', 'DICE'].includes(stream.messageType || '') ||
-        (stream.role?.toLowerCase() !== 'assistant' && stream.messageType !== 'NARRATION')) return;
-    const text = stream.streamingContent || stream.content || '';
-    if (!stream.isComplete) {
-      finalizedVoiceStreams.current.delete(stream.id);
-      const previous = voiceStreams.current.get(stream.id);
-      if (previous && text.length < previous.length - 20) stopVoice(stream.id);
-      voiceStreams.current.set(stream.id, text);
-      void addStreamingChunk(stream.id, text);
-    } else if (!finalizedVoiceStreams.current.has(stream.id)) {
-      // Story events (including opening narration) arrive as a single complete
-      // frame. They do not need a preceding token frame to join the voice queue.
-      finalizedVoiceStreams.current.add(stream.id);
-      voiceStreams.current.delete(stream.id);
-      const author = stream.character || (isGroupChat
-        ? participants.find(participant => participant.character.id === stream.characterId)?.character
-        : voiceCharacter);
-      const character = author && (!stream.messageType || ['DIALOGUE', 'ACTION'].includes(stream.messageType))
-        ? { id: author.id, name: author.name, personality: author.personality,
-            gender: author.gender, pronouns: author.pronouns, ageYears: author.ageYears } : undefined;
-      void finalizeStreaming(stream.id, stream.error ? '' : text, undefined, character);
-    }
-  }, [streamingMessage, voiceSettings.enabled, voiceSettings.autoPlay, isGroupChat,
-      participants, voiceCharacter, addStreamingChunk, finalizeStreaming, stopVoice, readingConversationId]);
+  }, [voiceSettings.enabled, voiceSettings.autoPlay, stopVoice, readingConversationId]);
 
   // When streaming message completes, buffer it and trigger refetch
   // This ensures the message is visible even if another character starts streaming

@@ -1,4 +1,4 @@
-import { render } from '@testing-library/react';
+import { act, render } from '@testing-library/react';
 import { beforeEach, expect, it, vi } from 'vitest';
 import { MessageList } from './MessageList';
 
@@ -7,13 +7,24 @@ const state = vi.hoisted(() => ({
     role: 'ASSISTANT', createdAt: '2026-11-19T12:00:00Z', characterId: 'ada', messageType: 'DIALOGUE' },
   add: vi.fn(), finalize: vi.fn(), refetch: vi.fn(), stop: vi.fn(), stopReading: vi.fn(), startReading: vi.fn(), stopAll: vi.fn(),
   readingConversationId: null as string | null,
+  onFrame: undefined as undefined | ((frame: unknown) => void),
 }));
-vi.mock('@/hooks/useGraphQL', () => ({
+vi.mock('@/hooks/useGraphQL', async () => {
+  const { useEffect } = await vi.importActual<typeof import('react')>('react');
+  return {
   useMessages: () => ({ messages: [], loading: false, refetch: state.refetch }),
-  useMessageStream: () => ({ message: state.stream }),
+  // Like the real hook, every frame reaches onFrame; rerendering with a new
+  // stream object delivers it as the next frame.
+  useMessageStream: (_conversationId: string, onFrame?: (frame: unknown) => void) => {
+    state.onFrame = onFrame;
+    const frame = state.stream;
+    useEffect(() => { onFrame?.(frame); }, [frame, onFrame]);
+    return { message: frame };
+  },
   useStopGeneration: () => ({ stopGeneration: vi.fn() }),
   usePendingStreamingMessage: () => ({ pendingMessage: null, refetch: state.refetch }),
-}));
+  };
+});
 vi.mock('@/stores/messageStore', () => ({ useMessageStore: () => ({}) }));
 vi.mock('@/stores/ttsStore', () => ({ useTTSStore: Object.assign(() => ({
   settings: { enabled: true, autoPlay: true }, playbackStates: new Map(),
@@ -108,4 +119,19 @@ it('does not automatically speak OOC notices', () => {
   render(<MessageList conversationId="ooc" voiceCharacter={character} />);
   expect(state.add).not.toHaveBeenCalled();
   expect(state.finalize).not.toHaveBeenCalled();
+});
+
+
+it('reads a complete narration frame that is followed by the next speaker before any render', () => {
+  render(<MessageList conversationId="voice-opening" voiceCharacter={character} isGenerating />);
+  state.add.mockClear();
+  state.finalize.mockClear();
+  act(() => {
+    state.onFrame?.({ id: 'opening', streamingContent: 'Rain hisses on the cobbles.', isComplete: true,
+      role: 'SYSTEM', messageType: 'NARRATION', createdAt: '2026-11-19T12:00:00Z' });
+    state.onFrame?.({ id: 'first-turn', streamingContent: '“Hold', isComplete: false,
+      role: 'ASSISTANT', messageType: 'DIALOGUE', characterId: 'ada', createdAt: '2026-11-19T12:00:01Z' });
+  });
+  expect(state.finalize).toHaveBeenCalledWith('opening', 'Rain hisses on the cobbles.', undefined, undefined);
+  expect(state.add).toHaveBeenCalledWith('first-turn', '“Hold');
 });
