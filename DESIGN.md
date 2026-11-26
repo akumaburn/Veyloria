@@ -246,6 +246,16 @@ for the bubble fill. Blue (#1252ba), violet (#532caf), magenta (#a51d4a), teal
 and fourth slots reuse deep pine and umber warning. A participant keeps the same
 pigment for their avatar tile, name, and bubble for the whole conversation.
 
+As pale fills, three pairs read as one color: pine and teal, burnt and umber,
+violet and purple. Speakers therefore take five hue families in turn (blue, warm,
+green, magenta, violet), each unpatterned. The next rounds repeat the families
+with 135° stripes (6px of pigment at 7% opacity, 8px clear; 9% in the dark
+theme), a shaded leading edge (pigment at three times that opacity fading out
+over 56px), and both; the striped rounds use the twin pigment. This gives twenty
+distinct looks. Characters take them in the order the story introduced them, and
+other players count down from the last, so no two speakers in a scene share a
+look until all twenty are in use.
+
 ### Dark Theme
 The dark theme inverts paper and ink and keeps the same roles. Background #1f1f1f,
 parchment #23221f, card #2b2a26, border #4c4538, muted ink #c1b7a4. The action ink

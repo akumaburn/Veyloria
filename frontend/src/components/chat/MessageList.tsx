@@ -6,6 +6,7 @@ import { useMessages, useMessageStream, useStopGeneration, usePendingStreamingMe
 import { useTTSStore } from '@/stores/ttsStore';
 import { useMessageStore } from '@/stores/messageStore';
 import { cn, normalizeTimestamp as normalizeTs } from '@/lib/utils';
+import { assignSpeakerSlots } from '@/lib/speakerColors';
 import { Base64 } from 'js-base64';
 import type { StreamingMessage } from '@/graphql/types';
 
@@ -202,6 +203,8 @@ interface MessageListProps {
   // Group chat props
   isGroupChat?: boolean;
   participants?: GroupParticipant[];
+  /** Color slots for every character introduced to the scene, from the server. */
+  speakerColorSlots?: { characterId: string; slot: number }[];
   currentSpeaker?: { id: string; name: string; avatar?: string } | null;
   processingLabel?: string;
   // Multi-user props
@@ -209,6 +212,8 @@ interface MessageListProps {
   userParticipants?: UserParticipant[];
   currentUserId?: string;
 }
+
+const EMPTY_SLOTS: { characterId: string; slot: number }[] = [];
 
 export const MessageList = ({
   allowStoryEditing = true,
@@ -222,6 +227,7 @@ export const MessageList = ({
   voiceCharacter,
   isGroupChat = false,
   participants = [],
+  speakerColorSlots = EMPTY_SLOTS,
   currentSpeaker,
   processingLabel,
   isMultiUser = false,
@@ -331,6 +337,14 @@ export const MessageList = ({
 
   // Use GraphQL query and subscription
   const { messages: messagesData, loading: isLoading, refetch } = useMessages(conversationId || '');
+  const speakerSlots = useMemo(
+    () => assignSpeakerSlots(speakerColorSlots, userParticipants.map((participant) => participant.user.id)),
+    [speakerColorSlots, userParticipants],
+  );
+  const speakerSlotFor = useCallback((message: Message) => {
+    const speakerId = message.role === 'user' ? message.userId : message.characterId || message.character?.id;
+    return speakerId ? speakerSlots.get(speakerId) : undefined;
+  }, [speakerSlots]);
   const { message: streamingMessage, error: streamError } = useMessageStream(conversationId || '', onStreamFrame);
   const { stopGeneration } = useStopGeneration();
 
@@ -1376,6 +1390,7 @@ export const MessageList = ({
               currentUserId={currentUserId}
               historicalEditing={historicalEditableIds.has(message.id)}
               conversationId={conversationId}
+              speakerSlot={speakerSlotFor(message)}
             />
           </div>
         ))}
@@ -1459,6 +1474,7 @@ export const MessageList = ({
                 isMultiUser={isMultiUser}
                 currentUserId={currentUserId}
                 conversationId={conversationId}
+                speakerSlot={currentSpeaker ? speakerSlots.get(currentSpeaker.id) : undefined}
               />
             </div>
           );

@@ -4,7 +4,8 @@ import {
   User, Bot, Copy, Check, Edit2, Trash2, RefreshCw,
   AlertCircle, Loader2, Download, Maximize2, Clock, Sparkles, X, ChevronDown, ChevronRight, Brain, Zap, Timer
 } from 'lucide-react';
-import { cn, formatDate, getParticipantColorClasses } from '@/lib/utils';
+import { cn, formatDate } from '@/lib/utils';
+import { fallbackSpeakerSlot, speakerStyle } from '@/lib/speakerColors';
 import { Message } from './MessageList';
 import NarrationBlock from '@/components/roleplay/NarrationBlock';
 import ActionBlock from '@/components/roleplay/ActionBlock';
@@ -159,6 +160,8 @@ interface MessageItemProps {
   historicalEditing?: boolean;
   /** The story this message belongs to, so a character card can show its stats. */
   conversationId?: string;
+  /** This speaker's color slot in the conversation (see lib/speakerColors). */
+  speakerSlot?: number;
 }
 
 // Edit time window in seconds (must match backend EDIT_TIME_LIMIT_MINUTES * 60)
@@ -181,6 +184,7 @@ export const MessageItem = memo(({
   isGroupChat = false,
   isMultiUser = false,
   currentUserId,
+  speakerSlot,
   historicalEditing = false,
   allowStoryEditing = true,
   conversationId,
@@ -291,18 +295,14 @@ export const MessageItem = memo(({
   // Show other user's messages on the left like assistant messages
   const showOnRight = isUser && (!isMultiUser || isCurrentUser);
 
-  // Get participant color for group chat messages
+  // Characters in a group scene and other players each keep their own color.
   const participantColors = useMemo(() => {
-    // For assistant messages in group chat, use character ID for color
-    if (!isUser && isGroupChat && message.characterId) {
-      return getParticipantColorClasses(message.characterId);
-    }
-    // For user messages in multi-user mode, use user ID for color
-    if (isUser && isMultiUser && !isCurrentUser && message.userId) {
-      return getParticipantColorClasses(message.userId);
-    }
-    return null;
-  }, [isUser, isGroupChat, isMultiUser, isCurrentUser, message.characterId, message.userId]);
+    const speakerId = !isUser && isGroupChat ? message.characterId || message.character?.id
+      : isUser && isMultiUser && !isCurrentUser ? message.userId
+      : undefined;
+    if (!speakerId) return null;
+    return speakerStyle(speakerSlot ?? fallbackSpeakerSlot(speakerId));
+  }, [isUser, isGroupChat, isMultiUser, isCurrentUser, message.characterId, message.character?.id, message.userId, speakerSlot]);
 
   // Memoized callbacks for action buttons
   const handleStartEditing = useCallback(() => setIsEditing(true), []);
@@ -507,11 +507,11 @@ export const MessageItem = memo(({
               isUser
                 ? isMultiUser && !isCurrentUser
                   ? participantColors
-                    ? `${participantColors.bg} border ${participantColors.border} shadow-sm`  // Other users with participant color
+                    ? `${participantColors.bg} ${participantColors.pattern} border ${participantColors.border} shadow-sm`  // Other users with participant color
                     : 'bg-gradient-to-br from-accent to-muted shadow-accent/25'  // Other users fallback
                   : 'bg-gradient-to-br from-primary to-primary-hover shadow-primary/25'  // Current user
                 : participantColors
-                ? `${participantColors.bg} border ${participantColors.border} shadow-sm`  // Character with participant color
+                ? `${participantColors.bg} ${participantColors.pattern} border ${participantColors.border} shadow-sm`  // Character with participant color
                 : message.character || message.characterId
                 ? 'bg-gradient-to-br from-secondary to-secondary-hover shadow-secondary/25'
                 : 'bg-gradient-to-br from-muted to-accent shadow-accent/25',
@@ -553,7 +553,7 @@ export const MessageItem = memo(({
             showOnRight
               ? 'bg-gradient-to-br from-primary to-primary-hover text-primary-foreground rounded-tr-md'
               : participantColors
-              ? `${participantColors.bg} border ${participantColors.border} text-foreground rounded-tl-md`  // Participant-colored messages
+              ? `${participantColors.bg} ${participantColors.pattern} border ${participantColors.border} text-foreground rounded-tl-md`  // Participant-colored messages
               : isUser && isMultiUser
               ? 'bg-card border border-accent text-foreground rounded-tl-md'  // Other user's messages (fallback)
               : 'bg-card border border-border/50 text-foreground rounded-tl-md',
@@ -1154,6 +1154,7 @@ export const MessageItem = memo(({
   if (prevProps.isMultiUser !== nextProps.isMultiUser) return false;
   if (prevProps.currentUserId !== nextProps.currentUserId) return false;
   if (prevProps.historicalEditing !== nextProps.historicalEditing) return false;
+  if (prevProps.speakerSlot !== nextProps.speakerSlot) return false;
 
   // Props are equal, skip re-render
   return true;

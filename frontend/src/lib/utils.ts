@@ -137,52 +137,6 @@ export function throttle<T extends (...args: unknown[]) => void>(
   };
 }
 
-/**
- * Get consistent participant color index based on ID.
- * Uses position-weighted character sum for good distribution across 8 color indices.
- * Same ID will always return the same color index.
- */
-export function getParticipantColorIndex(id: string | undefined | null): number {
-  if (!id) return 1;
-
-  // Position-weighted character sum provides better distribution for UUIDs
-  // than traditional hash functions which can collide on similar hex strings
-  let sum = 0;
-  for (let i = 0; i < id.length; i++) {
-    sum += id.charCodeAt(i) * (i + 1);
-  }
-
-  // Map to 1-8 range (we have 8 participant colors)
-  return (sum % 8) + 1;
-}
-
-/**
- * Get the CSS class for participant message background color.
- * Returns Tailwind classes for background and border based on participant color index.
- */
-export function getParticipantColorClasses(id: string | undefined | null): {
-  bg: string;
-  border: string;
-  accent: string;
-} {
-  const index = getParticipantColorIndex(id);
-
-  // Map index to Tailwind classes using the theme colors defined in tailwind.config.js
-  // These are theme-aware (different values for light/dark mode)
-  const colorMap: Record<number, { bg: string; border: string; accent: string }> = {
-    1: { bg: 'bg-participant-1-bg', border: 'border-participant-1/30', accent: 'text-participant-1' },
-    2: { bg: 'bg-participant-2-bg', border: 'border-participant-2/30', accent: 'text-participant-2' },
-    3: { bg: 'bg-participant-3-bg', border: 'border-participant-3/30', accent: 'text-participant-3' },
-    4: { bg: 'bg-participant-4-bg', border: 'border-participant-4/30', accent: 'text-participant-4' },
-    5: { bg: 'bg-participant-5-bg', border: 'border-participant-5/30', accent: 'text-participant-5' },
-    6: { bg: 'bg-participant-6-bg', border: 'border-participant-6/30', accent: 'text-participant-6' },
-    7: { bg: 'bg-participant-7-bg', border: 'border-participant-7/30', accent: 'text-participant-7' },
-    8: { bg: 'bg-participant-8-bg', border: 'border-participant-8/30', accent: 'text-participant-8' },
-  };
-
-  return colorMap[index] || colorMap[1];
-}
-
 // Note: Toast notifications are now handled by react-hot-toast.
 // Import { toast } from 'react-hot-toast' in components instead.
 

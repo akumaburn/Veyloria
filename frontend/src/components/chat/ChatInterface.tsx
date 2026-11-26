@@ -101,6 +101,10 @@ const CONVERSATION_DETAIL_QUERY = gql`
         avatar
         greeting
       }
+      speakerColorSlots {
+        characterId
+        slot
+      }
       characters {
         id
         character {
@@ -761,6 +765,7 @@ export const ChatInterface = ({ className }: ChatInterfaceProps) => {
             voiceCharacter={selectedCharacter || undefined}
             isGroupChat={isGroupChat}
             participants={participants}
+            speakerColorSlots={conversation?.speakerColorSlots}
             currentSpeaker={currentSpeaker}
             processingLabel={processingLabel}
             isMultiUser={isMultiUser}

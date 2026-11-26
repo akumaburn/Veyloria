@@ -7,6 +7,7 @@ import com.eonmux.chatllm.models.ConversationInvite;
 import com.eonmux.chatllm.models.ConversationParticipant;
 import com.eonmux.chatllm.models.InterjectionRequest;
 import com.eonmux.chatllm.models.Message;
+import com.eonmux.chatllm.models.SpeakerColorSlot;
 import com.eonmux.chatllm.models.MessageRole;
 import com.eonmux.chatllm.models.User;
 import com.eonmux.chatllm.models.Character;
@@ -300,6 +301,33 @@ public class ConversationResolver {
             })
 
             ;
+    }
+
+    /**
+     * Palette slots for every character introduced to a group conversation,
+     * including those no longer active, whose earlier messages keep their color.
+     * Ordered by introduction, a slot never changes as characters come and go.
+     */
+    public Uni<List<SpeakerColorSlot>> speakerColorSlots(@Source Conversation conversation) {
+        if (!Boolean.TRUE.equals(conversation.getIsGroupChat()) || conversation.getId() == null) {
+            return Uni.createFrom().item(List.of());
+        }
+        String query = """
+            SELECT characterId,
+                   ROW_NUMBER() OVER (ORDER BY COALESCE(introducedAt, joinedAt), turnOrder, characterId) - 1 AS slot
+            FROM conversation_character
+            WHERE conversationId = ? AND isIntroduced = TRUE
+            """;
+        return mysqlPool.preparedQuery(query)
+            .execute(Tuple.of(conversation.getId().toString()))
+            .map(rows -> {
+                List<SpeakerColorSlot> slots = new ArrayList<>();
+                for (Row row : rows) {
+                    slots.add(new SpeakerColorSlot(
+                        row.getString("characterId"), row.getLong("slot").intValue()));
+                }
+                return slots;
+            });
     }
 
     /**

@@ -167,6 +167,8 @@
     --participant-6-bg: 173 40% 96%;
     --participant-7-bg: 24 40% 96%;
     --participant-8-bg: 280 40% 96%;
+    /* Strength of the stripes and shaded edge that set apart speakers sharing a hue. */
+    --speaker-pattern-alpha: 0.07;
 
     --border: 44 55% 78%;
     --border-hover: 40 32% 54%;
@@ -241,6 +243,7 @@
     --participant-6-bg: 173 28% 18%;
     --participant-7-bg: 24 28% 18%;
     --participant-8-bg: 280 28% 18%;
+    --speaker-pattern-alpha: 0.09;
 
     --border: 38 15% 26%;
     --border-hover: 36 17% 43%;
@@ -1002,6 +1005,41 @@
 @keyframes tts-shimmer {
   0% { background-position: 200% 0; }
   100% { background-position: -200% 0; }
+}
+
+/* === SPEAKER PATTERNS ===
+   Each group-scene speaker has a pigment and, once the distinct hues are in
+   use, a pattern (see lib/speakerColors.ts): diagonal stripes, a shaded
+   leading edge, or both, drawn over the pigment's tint. */
+.speaker-tone-1 { --speaker: var(--participant-1); }
+.speaker-tone-2 { --speaker: var(--participant-2); }
+.speaker-tone-3 { --speaker: var(--participant-3); }
+.speaker-tone-4 { --speaker: var(--participant-4); }
+.speaker-tone-5 { --speaker: var(--participant-5); }
+.speaker-tone-6 { --speaker: var(--participant-6); }
+.speaker-tone-7 { --speaker: var(--participant-7); }
+.speaker-tone-8 { --speaker: var(--participant-8); }
+
+.speaker-stripes {
+  --speaker-stripes: repeating-linear-gradient(
+    135deg,
+    hsl(var(--speaker) / var(--speaker-pattern-alpha)) 0 6px,
+    transparent 6px 14px
+  );
+  background-image: var(--speaker-stripes);
+}
+
+.speaker-edge {
+  --speaker-edge: linear-gradient(
+    90deg,
+    hsl(var(--speaker) / calc(var(--speaker-pattern-alpha) * 3)) 0,
+    transparent 3.5rem
+  );
+  background-image: var(--speaker-edge);
+}
+
+.speaker-stripes.speaker-edge {
+  background-image: var(--speaker-edge), var(--speaker-stripes);
 }
 
 /* === CHAT INPUT ANIMATIONS === */
