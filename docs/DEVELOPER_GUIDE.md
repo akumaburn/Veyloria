@@ -6,13 +6,14 @@ Welcome to the Veyloria development team! This guide will help you get up and ru
 1. [Project Overview](#project-overview)
 2. [Development Environment Setup](#development-environment-setup)
 3. [Architecture Overview](#architecture-overview)
-4. [Getting Started](#getting-started)
-5. [Development Workflow](#development-workflow)
-6. [Code Style & Standards](#code-style--standards)
-7. [Testing Guidelines](#testing-guidelines)
-8. [Common Tasks](#common-tasks)
-9. [Troubleshooting](#troubleshooting)
-10. [Resources](#resources)
+4. [Image Generation (ComfyUI)](#image-generation-comfyui)
+5. [Getting Started](#getting-started)
+6. [Development Workflow](#development-workflow)
+7. [Code Style & Standards](#code-style--standards)
+8. [Testing Guidelines](#testing-guidelines)
+9. [Common Tasks](#common-tasks)
+10. [Troubleshooting](#troubleshooting)
+11. [Resources](#resources)
 
 ## Project Overview
 
@@ -271,6 +272,46 @@ frontend/
         ├── debug-mode.ts
         └── utils.ts
 ```
+
+## Image Generation (ComfyUI)
+
+Image generation runs against an external ComfyUI server, configured under
+`chatllm.comfyui.*` (`COMFYUI_ENABLED=true`, `COMFYUI_HOST`, `COMFYUI_PORT`,
+`COMFYUI_MAX_QUEUE_SIZE`, `COMFYUI_DEFAULT_STEPS`, `COMFYUI_DEFAULT_CHECKPOINT`).
+
+Pipeline, end to end:
+
+1. **Template** — `comfyui_workflow` rows (built-ins: `character_portrait`
+   1024×1024, `scene_change` 1344×768) supply the workflow JSON, model, and
+   default parameters. A `generateImage` input without width/height falls back
+   to the template's `defaultParams`.
+2. **Prompt enhancement** — `PromptEnhancer` appends the character's identity
+   fragment (name, age, description) after the trigger prefix so per-character
+   sheets keep a stable likeness.
+3. **Queue** — `ComfyUIQueueManager` holds at most `max-queue-size` (default 5)
+   jobs and submits one concurrently to ComfyUI. It polls per-prompt progress
+   with a timeout guard, then publishes `comfyui.job.complete` on the Vert.x
+   event bus (`jobId`, `conversationId`, `resultUrl`, `seed`). Queue-full
+   rejections are visible: the `generated_image` row is marked `failed` with a
+   reason instead of sitting `pending`.
+4. **Completion** — the `comfyui.job.complete` consumer marks the row
+   `complete`, stores the peer's `/view` URL in `filePath`, and emits
+   `IMAGE_GENERATED` per conversation.
+5. **References** — `SheetRefService` derives 8 active `character_visual_ref`
+   crops from a completed sheet. The row must carry a `characterId`
+   (pass it in the `generateImage` input) or no refs are derived.
+
+GraphQL surface: `generateImage(input)`, `generatedImages(conversationId)`,
+`comfyuiStatus` (queue size plus the peer's checkpoints/LoRAs via
+`/object_info`), `comfyuiWorkflows`.
+
+Operating notes:
+
+- `filePath` stores the peer's `/view` URL; the browser renders it directly.
+- The peer's prompt cache can ignore both input values and graph topology: a
+  render that "completes" in seconds and re-serves an old file is a cache hit.
+  Only a peer-side ComfyUI restart (cold cache) clears it; no client-side
+  workflow change busts it.
 
 ## Getting Started
 
