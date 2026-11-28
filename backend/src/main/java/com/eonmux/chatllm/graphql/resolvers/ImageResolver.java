@@ -17,6 +17,7 @@ import io.vertx.mutiny.sqlclient.Pool;
 import io.vertx.mutiny.sqlclient.Row;
 import io.vertx.mutiny.sqlclient.Tuple;
 import jakarta.annotation.PostConstruct;
+import jakarta.annotation.PreDestroy;
 import lombok.extern.slf4j.Slf4j;
 
 import java.time.LocalDateTime;
@@ -57,13 +58,29 @@ public class ImageResolver {
     ComfyUIQueueManager queueManager;
 
     @Inject
+    com.eonmux.chatllm.comfyui.ComfyUIClient comfyuiClient;
+
+    @Inject
     ComfyUIWorkflowBuilder workflowBuilder;
+
+    @Inject
+    com.eonmux.chatllm.services.ImageGenerationService imageGenerationService;
+
+    @Inject
+    com.eonmux.chatllm.services.SheetRefService sheetRefService;
 
     @Inject
     AppConfig config;
 
     @Inject
     com.eonmux.chatllm.utils.ServiceHelper serviceHelper;
+
+    // Held so @PreDestroy can unregister it. Quarkus dev-mode live reload
+    // re-creates this bean while the Vert.x event bus persists, so without
+    // deregistration every reload stacks another consumer on
+    // comfyui.job.complete and one completion event N-fires the whole
+    // completion path (row update, sheet-crop derivation).
+    private io.vertx.core.eventbus.MessageConsumer<JsonObject> completionConsumer;
 
     /**
      * Verify the caller owns or actively participates in the conversation
@@ -75,15 +92,16 @@ public class ImageResolver {
 
     @PostConstruct
     public void init() {
-        vertx.eventBus().<JsonObject>consumer("comfyui.job.complete", message -> {
+        completionConsumer = vertx.eventBus().<JsonObject>consumer("comfyui.job.complete", message -> {
             JsonObject body = message.body();
             String imageId = body.getString("jobId");
             String conversationId = body.getString("conversationId");
             String resultUrl = body.getString("resultUrl");
+            Long usedSeed = body.getLong("seed");
 
-            String updateQuery = "UPDATE generated_image SET filePath = ?, metadata = JSON_SET(COALESCE(metadata, '{}'), '$.status', 'complete') WHERE imageId = ?";
+            String updateQuery = "UPDATE generated_image SET filePath = ?, seed = COALESCE(?, seed), metadata = JSON_SET(COALESCE(metadata, '{}'), '$.status', 'complete') WHERE imageId = ?";
             mysqlPool.preparedQuery(updateQuery)
-                .execute(Tuple.of(resultUrl, imageId))
+                .execute(Tuple.of(resultUrl, usedSeed, imageId))
                 .subscribe().with(
                     result -> {
                         String selectQuery = "SELECT imageId, conversationId, characterId, prompt, negativePrompt, width, height, seed, filePath, thumbnailPath, sceneContext, createdAt FROM generated_image WHERE imageId = ?";
@@ -107,6 +125,22 @@ public class ImageResolver {
                                             .put("sceneContext", row.getString("sceneContext"))
                                             .put("createdAt", row.getLocalDateTime("createdAt") != null ? Time4JHelper.localDateTimeToString(row.getLocalDateTime("createdAt")) : null);
                                         vertx.eventBus().publish(RoleplayEventAddresses.IMAGE_GENERATED + conversationId, event);
+
+                                        // A finished 1024x1024 character sheet is the input of the
+                                        // D2 asset pipeline: derive the eight reference crops and
+                                        // replace the character's active image references.
+                                        Integer w = row.getInteger("width");
+                                        Integer h = row.getInteger("height");
+                                        String refCharacterId = row.getString("characterId");
+                                        if (w != null && h != null && w == 1024 && h == 1024
+                                            && refCharacterId != null && !refCharacterId.isEmpty()) {
+                                            sheetRefService.deriveReferences(refCharacterId, resultUrl)
+                                                .subscribe().with(
+                                                    paths -> log.info("Derived {} sheet reference crops for character {} from image {}",
+                                                        paths.size(), refCharacterId, imageId),
+                                                    err -> log.error("Failed to derive sheet references for character {} from image {}: {}",
+                                                        refCharacterId, imageId, err.getMessage()));
+                                        }
                                     }
                                 },
                                 err -> log.warn("Failed to fetch generated image {} after completion: {}", imageId, err.getMessage()));
@@ -114,6 +148,13 @@ public class ImageResolver {
                     err -> log.warn("Failed to update generated image {} on completion: {}", imageId, err.getMessage())
                 );
         });
+    }
+
+    @PreDestroy
+    public void destroy() {
+        if (completionConsumer != null) {
+            completionConsumer.unregister();
+        }
     }
 
     /**
@@ -334,10 +375,12 @@ public class ImageResolver {
         String characterId = (String) input.get("characterId");
         String prompt = (String) input.get("prompt");
         String negativePrompt = (String) input.get("negativePrompt");
-        Integer width = input.get("width") != null ? (Integer) input.get("width") : 512;
-        Integer height = input.get("height") != null ? (Integer) input.get("height") : 512;
-        Integer steps = input.get("steps") != null ? (Integer) input.get("steps") : 20;
-        Double cfg = input.get("cfg") != null ? ((Number) input.get("cfg")).doubleValue() : 7.0;
+        Integer width = (Integer) input.get("width");
+        Integer height = (Integer) input.get("height");
+        Integer steps = (Integer) input.get("steps");
+        Double cfg = input.get("cfg") != null ? ((Number) input.get("cfg")).doubleValue() : null;
+        String triggerType = (String) input.get("triggerType");
+        String workflowId = (String) input.get("workflowId");
 
         String imageId = UUID.randomUUID().toString();
 
@@ -353,7 +396,7 @@ public class ImageResolver {
                     return;
                 }
                 doGenerateImage(conversationId, characterId, prompt, negativePrompt,
-                    width, height, steps, cfg, imageId, future);
+                    width, height, steps, cfg, triggerType, workflowId, imageId, future);
             }, err -> {
                 log.error("Failed to verify access for generateImage conversation {}", conversationId, err);
                 future.completeExceptionally(err);
@@ -364,43 +407,135 @@ public class ImageResolver {
 
     private void doGenerateImage(String conversationId, String characterId,
                                  String prompt, String negativePrompt, Integer width, Integer height,
-                                 Integer steps, Double cfg, String imageId,
+                                 Integer steps, Double cfg, String triggerType, String workflowId,
+                                 String imageId,
                                  CompletableFuture<GeneratedImage> future) {
+        // Resolve template, prompts (enhanced from narrative + world state when
+        // no prompt was supplied), and effective dimensions before inserting.
+        imageGenerationService.prepareGeneration(conversationId, characterId, prompt, negativePrompt,
+                width, height, triggerType, workflowId)
+            .subscribe().with(job -> doGenerateImageResolved(job, conversationId, characterId,
+                steps, cfg, imageId, future),
+                err -> {
+                    log.error("Failed to prepare image generation for conversation {}", conversationId, err);
+                    future.completeExceptionally(err);
+                });
+    }
+
+    private void doGenerateImageResolved(com.eonmux.chatllm.services.ImageGenerationService.ImageJob job,
+                                         String conversationId, String characterId,
+                                         Integer steps, Double cfg, String imageId,
+                                         CompletableFuture<GeneratedImage> future) {
+        int effectiveSteps = steps != null ? steps : job.defaultParams.getInteger("steps", 20);
+        double effectiveCfg = cfg != null ? cfg : job.defaultParams.getDouble("cfg", 7.0);
+
+        // A null job negative lets the template's own negative node stand; a
+        // supplied one replaces it. No append mechanism: the "no people" tags
+        // for backdrops live in the scene template's negative text itself.
+        final String effectiveNegative = job.negativePrompt;
+
+        // The seed is chosen here so the row, the submitted graph, and the
+        // completion update all agree on it (reproducibility).
+        long seed = java.util.concurrent.ThreadLocalRandom.current().nextLong(1, Long.MAX_VALUE);
+
+        boolean ref2VA = job.template != null
+            && containsNodeClass(job.template, "MiniMaxH3ReferenceToVideo");
+        boolean needsRefs = ref2VA && containsNodeClass(job.template, "LoadImage");
+
+        // Upload reference images into ComfyUI's input directory before the
+        // graph is built; LoadImage nodes are filled with the returned names.
+        io.smallrye.mutiny.Uni<List<String>> uploadsUni =
+            (config.isComfyuiEnabled() && needsRefs)
+                ? uploadReferenceImages(job.referenceImages)
+                : io.smallrye.mutiny.Uni.createFrom().item(new ArrayList<String>());
+
+        uploadsUni
+            .chain(names -> {
+                // The character has no usable reference files: the
+                // reference-conditioned graph cannot run, so fall back to the
+                // standard template/legacy path below.
+                boolean useRef2VA = ref2VA && (!needsRefs || !names.isEmpty());
+                JsonObject workflow;
+                if (useRef2VA) {
+                    workflow = workflowBuilder.buildRef2VAWorkflow(
+                        job.template, resolveRef2VAPrompt(job), seed,
+                        job.width, job.height, names);
+                    return insertAndSubmit(job, conversationId, characterId,
+                        workflow, effectiveNegative, effectiveSteps, effectiveCfg,
+                        imageId, seed, future);
+                }
+
+                if (job.template != null) {
+                    JsonObject overrides = new JsonObject()
+                        .put("positive_prompt", job.prompt != null ? job.prompt : "")
+                        .put("negative_prompt", effectiveNegative)
+                        .put("width", job.width)
+                        .put("height", job.height)
+                        .put("steps", effectiveSteps)
+                        .put("cfg", effectiveCfg)
+                        .put("checkpoint", config.getComfyuiDefaultCheckpoint());
+                    String lora = config.getComfyuiDefaultLora();
+                    if (!lora.isEmpty()) overrides.put("lora", lora);
+                    workflow = workflowBuilder.buildFromTemplate(job.template, overrides);
+                } else {
+                    workflow = workflowBuilder.buildTxt2ImgWorkflow(
+                        job.prompt != null ? job.prompt : "",
+                        effectiveNegative,
+                        job.width,
+                        job.height,
+                        seed,
+                        config.getComfyuiDefaultCheckpoint(),
+                        effectiveSteps);
+                }
+                return insertAndSubmit(job, conversationId, characterId,
+                    workflow, effectiveNegative, effectiveSteps, effectiveCfg,
+                    imageId, seed, future);
+            })
+            .subscribe().with(ignored -> {}, future::completeExceptionally);
+    }
+
+    private io.smallrye.mutiny.Uni<java.lang.Void> insertAndSubmit(
+            com.eonmux.chatllm.services.ImageGenerationService.ImageJob job,
+            String conversationId, String characterId, JsonObject workflow,
+            String effectiveNegative, int effectiveSteps, double effectiveCfg,
+            String imageId, long seed, CompletableFuture<GeneratedImage> future) {
         // Build metadata JSON with generation parameters and pending status
         JsonObject metadata = new JsonObject()
-            .put("steps", steps)
-            .put("cfg", cfg)
+            .put("steps", effectiveSteps)
+            .put("cfg", effectiveCfg)
             .put("status", "pending");
 
         String insertQuery = """
-            INSERT INTO generated_image (imageId, conversationId, characterId, prompt, negativePrompt, width, height, seed, metadata, filePath)
-            VALUES (?, ?, ?, ?, ?, ?, ?, NULL, ?, ?)
+            INSERT INTO generated_image (imageId, conversationId, characterId, prompt, negativePrompt, workflowId, width, height, seed, metadata, filePath)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
             """;
 
         String pendingFilePath = "pending/" + imageId;
 
-        mysqlPool.preparedQuery(insertQuery)
+        return mysqlPool.preparedQuery(insertQuery)
             .execute(Tuple.tuple()
                 .addValue(imageId)
                 .addValue(conversationId)
                 .addValue(characterId)
-                .addValue(prompt)
-                .addValue(negativePrompt)
-                .addValue(width)
-                .addValue(height)
+                .addValue(job.prompt)
+                .addValue(effectiveNegative)
+                .addValue(job.workflowId)
+                .addValue(job.width)
+                .addValue(job.height)
+                .addValue(seed)
                 .addValue(metadata.encode())
                 .addValue(pendingFilePath))
-            .invoke(insertResult -> {
+            .map(insertResult -> {
                 GeneratedImage image = GeneratedImage.builder()
                     .imageId(UUID.fromString(imageId))
                     .conversationId(conversationId != null ? UUID.fromString(conversationId) : null)
                     .characterId(characterId != null ? UUID.fromString(characterId) : null)
-                    .prompt(prompt)
-                    .negativePrompt(negativePrompt)
-                    .workflowId(null)
-                    .width(width)
-                    .height(height)
-                    .seed(null)
+                    .prompt(job.prompt)
+                    .negativePrompt(effectiveNegative)
+                    .workflowId(job.workflowId)
+                    .width(job.width)
+                    .height(job.height)
+                    .seed(seed)
                     .filePath(pendingFilePath)
                     .thumbnailPath(null)
                     .metadata(metadata)
@@ -414,7 +549,7 @@ public class ImageResolver {
                     .put("conversationId", conversationId)
                     .put("progress", 0.0)
                     .put("currentStep", 0)
-                    .put("totalSteps", steps)
+                    .put("totalSteps", effectiveSteps)
                     .put("status", "pending");
 
                 vertx.eventBus().publish(RoleplayEventAddresses.IMAGE_PROGRESS + conversationId, eventData);
@@ -422,18 +557,9 @@ public class ImageResolver {
                 // Submit to ComfyUI when enabled. Use the DB imageId as the job
                 // correlation ID so the comfyui.job.complete consumer (which
                 // reads body.getString("jobId") and UPDATEs WHERE imageId = ?)
-                // matches the correct row. Previously generateImage never called
-                // submit, leaving every row stuck in "pending" forever.
+                // matches the correct row.
                 if (config.isComfyuiEnabled()) {
                     try {
-                        JsonObject workflow = workflowBuilder.buildTxt2ImgWorkflow(
-                            prompt != null ? prompt : "",
-                            negativePrompt,
-                            width,
-                            height,
-                            0L, // seed <= 0 -> auto-generated
-                            config.getComfyuiDefaultCheckpoint(),
-                            steps);
                         queueManager.submitWithId(imageId, conversationId, characterId, workflow)
                             .subscribe().with(
                                 jobId -> log.info("Submitted ComfyUI job {} for image {}", jobId, imageId),
@@ -444,11 +570,77 @@ public class ImageResolver {
                 }
 
                 future.complete(image);
+                return null;
             })
+            .replaceWithVoid()
             .onFailure().invoke(err -> {
                 log.error("Failed to create image generation request for conversation {}", conversationId, err);
                 future.completeExceptionally(err);
-            }).subscribe().with(ignored -> {}, future::completeExceptionally);
+            });
+    }
+
+    /** Upload reference images sequentially; returns the ComfyUI file names in order. */
+    private io.smallrye.mutiny.Uni<List<String>> uploadReferenceImages(
+            List<com.eonmux.chatllm.services.ImageGenerationService.RefImage> refs) {
+        if (refs == null || refs.isEmpty()) {
+            return io.smallrye.mutiny.Uni.createFrom().item(new ArrayList<String>());
+        }
+        return refs.stream()
+            .reduce(
+                io.smallrye.mutiny.Uni.createFrom().item(new ArrayList<String>()),
+                (acc, ref) -> acc.chain(names ->
+                    comfyuiClient.uploadImage(ref.filename, ref.data, "")
+                        .map(name -> {
+                            names.add(name);
+                            return names;
+                        })),
+                (a, b) -> a);
+    }
+
+    /**
+     * Compose the H3 prompt: the mode text (avatar/portrait from the
+     * template's defaultParams; the sheet text already lives in the graph),
+     * world-state slots filled, then the enhanced prompt appended as
+     * additional guidance.
+     */
+    private String resolveRef2VAPrompt(com.eonmux.chatllm.services.ImageGenerationService.ImageJob job) {
+        String base = null;
+        JsonObject modes = job.defaultParams.getJsonObject("modes", new JsonObject());
+        String mode = modeNameFor(job.width, job.height);
+        if (mode != null) base = modes.getString(mode + "Prompt");
+        if (base == null) base = templatePromptText(job.template);
+        String text = com.eonmux.chatllm.comfyui.ComfyUIWorkflowBuilder.fillPromptSlots(base, job.worldState);
+        if (job.prompt != null && !job.prompt.isBlank() && !text.contains(job.prompt.trim())) {
+            text = text + " " + job.prompt.trim();
+        }
+        return text;
+    }
+
+    private static String modeNameFor(int width, int height) {
+        if (width == 1024 && height == 1024) return "sheet";
+        if (width == 768 && height == 768) return "avatar";
+        if (width == 832 && height == 1216) return "portrait";
+        return null;
+    }
+
+    private static String templatePromptText(JsonObject template) {
+        if (template == null) return "";
+        for (String nodeId : template.fieldNames()) {
+            if (template.getValue(nodeId) instanceof JsonObject node
+                    && "CLIPTextEncode".equals(node.getString("class_type", ""))) {
+                return node.getJsonObject("inputs").getString("text", "");
+            }
+        }
+        return "";
+    }
+
+    private static boolean containsNodeClass(JsonObject workflow, String classType) {
+        if (workflow == null) return false;
+        for (String nodeId : workflow.fieldNames()) {
+            if (workflow.getValue(nodeId) instanceof JsonObject node
+                    && classType.equals(node.getString("class_type", ""))) return true;
+        }
+        return false;
     }
 
     /**

@@ -42,3 +42,15 @@ Read README.md for project information.
 | llama.cpp server | 8080:8080 | `llm` |
 | Prometheus | 9091:9090 | default |
 | Grafana | 3005:3000 | default |
+
+## Dev Stack (local, non-Docker)
+
+- Backend: `cd backend && LLM_EXTERNAL_BASE_URL=http://192.168.0.28:8000 ./gradlew quarkusDev` (:8300)
+- Frontend: `cd frontend && bun run dev` (:3000)
+- `LLM_EXTERNAL_BASE_URL` is required: without it the app defaults to
+  `http://localhost:8080`, so both the LLM bridge and the `/health` LLM
+  readiness probe silently target an empty port (`llm: "down"` -> 503).
+- The machine sleep SIGTERMs background dev jobs every few days. Restart both,
+  then poll `curl http://localhost:8300/health` until 200. If Vite reports
+  "Port 3000 is in use", an orphaned Vite child from the previous job survived;
+  kill it before restarting the frontend.

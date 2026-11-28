@@ -2,6 +2,7 @@ package com.eonmux.chatllm.comfyui;
 
 import com.eonmux.chatllm.config.AppConfig;
 import io.smallrye.mutiny.Uni;
+import io.vertx.core.buffer.Buffer;
 import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
 import io.vertx.ext.web.client.WebClientOptions;
@@ -90,6 +91,60 @@ public class ComfyUIClient {
                     }
                 }
                 return images;
+            });
+    }
+
+    /**
+     * Upload a reference image into ComfyUI's input directory and return the
+     * server-side file name for use in a LoadImage node.
+     */
+    public Uni<String> uploadImage(String filename, byte[] data, String subfolder) {
+        // The mutiny web client has no multipart helper, so the form body is
+        // assembled by hand: two text fields plus the image file part.
+        // Every part is: boundary, headers, blank line, value, CRLF — the
+        // final CRLF is mandatory even for empty values, otherwise the next
+        // boundary line is parsed as part content and ComfyUI 500s.
+        String folder = subfolder == null ? "" : subfolder;
+        String boundary = "----veyloria" + java.util.UUID.randomUUID().toString().replace("-", "");
+        java.nio.charset.Charset utf8 = java.nio.charset.StandardCharsets.UTF_8;
+        Buffer coreBody = Buffer.buffer();
+        java.util.function.BiConsumer<String, String> part = (headers, value) -> coreBody
+            .appendBytes(("--" + boundary + "\r\n" + headers + "\r\n\r\n" + value + "\r\n").getBytes(utf8));
+        part.accept("Content-Disposition: form-data; name=\"subfolder\"", folder);
+        part.accept("Content-Disposition: form-data; name=\"type\"", "input");
+        coreBody
+            .appendBytes(("--" + boundary + "\r\n"
+                + "Content-Disposition: form-data; name=\"image\"; filename=\"" + filename + "\"\r\n"
+                + "Content-Type: application/octet-stream\r\n\r\n").getBytes(utf8))
+            .appendBuffer(Buffer.buffer(data))
+            .appendBytes(("\r\n--" + boundary + "--\r\n").getBytes(utf8));
+
+        return client.post("/upload/image")
+            .addQueryParam("subfolder", folder)
+            .addQueryParam("type", "input")
+            .putHeader("Content-Type", "multipart/form-data; boundary=" + boundary)
+            .sendBuffer(io.vertx.mutiny.core.buffer.Buffer.buffer(coreBody.getBytes()))
+            .map(response -> {
+                if (response.statusCode() == 200) {
+                    return response.bodyAsJsonObject().getString("name");
+                }
+                throw new RuntimeException("ComfyUI upload failed: " + response.statusCode() + " " + response.bodyAsString());
+            });
+    }
+
+    /**
+     * Download an image (typically a {@code /view?filename=...} output URL
+     * from {@link #getOutputImages}) and return its raw bytes. Used to pull
+     * finished sheets back for reference-crop derivation.
+     */
+    public Uni<io.vertx.mutiny.core.buffer.Buffer> downloadImage(String absoluteUrl) {
+        return client.requestAbs(io.vertx.core.http.HttpMethod.GET, absoluteUrl)
+            .send()
+            .map(response -> {
+                if (response.statusCode() == 200) {
+                    return response.bodyAsBuffer();
+                }
+                throw new RuntimeException("Image download failed: " + response.statusCode());
             });
     }
 

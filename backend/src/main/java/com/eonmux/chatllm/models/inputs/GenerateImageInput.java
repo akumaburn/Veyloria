@@ -18,4 +18,6 @@ public class GenerateImageInput {
     private Integer height;
     private Integer steps;
     private Double cfg;
+    private String triggerType;
+    private String workflowId;
 }

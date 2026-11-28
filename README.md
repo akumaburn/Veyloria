@@ -67,7 +67,7 @@ Watch the guided tour of Veyloria’s characters, conversations, voices, maps an
 ## Tech Stack
 
 | Layer | Technology |
-|-------|-----------|
+|-------|-----------    |
 | Backend | Java 21, Quarkus 3.36, Gradle (Kotlin DSL via `./gradlew` wrapper) |
 | API | SmallRye GraphQL (code-first) with HTTP + WebSocket |
 | Database | MySQL 8.0+ (no ORM, reactive parameterized SQL via Mutiny) |

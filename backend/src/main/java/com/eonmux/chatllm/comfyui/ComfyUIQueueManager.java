@@ -65,6 +65,10 @@ public class ComfyUIQueueManager {
         private String conversationId;
         private String characterId;
         private JsonObject workflow;
+        // Noise seed captured from the submitted graph at submit time;
+        // carried on the completion event so the consumer's
+        // COALESCE(?, seed) preserves the row's seed even when it is 0.
+        private Long seed;
         private String status; // "pending", "queued", "processing", "complete", "error"
         private Float progress;
         private String resultUrl;
@@ -94,6 +98,7 @@ public class ComfyUIQueueManager {
         item.setConversationId(conversationId);
         item.setCharacterId(characterId);
         item.setWorkflow(workflow);
+        item.setSeed(extractSeed(workflow));
         item.setStatus("pending");
         item.setProgress(0f);
         item.setCreatedAt(LocalDateTime.now(ZoneOffset.UTC));
@@ -195,12 +200,18 @@ public class ComfyUIQueueManager {
 
                                         // Publish completion event. jobId is the
                                         // caller-correlated ID (imageId) when
-                                        // submitWithId was used.
+                                        // submitWithId was used. seed carries the
+                                        // noise seed captured at submit time for
+                                        // reproducibility; null when the graph had
+                                        // no recognizable seed node, in which case
+                                        // the consumer's COALESCE keeps the row's
+                                        // seed.
                                         vertx.eventBus().publish("comfyui.job.complete",
                                             new JsonObject()
                                                 .put("jobId", item.getJobId())
                                                 .put("conversationId", item.getConversationId())
-                                                .put("resultUrl", item.getResultUrl()));
+                                                .put("resultUrl", item.getResultUrl())
+                                                .put("seed", item.getSeed()));
 
                                         processQueue();
                                     },
@@ -227,6 +238,39 @@ public class ComfyUIQueueManager {
                     });
         });
         activePollTimers.put(item.getJobId(), timerId);
+    }
+
+    /**
+     * Read the noise seed from a submitted workflow graph — a JsonObject
+     * keyed by node ID, the shape the builder emits and {@code queuePrompt}
+     * sends. Handles both KSampler's `seed` and custom samplers'
+     * `noise_seed` (MiniMax H3 RandomNoise).
+     *
+     * <p>ComfyUI's {@code /history/{id}} entries do NOT record the submitted
+     * graph (their {@code "prompt"} field is
+     * {@code [queueNum, promptId, extraData, meta, outputNodeIds]}), so the
+     * seed is captured from the in-hand graph at submit time and carried on
+     * the completion event. This method is total: malformed input yields 0
+     * instead of throwing, because a throw in the submit path would lose the
+     * whole job.
+     */
+    static long extractSeed(JsonObject graph) {
+        if (graph == null) return 0L;
+        try {
+            for (String nodeId : graph.fieldNames()) {
+                JsonObject node = graph.getJsonObject(nodeId);
+                if (node == null) continue;
+                JsonObject inputs = node.getJsonObject("inputs");
+                if (inputs == null) continue;
+                if (inputs.containsKey("noise_seed")) return inputs.getLong("noise_seed", 0L);
+                if ("KSampler".equals(node.getString("class_type", "")) && inputs.containsKey("seed")) {
+                    return inputs.getLong("seed", 0L);
+                }
+            }
+        } catch (RuntimeException e) {
+            log.warn("Seed extraction failed on workflow graph: {}", e.getMessage());
+        }
+        return 0L;
     }
 
     /**

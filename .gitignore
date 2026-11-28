@@ -45,6 +45,7 @@ build/
 agent_progress.log
 .crush/
 .claude/
+ComfyUI.md
 
 ### Python ###
 __pycache__/
@@ -157,3 +158,4 @@ chatllm-deploy-*/
 # Publication policy: no dot-prefixed directories at any depth.
 # Keep standard config files (.gitignore, .dockerignore, .env.example, etc.).
 .*/
+

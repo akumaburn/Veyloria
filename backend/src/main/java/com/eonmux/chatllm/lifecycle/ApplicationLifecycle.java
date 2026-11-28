@@ -8,6 +8,7 @@ import jakarta.enterprise.event.Observes;
 import jakarta.inject.Inject;
 import lombok.extern.slf4j.Slf4j;
 
+import java.util.List;
 import java.util.Set;
 import java.util.UUID;
 
@@ -66,6 +67,8 @@ public class ApplicationLifecycle {
         runMigration("/db/migrations/local-maps.sql", "local maps");
         runMigration("/db/migrations/inventory-activity.sql", "inventory activity");
         runMigration("/db/migrations/journey-encounters.sql", "journey encounters");
+        runMigration("/db/migrations/image-workflow-templates.sql", "image workflow templates");
+        runMigration("/db/migrations/image-workflow-templates-h3.sql", "H3 image workflow templates");
         ensureColumn("character", "initialAffinityToUser",
                 "ALTER TABLE `character` ADD COLUMN initialAffinityToUser INT NOT NULL DEFAULT 0");
         ensureColumn("character", "initialAffinityFromUser",
@@ -120,12 +123,47 @@ public class ApplicationLifecycle {
             if (stream == null) throw new IllegalStateException("Missing schema resource: " + resource);
             String sql = new String(stream.readAllBytes(), java.nio.charset.StandardCharsets.UTF_8);
             sql = sql.replaceAll("(?m)^--.*$", "");
-            for (String statement : sql.split(";")) {
+            for (String statement : splitStatements(sql)) {
                 if (!statement.isBlank()) pool.query(statement).execute().await().atMost(java.time.Duration.ofSeconds(30));
             }
         } catch (Exception error) {
             throw new IllegalStateException("Unable to initialize " + description, error);
         }
+    }
+
+    /**
+     * Split SQL on semicolons that fall outside single-quoted strings, so
+     * statement payloads (embedded JSON, prompt text) may contain ';' freely.
+     * Doubled quotes inside a string are the standard escape and do not end it.
+     */
+    static List<String> splitStatements(String sql) {
+        List<String> statements = new java.util.ArrayList<>();
+        StringBuilder current = new StringBuilder();
+        boolean inString = false;
+        for (int i = 0; i < sql.length(); i++) {
+            char c = sql.charAt(i);
+            if (inString) {
+                current.append(c);
+                if (c == '\'') {
+                    if (i + 1 < sql.length() && sql.charAt(i + 1) == '\'') {
+                        current.append('\'');
+                        i++;
+                    } else {
+                        inString = false;
+                    }
+                }
+            } else if (c == '\'') {
+                inString = true;
+                current.append(c);
+            } else if (c == ';') {
+                statements.add(current.toString());
+                current.setLength(0);
+            } else {
+                current.append(c);
+            }
+        }
+        statements.add(current.toString());
+        return statements;
     }
 
     private void validateProductionConfig() {

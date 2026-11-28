@@ -7,11 +7,14 @@ import io.vertx.core.json.JsonObject;
 import io.vertx.mutiny.core.Vertx;
 import io.vertx.mutiny.sqlclient.Pool;
 import io.vertx.mutiny.sqlclient.Tuple;
+import jakarta.enterprise.context.ApplicationScoped;
+import jakarta.inject.Inject;
 import lombok.extern.slf4j.Slf4j;
 
 import java.util.ArrayList;
 import java.util.List;
 
+@ApplicationScoped
 @Slf4j
 public class PromptEnhancer {
 
@@ -19,6 +22,7 @@ public class PromptEnhancer {
     private final Pool mysqlPool;
     private final AppConfig config;
 
+    @Inject
     public PromptEnhancer(Vertx vertx, Pool mysqlPool, AppConfig config) {
         this.vertx = vertx;
         this.mysqlPool = mysqlPool;
@@ -26,10 +30,20 @@ public class PromptEnhancer {
     }
 
     /**
-     * Enhance a narrative description into an image generation prompt.
-     * Uses the LLM to translate narrative text into stable diffusion-style prompts.
+     * Enhance a narrative description into an image generation prompt without
+     * world-state tags.
      */
     public Uni<ImagePrompt> enhance(String narrativeContext, String characterId, String triggerType) {
+        return enhance(narrativeContext, characterId, triggerType, null);
+    }
+
+    /**
+     * Enhance a narrative description into an image generation prompt.
+     * Appends world-state tags (weather, time of day, mood, location) from the
+     * conversation's world_state row when supplied, so generated backdrops
+     * match the authoritative scene.
+     */
+    public Uni<ImagePrompt> enhance(String narrativeContext, String characterId, String triggerType, JsonObject worldState) {
         // Get character visual references if characterId is provided
         Uni<List<VisualRef>> refsUni = characterId != null
             ? getCharacterVisualRefs(characterId)
@@ -56,6 +70,16 @@ public class PromptEnhancer {
                 case "map":
                     positive.append("top-down map view, fantasy cartography, detailed, ");
                     break;
+            }
+
+            // Add authoritative world-state tags so the backdrop matches the scene.
+            if (worldState != null) {
+                List<String> tags = new ArrayList<>();
+                for (String key : new String[]{"weather", "timeOfDay", "mood", "currentLocation"}) {
+                    String value = worldState.getString(key);
+                    if (value != null && !value.isBlank()) tags.add(value.trim());
+                }
+                if (!tags.isEmpty()) positive.append(String.join(", ", tags)).append(", ");
             }
 
             // Add narrative context as main prompt

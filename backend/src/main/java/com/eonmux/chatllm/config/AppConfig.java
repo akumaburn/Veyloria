@@ -764,6 +764,10 @@ public class AppConfig {
     @ConfigProperty(name = "chatllm.comfyui.default-sampler", defaultValue = "euler_a")
     String comfyuiDefaultSampler;
 
+    @ConfigProperty(name = "chatllm.comfyui.default-lora")
+    Optional<String> comfyuiDefaultLora;
+    public String getComfyuiDefaultLora() { return comfyuiDefaultLora != null ? comfyuiDefaultLora.orElse("") : ""; }
+
     // ---- Computed methods (not config properties) ----
 
     /**
