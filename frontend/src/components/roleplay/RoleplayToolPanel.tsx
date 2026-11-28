@@ -334,7 +334,7 @@ export default function RoleplayToolPanel({
           )}
 
           {selectedTab === 'images' && (
-            <ImageGallery conversationId={conversationId} />
+            <ImageGallery conversationId={conversationId} participants={participants} />
           )}
 
           {selectedTab === 'battle' && (

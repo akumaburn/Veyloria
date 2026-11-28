@@ -1099,6 +1099,9 @@ export interface GeneratedImage {
   characterId?: string;
   prompt: string;
   negativePrompt?: string;
+  workflowId?: string;
+  /** Generation status from row metadata: queued | complete | failed */
+  status?: string;
   filePath: string;
   thumbnailPath?: string;
   width?: number;
@@ -1622,6 +1625,9 @@ export interface GenerateImageInput {
   height?: number;
   steps?: number;
   cfg?: number;
+  /** ComfyUI workflow trigger, e.g. "character_portrait" or "scene_change" */
+  triggerType?: string;
+  workflowId?: string;
 }
 
 export interface CreateBranchInput {

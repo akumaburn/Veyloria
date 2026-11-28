@@ -5,6 +5,7 @@ import { CHARACTER_QUERY } from '@/graphql/operations';
 import { CHARACTER_STATS_QUERY } from '@/graphql/roleplay-operations';
 import type { Character, CharacterStat } from '@/graphql/types';
 import { useCharacterCardStore } from '@/stores/characterCardStore';
+import { CharacterPortrait } from './CharacterPortrait';
 import { cn } from '@/lib/utils';
 
 /** One labeled paragraph. Empty fields are dropped by the caller. */
@@ -199,9 +200,13 @@ function CurrentStats({ stats }: { stats: CharacterStat[] }) {
 function CharacterCardBody({
   character,
   stats,
+  conversationId,
+  onPortraitComplete,
 }: {
   character: Character;
   stats: CharacterStat[];
+  conversationId?: string;
+  onPortraitComplete?: () => void;
 }) {
   const tags = character.tags ?? [];
   const facts = [
@@ -216,6 +221,11 @@ function CharacterCardBody({
 
   return (
     <div className="space-y-5">
+      <CharacterPortrait
+        character={character}
+        conversationId={conversationId}
+        onPortraitComplete={onPortraitComplete}
+      />
       <div className="flex items-center gap-3 sm:gap-4">
         {character.avatar ? (
           <img
@@ -300,7 +310,7 @@ export function CharacterCardModal() {
   const conversationId = useCharacterCardStore((state) => state.conversationId);
   const closeCharacterCard = useCharacterCardStore((state) => state.closeCharacterCard);
 
-  const { data, loading, error } = useQuery<{ character: Character | null }>(CHARACTER_QUERY, {
+  const { data, loading, error, refetch } = useQuery<{ character: Character | null }>(CHARACTER_QUERY, {
     variables: { id: characterId ?? '' },
     skip: !characterId,
     fetchPolicy: 'cache-and-network',
@@ -339,7 +349,12 @@ export function CharacterCardModal() {
           This character could not be loaded.
         </p>
       ) : character ? (
-        <CharacterCardBody character={character} stats={stats} />
+        <CharacterCardBody
+          character={character}
+          stats={stats}
+          conversationId={conversationId ?? undefined}
+          onPortraitComplete={() => void refetch()}
+        />
       ) : (
         <p className="py-8 text-sm text-muted-foreground">
           This character is no longer available.

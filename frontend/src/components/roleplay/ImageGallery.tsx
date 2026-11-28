@@ -6,19 +6,29 @@ import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
 import { Textarea } from '@/components/ui/Textarea';
 import GeneratedImage from './GeneratedImage';
-import { Plus, ImageIcon, Loader2, XCircle } from 'lucide-react';
+import { Plus, ImageIcon, Loader2, XCircle, User, Mountain } from 'lucide-react';
 
 interface ImageGalleryProps {
   conversationId: string;
+  participants?: Array<{
+    character: { id: string; name: string; avatar?: string };
+    isActive: boolean;
+  }>;
 }
 
-export default function ImageGallery({ conversationId }: ImageGalleryProps) {
+export default function ImageGallery({ conversationId, participants }: ImageGalleryProps) {
   const { images, loading, refetch } = useGeneratedImages(conversationId);
   const { generateImage, loading: generating } = useGenerateImage();
   const { cancelImageGeneration, loading: cancelling } = useCancelImageGeneration();
   const { progress } = useImageGenerationProgress(conversationId);
   const { image: imageEvent } = useImageGenerated(conversationId);
   const [isFormOpen, setIsFormOpen] = useState(false);
+
+  // Characters available for portrait renders (active participants only).
+  const characters = (participants ?? []).filter((p) => p.isActive).map((p) => p.character);
+  const [portraitCharacterId, setPortraitCharacterId] = useState('');
+  const effectivePortraitId =
+    portraitCharacterId || (characters.length === 1 ? characters[0].id : '');
 
   // Auto-refresh gallery when new images are generated
   useEffect(() => {
@@ -47,6 +57,33 @@ export default function ImageGallery({ conversationId }: ImageGalleryProps) {
     }
   };
 
+  // Workflow quick actions: fixed ComfyUI templates, no free-form prompt.
+  const handleGeneratePortrait = async () => {
+    if (!effectivePortraitId) return;
+    try {
+      await generateImage({
+        conversationId,
+        characterId: effectivePortraitId,
+        triggerType: 'character_portrait',
+      });
+      void refetch();
+    } catch {
+      // progress/row state surfaces the failure; keep the panel usable
+    }
+  };
+
+  const handleGenerateScene = async () => {
+    try {
+      await generateImage({
+        conversationId,
+        triggerType: 'scene_change',
+      });
+      void refetch();
+    } catch {
+      // progress/row state surfaces the failure; keep the panel usable
+    }
+  };
+
   if (loading) {
     return (
       <div className="flex h-48 items-center justify-center">
@@ -61,6 +98,47 @@ export default function ImageGallery({ conversationId }: ImageGalleryProps) {
         <h3 className="text-sm font-semibold text-foreground">Image Gallery</h3>
         <Button size="sm" className="h-10 sm:h-8" onClick={() => setIsFormOpen(true)} leftIcon={<Plus size={14} />}>
           Generate Image
+        </Button>
+      </div>
+
+      {/* Workflow quick actions: fixed ComfyUI templates */}
+      <div className="flex flex-wrap items-center gap-2">
+        {characters.length > 0 && (
+          <Button
+            size="sm"
+            variant="outline"
+            className="h-10 sm:h-8"
+            onClick={() => void handleGeneratePortrait()}
+            isLoading={generating}
+            disabled={!effectivePortraitId}
+            leftIcon={<User size={14} />}
+          >
+            Portrait
+          </Button>
+        )}
+        {characters.length > 1 && (
+          <select
+            aria-label="Portrait character"
+            value={effectivePortraitId}
+            onChange={(e) => setPortraitCharacterId(e.target.value)}
+            className="h-10 rounded-lg border border-border bg-card px-2 text-xs text-foreground sm:h-8"
+          >
+            {characters.map((c) => (
+              <option key={c.id} value={c.id}>
+                {c.name}
+              </option>
+            ))}
+          </select>
+        )}
+        <Button
+          size="sm"
+          variant="outline"
+          className="h-10 sm:h-8"
+          onClick={() => void handleGenerateScene()}
+          isLoading={generating}
+          leftIcon={<Mountain size={14} />}
+        >
+          Scene
         </Button>
       </div>
 
@@ -103,7 +181,18 @@ export default function ImageGallery({ conversationId }: ImageGalleryProps) {
           <div className="columns-2 gap-3 space-y-3 @lg:columns-3">
             {images.map((image: GeneratedImageType) => (
               <div key={image.imageId} className="break-inside-avoid">
-                <GeneratedImage image={image} />
+                <GeneratedImage
+                  image={image}
+                  status={
+                    image.status === 'failed'
+                      ? 'failed'
+                      : image.status === 'complete'
+                        ? 'complete'
+                        : image.status === 'cancelled'
+                          ? 'failed'
+                          : 'generating'
+                  }
+                />
               </div>
             ))}
           </div>

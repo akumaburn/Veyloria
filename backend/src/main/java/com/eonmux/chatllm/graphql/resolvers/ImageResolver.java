@@ -134,6 +134,15 @@ public class ImageResolver {
                                         String refCharacterId = row.getString("characterId");
                                         if (w != null && h != null && w == 1024 && h == 1024
                                             && refCharacterId != null && !refCharacterId.isEmpty()) {
+                                            // The finished sheet is the character's face: point the
+                                            // avatar at it so every avatar surface (message list,
+                                            // participant list, character card) picks it up for free.
+                                            String avatarQuery = "UPDATE `character` SET avatar = ? WHERE characterUUID = ?";
+                                            mysqlPool.preparedQuery(avatarQuery)
+                                                .execute(Tuple.of(resultUrl, refCharacterId))
+                                                .subscribe().with(
+                                                    ignored -> log.info("Set character {} avatar from image {}", refCharacterId, imageId),
+                                                    err -> log.warn("Failed to set avatar for character {}: {}", refCharacterId, err.getMessage()));
                                             sheetRefService.deriveReferences(refCharacterId, resultUrl)
                                                 .subscribe().with(
                                                     paths -> log.info("Derived {} sheet reference crops for character {} from image {}",
@@ -158,11 +167,14 @@ public class ImageResolver {
     }
 
     /**
-     * Get generated images for a conversation.
-     * Schema: generatedImages(conversationId: ID!, limit: Int): [GeneratedImage!]! @auth
+     * Get generated images for a conversation, optionally narrowed to one
+     * character (e.g. portrait lookups from a character card).
+     * Schema: generatedImages(conversationId: ID!, characterId: ID, limit: Int): [GeneratedImage!]! @auth
      */
     @Query
-    public CompletableFuture<List<GeneratedImage>> generatedImages(@Name("conversationId") String conversationId, @Name("limit") Integer limit) {
+    public CompletableFuture<List<GeneratedImage>> generatedImages(@Name("conversationId") String conversationId,
+                                                                    @Name("characterId") String characterId,
+                                                                    @Name("limit") Integer limit) {
         AuthContext auth = graphQLAuthContext.requireAuth();
         String userId = auth.getUserId().toString();
 
@@ -176,7 +188,7 @@ public class ImageResolver {
                     future.completeExceptionally(new RuntimeException("Conversation not found or access denied"));
                     return;
                 }
-                doGeneratedImages(conversationId, effectiveLimit, future);
+                doGeneratedImages(conversationId, characterId, effectiveLimit, future);
             }, err -> {
                 log.error("Failed to verify access for generatedImages conversation {}", conversationId, err);
                 future.completeExceptionally(err);
@@ -185,10 +197,14 @@ public class ImageResolver {
         return future;
     }
 
-    private void doGeneratedImages(String conversationId, Integer limit, CompletableFuture<List<GeneratedImage>> future) {
-        String query = "SELECT * FROM generated_image WHERE conversationId = ? ORDER BY createdAt DESC LIMIT ?";
+    private void doGeneratedImages(String conversationId, String characterId, Integer limit, CompletableFuture<List<GeneratedImage>> future) {
+        String query = characterId != null && !characterId.isBlank()
+            ? "SELECT * FROM generated_image WHERE conversationId = ? AND characterId = ? ORDER BY createdAt DESC LIMIT ?"
+            : "SELECT * FROM generated_image WHERE conversationId = ? ORDER BY createdAt DESC LIMIT ?";
         mysqlPool.preparedQuery(query)
-            .execute(Tuple.of(conversationId, limit))
+            .execute(characterId != null && !characterId.isBlank()
+                ? Tuple.of(conversationId, characterId, limit)
+                : Tuple.of(conversationId, limit))
             .invoke(rows -> {
                 List<GeneratedImage> images = new ArrayList<>();
                 rows.forEach(row -> {

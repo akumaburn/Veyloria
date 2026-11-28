@@ -300,10 +300,23 @@ Pipeline, end to end:
 5. **References** — `SheetRefService` derives 8 active `character_visual_ref`
    crops from a completed sheet. The row must carry a `characterId`
    (pass it in the `generateImage` input) or no refs are derived.
+6. **Avatar** — when a 1024×1024 sheet with a `characterId` completes, the
+   character's `avatar` is pointed at the new `/view` URL, so every avatar
+   surface (character card, participant list, message list) picks the portrait
+   up automatically.
 
-GraphQL surface: `generateImage(input)`, `generatedImages(conversationId)`,
+GraphQL surface: `generateImage(input)` (accepts `triggerType`/`workflowId` for
+the built-in workflow templates), `generatedImages(conversationId, characterId?)`,
 `comfyuiStatus` (queue size plus the peer's checkpoints/LoRAs via
-`/object_info`), `comfyuiWorkflows`.
+`/object_info`), `comfyuiWorkflows`. `GeneratedImage.status` is exposed from the
+row's metadata (`queued`/`complete`/`failed`).
+
+UI surfaces: the character card shows the latest portrait and a
+*Generate/Regenerate* action (`triggerType: character_portrait`, scoped to the
+story the card was opened from); the roleplay tool panel's **Images** tab offers
+*Portrait* (per character) and *Scene* (`triggerType: scene_change`) quick
+actions plus a free-form prompt form; the **Settings → ComfyUI** tab shows live
+server status and the model/LoRA inventory.
 
 Operating notes:
 

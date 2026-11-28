@@ -25,6 +25,7 @@ vi.mock('@apollo/client', async (importOriginal) => ({
     }
     return { data: mocks.data, loading: mocks.loading, error: mocks.error };
   },
+  useMutation: () => [vi.fn(async () => ({})), { loading: false, error: undefined }],
 }));
 
 const elara: Character = {

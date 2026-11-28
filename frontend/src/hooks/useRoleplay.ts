@@ -513,9 +513,9 @@ export const useDeleteBookmark = () => {
 // IMAGE GENERATION HOOKS
 // ============================================
 
-export const useGeneratedImages = (conversationId: string, limit?: number) => {
+export const useGeneratedImages = (conversationId: string, limit?: number, characterId?: string) => {
   const { data, loading, error, refetch } = useQuery(GENERATED_IMAGES_QUERY, {
-    variables: { conversationId, limit },
+    variables: { conversationId, limit, characterId },
     skip: !conversationId,
     fetchPolicy: 'cache-and-network',
   });

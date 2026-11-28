@@ -169,6 +169,8 @@ export const GENERATED_IMAGE_FRAGMENT = gql`
     characterId
     prompt
     negativePrompt
+    workflowId
+    status
     filePath
     thumbnailPath
     width
@@ -405,8 +407,8 @@ export const AGENT_RUNS_QUERY = gql`
 `;
 
 export const GENERATED_IMAGES_QUERY = gql`
-  query GeneratedImages($conversationId: String!, $limit: Int) {
-    generatedImages(conversationId: $conversationId, limit: $limit) {
+  query GeneratedImages($conversationId: String!, $characterId: String, $limit: Int) {
+    generatedImages(conversationId: $conversationId, characterId: $characterId, limit: $limit) {
       ...GeneratedImageFields
     }
   }
