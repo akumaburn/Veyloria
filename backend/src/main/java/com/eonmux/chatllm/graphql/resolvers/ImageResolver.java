@@ -81,6 +81,7 @@ public class ImageResolver {
     // comfyui.job.complete and one completion event N-fires the whole
     // completion path (row update, sheet-crop derivation).
     private io.vertx.core.eventbus.MessageConsumer<JsonObject> completionConsumer;
+    private io.vertx.core.eventbus.MessageConsumer<JsonObject> failureConsumer;
 
     /**
      * Verify the caller owns or actively participates in the conversation
@@ -92,6 +93,22 @@ public class ImageResolver {
 
     @PostConstruct
     public void init() {
+        // A queuePrompt rejection (peer 400, missing node, client down) is
+        // handled inside the queue manager and never reaches the submit Uni,
+        // so without this consumer the row the resolver inserted `pending`
+        // would stay `pending` forever.
+        failureConsumer = vertx.eventBus().<JsonObject>consumer("comfyui.job.failed", message -> {
+            JsonObject body = message.body();
+            String imageId = body.getString("jobId");
+            String reason = body.getString("reason");
+            if (imageId == null) return;
+            String updateQuery = "UPDATE generated_image SET metadata = JSON_SET(COALESCE(metadata, '{}'), '$.status', 'failed', '$.failReason', ?) WHERE imageId = ?";
+            mysqlPool.preparedQuery(updateQuery)
+                .execute(Tuple.of(reason != null ? reason : "queue failure", imageId))
+                .subscribe().with(
+                    ignored -> log.info("Marked image {} as failed after queue rejection", imageId),
+                    err -> log.error("Failed to mark image {} as failed: {}", imageId, err.getMessage()));
+        });
         completionConsumer = vertx.eventBus().<JsonObject>consumer("comfyui.job.complete", message -> {
             JsonObject body = message.body();
             String imageId = body.getString("jobId");
@@ -163,6 +180,9 @@ public class ImageResolver {
     public void destroy() {
         if (completionConsumer != null) {
             completionConsumer.unregister();
+        }
+        if (failureConsumer != null) {
+            failureConsumer.unregister();
         }
     }
 

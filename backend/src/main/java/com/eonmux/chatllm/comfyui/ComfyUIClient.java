@@ -25,6 +25,15 @@ public class ComfyUIClient {
     private final AppConfig config;
     private WebClient client;
     private final String baseUrl;
+    // Scheduler for onTimeout(...).on(scheduler) — the Mutiny request wrapper
+    // exposes no per-request send timeout, so request hangs are capped at the
+    // Uni level (Mutiny 3: onTimeout(Duration).on(ScheduledExecutorService)).
+    private final java.util.concurrent.ScheduledExecutorService timeoutPool =
+        java.util.concurrent.Executors.newSingleThreadScheduledExecutor(r -> {
+            Thread t = new Thread(r, "comfyui-timeout");
+            t.setDaemon(true);
+            return t;
+        });
 
     @Inject
     public ComfyUIClient(Vertx vertx, AppConfig config) {
@@ -51,8 +60,11 @@ public class ComfyUIClient {
             .put("prompt", workflow)
             .put("client_id", clientId);
 
-        return client.post("/prompt")
-            .sendJson(body)
+        // A hung /prompt must fail, not block: the queue manager parks the job
+        // in its single active slot for the life of the request, so an
+        // unbounded submit deadlocks the whole pipeline (observed after a
+        // peer restart left a pooled connection half-dead).
+        return capTimeout(client.post("/prompt").sendJson(body), 120)
             .map(response -> {
                 if (response.statusCode() == 200) {
                     return response.bodyAsJsonObject().getString("prompt_id");
@@ -62,8 +74,9 @@ public class ComfyUIClient {
     }
 
     public Uni<JsonObject> getProgress(String promptId) {
-        return client.get("/history/" + promptId)
-            .send()
+        // Same deadlock class as queuePrompt: a hung poll stalls the
+        // recursive poll chain and the iteration cap never advances.
+        return capTimeout(client.get("/history/" + promptId).send(), 30)
             .map(response -> {
                 if (response.statusCode() == 200) {
                     JsonObject history = response.bodyAsJsonObject();
@@ -217,6 +230,17 @@ public class ComfyUIClient {
 
     public void close() {
         if (client != null) client.close();
+        timeoutPool.shutdownNow();
+    }
+
+    /**
+     * Fails the source Uni after {@code seconds} without a terminal event.
+     * This Mutiny build's {@code Uni} interface exposes no timeout operator,
+     * so the (public) {@code UniOnTimeout} group is constructed directly.
+     */
+    private <T> Uni<T> capTimeout(Uni<T> source, long seconds) {
+        return new io.smallrye.mutiny.groups.UniOnTimeout<>(source,
+            java.time.Duration.ofSeconds(seconds), timeoutPool).fail();
     }
 
     @PreDestroy

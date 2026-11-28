@@ -147,13 +147,11 @@ public class ComfyUIQueueManager {
                     startPolling(item);
                 },
                 err -> {
-                    item.setStatus("error");
-                    activeJobs.remove(item.getJobId());
-                    publishProgress(item.getConversationId(), item.getJobId(), 0.0, 0, TOTAL_STEPS, "failed");
-                    log.error("Failed to queue ComfyUI job: {}", err.getMessage());
-                    // Drain the queue so a failed enqueue doesn't stall the rest
-                    // of the pending items indefinitely.
-                    processQueue();
+                    // Centralized cleanup: frees the slot, drains the queue,
+                    // and publishes comfyui.job.failed so the resolver can
+                    // mark the row `failed` (an inline cleanup here predated
+                    // failJob and leaked pollCounters + the event).
+                    failJob(item, err.getMessage());
                 });
     }
 
@@ -285,6 +283,15 @@ public class ComfyUIQueueManager {
         pollCounters.remove(item.getJobId());
         publishProgress(item.getConversationId(), item.getJobId(), 0.0, 0, TOTAL_STEPS, "failed");
         log.warn("ComfyUI job {} failed: {}", item.getJobId(), reason);
+        // The DB row was inserted `pending` by the resolver; without this event
+        // a queuePrompt rejection (peer 400, node missing, ...) leaves it
+        // `pending` forever. The ImageResolver consumer marks it `failed`.
+        if (item.getJobId() != null) {
+            vertx.eventBus().publish("comfyui.job.failed", new JsonObject()
+                .put("jobId", item.getJobId())
+                .put("conversationId", item.getConversationId())
+                .put("reason", reason));
+        }
         processQueue();
     }
 
