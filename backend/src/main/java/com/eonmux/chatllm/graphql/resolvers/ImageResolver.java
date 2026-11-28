@@ -262,34 +262,37 @@ public class ImageResolver {
         String host = config.getComfyuiHost();
         int port = config.getComfyuiPort();
 
+        // One client per call, closed only when the whole probe chain
+        // (queue + both /object_info lookups) finishes, so a status poll
+        // never leaks connections.
         var client = vertx.createHttpClient();
         client
             .request(io.vertx.core.http.HttpMethod.GET, port, host, "/queue")
             .compose(req -> req.send())
             .compose(resp -> resp.body())
-            .onSuccess(body -> {
+            .compose(body -> {
+                int queueSize;
                 try {
                     JsonObject json = new JsonObject(body.toString());
                     io.vertx.core.json.JsonArray running = json.getJsonArray("queue_running", new io.vertx.core.json.JsonArray());
                     io.vertx.core.json.JsonArray pending = json.getJsonArray("queue_pending", new io.vertx.core.json.JsonArray());
-                    int queueSize = running.size() + pending.size();
-                    future.complete(ComfyUIStatus.builder()
-                        .connected(true)
-                        .queueSize(queueSize)
-                        .availableModels(List.of())
-                        .availableLoras(List.of())
-                        .build());
+                    queueSize = running.size() + pending.size();
                 } catch (Exception e) {
-                    future.complete(ComfyUIStatus.builder()
-                        .connected(true)
-                        .queueSize(0)
-                        .availableModels(List.of())
-                        .availableLoras(List.of())
-                        .build());
+                    queueSize = 0;
                 }
+                final int qSize = queueSize;
+                var models = probeModelNames(client, host, port, "CheckpointLoaderSimple", "ckpt_name");
+                var loras = probeModelNames(client, host, port, "LoraLoader", "lora_name");
+                return models.compose(ms -> loras.map(ls -> ComfyUIStatus.builder()
+                    .connected(true)
+                    .queueSize(qSize)
+                    .availableModels(ms)
+                    .availableLoras(ls)
+                    .build()));
             })
+            .onSuccess(future::complete)
             .onFailure(err -> {
-                log.warn("comfyuiStatus: /queue probe to {}:{} failed: {}", host, port, err.getMessage());
+                log.warn("comfyuiStatus: probe to {}:{} failed: {}", host, port, err.getMessage());
                 future.complete(ComfyUIStatus.builder()
                     .connected(false)
                     .queueSize(0)
@@ -297,11 +300,48 @@ public class ImageResolver {
                     .availableLoras(List.of())
                     .build());
             })
-            // The client is created per call; close it when the probe finishes
-            // (success or failure) so status polls do not leak connections.
             .eventually(() -> client.close());
 
         return future;
+    }
+
+    /**
+     * Fetch the selectable names of a node class' combo input from
+     * /object_info/{nodeClass}; the first entry of the field spec holds the
+     * name list. Any failure degrades to an empty list so a slow
+     * /object_info can never break the status probe.
+     */
+    private io.vertx.core.Future<List<String>> probeModelNames(
+            io.vertx.core.http.HttpClient client, String host, int port, String nodeClass, String fieldName) {
+        return client
+            .request(io.vertx.core.http.HttpMethod.GET, port, host, "/object_info/" + nodeClass)
+            .compose(req -> req.send())
+            .compose(resp -> resp.body())
+            .map(body -> {
+                JsonObject json = new JsonObject(body.toString());
+                JsonObject node = json.getJsonObject(nodeClass);
+                if (node == null) {
+                    return List.<String>of();
+                }
+                JsonObject input = node.getJsonObject("input");
+                JsonObject required = input == null ? null : input.getJsonObject("required");
+                io.vertx.core.json.JsonArray field = required == null ? null : required.getJsonArray(fieldName);
+                if (field == null || field.isEmpty()) {
+                    return List.<String>of();
+                }
+                io.vertx.core.json.JsonArray names = field.getJsonArray(0);
+                java.util.List<String> out = new java.util.ArrayList<>(names.size());
+                for (int i = 0; i < names.size(); i++) {
+                    out.add(names.getString(i));
+                }
+                return out;
+            })
+            .recover(err -> {
+                log.warn("comfyuiStatus: /object_info/{} failed: {}", nodeClass, err.getMessage());
+                // This Vert.x build's recover() expects the mapper to yield a
+                // Future, so wrap the degraded empty list.
+                return io.vertx.core.Future.succeededFuture(java.util.List.<String>of());
+            });
     }
 
     /**
