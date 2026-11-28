@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import {
   Sliders, Palette, Shield, Bell,
   Keyboard, Database, Save, RotateCcw, Download, Upload,
-  Check, AlertCircle, Bot, Volume2, X
+  Check, AlertCircle, Bot, Volume2, X, Image as ImageIcon
 } from 'lucide-react';
 import { LLMSettings } from './LLMSettings';
 import { UISettings } from './UISettings';
@@ -12,10 +12,11 @@ import { KeyboardSettings } from './KeyboardSettings';
 import { DataManagement } from './DataManagement';
 import { CharacterSettings } from './CharacterSettings';
 import { TTSSettings } from './TTSSettings';
+import { ComfyUISettings } from './ComfyUISettings';
 import { useSettingsStore } from '@/stores/settingsStore';
 import { cn } from '@/lib/utils';
 
-type SettingsTab = 'llm' | 'characters' | 'tts' | 'ui' | 'privacy' | 'notifications' | 'keyboard' | 'data';
+type SettingsTab = 'llm' | 'characters' | 'tts' | 'comfyui' | 'ui' | 'privacy' | 'notifications' | 'keyboard' | 'data';
 
 export const SettingsView = () => {
   const [activeTab, setActiveTab] = useState<SettingsTab>('llm');
@@ -99,6 +100,7 @@ export const SettingsView = () => {
     { id: 'llm' as const, label: 'LLM', icon: Sliders, description: 'Model parameters' },
     { id: 'characters' as const, label: 'Characters', icon: Bot, description: 'AI personalities' },
     { id: 'tts' as const, label: 'Text-to-Speech', icon: Volume2, description: 'Voice playback' },
+    { id: 'comfyui' as const, label: 'ComfyUI', icon: ImageIcon, description: 'Image generation' },
     { id: 'ui' as const, label: 'Appearance', icon: Palette, description: 'Theme & display' },
     { id: 'privacy' as const, label: 'Privacy', icon: Shield, description: 'Data & security' },
     { id: 'notifications' as const, label: 'Notifications', icon: Bell, description: 'Alerts & sounds' },
@@ -114,6 +116,8 @@ export const SettingsView = () => {
         return <CharacterSettings />;
       case 'tts':
         return <TTSSettings />;
+      case 'comfyui':
+        return <ComfyUISettings />;
       case 'ui':
         return <UISettings />;
       case 'privacy':
