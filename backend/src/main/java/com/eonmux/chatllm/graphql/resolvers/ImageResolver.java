@@ -245,9 +245,10 @@ public class ImageResolver {
 
         CompletableFuture<ComfyUIStatus> future = new CompletableFuture<>();
 
-        com.eonmux.chatllm.config.AppConfig config =
-            (com.eonmux.chatllm.config.AppConfig) vertx.sharedData().getLocalMap("config").get("appConfig");
-
+        // Use the CDI-injected config. The previous implementation read
+        // vertx.sharedData().getLocalMap("config").get("appConfig"), but no code
+        // ever populates that map, so the lookup was always null and this
+        // resolver always answered connected=false without probing.
         if (config == null || !config.isComfyuiEnabled()) {
             future.complete(ComfyUIStatus.builder()
                 .connected(false)
@@ -261,7 +262,8 @@ public class ImageResolver {
         String host = config.getComfyuiHost();
         int port = config.getComfyuiPort();
 
-        vertx.createHttpClient()
+        var client = vertx.createHttpClient();
+        client
             .request(io.vertx.core.http.HttpMethod.GET, port, host, "/queue")
             .compose(req -> req.send())
             .compose(resp -> resp.body())
@@ -287,13 +289,17 @@ public class ImageResolver {
                 }
             })
             .onFailure(err -> {
+                log.warn("comfyuiStatus: /queue probe to {}:{} failed: {}", host, port, err.getMessage());
                 future.complete(ComfyUIStatus.builder()
                     .connected(false)
                     .queueSize(0)
                     .availableModels(List.of())
                     .availableLoras(List.of())
                     .build());
-            });
+            })
+            // The client is created per call; close it when the probe finishes
+            // (success or failure) so status polls do not leak connections.
+            .eventually(() -> client.close());
 
         return future;
     }
