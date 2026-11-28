@@ -42,6 +42,11 @@ public class PromptEnhancer {
      * Appends world-state tags (weather, time of day, mood, location) from the
      * conversation's world_state row when supplied, so generated backdrops
      * match the authoritative scene.
+     *
+     * <p>The character's own identity (name, structured appearance,
+     * description) is loaded when a characterId is supplied: without it every
+     * character degrades to the same generic prompt, and ComfyUI's execution
+     * cache then serves one image to all of them.
      */
     public Uni<ImagePrompt> enhance(String narrativeContext, String characterId, String triggerType, JsonObject worldState) {
         // Get character visual references if characterId is provided
@@ -49,7 +54,11 @@ public class PromptEnhancer {
             ? getCharacterVisualRefs(characterId)
             : Uni.createFrom().item(new ArrayList<>());
 
-        return refsUni.map(refs -> {
+        Uni<CharacterProfile> profileUni = characterId != null
+            ? getCharacterProfile(characterId)
+            : Uni.createFrom().item((CharacterProfile) null);
+
+        return refsUni.chain(refs -> profileUni.map(profile -> {
             StringBuilder positive = new StringBuilder();
             StringBuilder negative = new StringBuilder();
 
@@ -70,6 +79,13 @@ public class PromptEnhancer {
                 case "map":
                     positive.append("top-down map view, fantasy cartography, detailed, ");
                     break;
+            }
+
+            // Character identity: the subject must be distinct per character or
+            // the diffusion cache (and the model) will blend them together.
+            if (profile != null) {
+                String identity = identityFragment(profile);
+                if (!identity.isEmpty()) positive.append(identity).append(", ");
             }
 
             // Add authoritative world-state tags so the backdrop matches the scene.
@@ -100,13 +116,58 @@ public class PromptEnhancer {
             negative.append("low quality, blurry, deformed, disfigured, bad anatomy, watermark, text");
 
             return new ImagePrompt(positive.toString(), negative.toString(), refs);
-        });
+        }));
+    }
+
+    /**
+     * Compose the per-character identity fragment: name, structured
+     * appearance fields, and the (truncated) description. Every non-empty
+     * field makes the prompt distinct per character, which is what busts
+     * ComfyUI's execution cache between roster members.
+     */
+    static String identityFragment(CharacterProfile p) {
+        List<String> parts = new ArrayList<>();
+        if (p.name != null && !p.name.isBlank()) parts.add(p.name.trim());
+        if (p.gender != null && !p.gender.isBlank()) parts.add(p.gender.trim());
+        if (p.ageYears != null) parts.add(p.ageYears + " years old");
+        if (p.hair != null && !p.hair.isBlank()) parts.add(p.hair.trim());
+        if (p.eyes != null && !p.eyes.isBlank()) parts.add(p.eyes.trim());
+        if (p.build != null && !p.build.isBlank()) parts.add(p.build.trim());
+        String head = String.join(", ", parts);
+        String desc = narrativeToPrompt(p.description);
+        if (head.isEmpty()) return desc;
+        return desc.isEmpty() ? head : head + ", " + desc;
+    }
+
+    /**
+     * Load the character's identity fields used to make prompts distinct per
+     * character. Null when the character row is absent.
+     */
+    private Uni<CharacterProfile> getCharacterProfile(String characterId) {
+        String query = "SELECT name, description, hair, eyes, gender, ageYears, build "
+            + "FROM `character` WHERE characterUUID = ?";
+        return mysqlPool.preparedQuery(query)
+            .execute(Tuple.of(characterId))
+            .map(rows -> {
+                if (rows.size() == 0) return null;
+                var row = rows.iterator().next();
+                CharacterProfile p = new CharacterProfile();
+                p.name = row.getString("name");
+                p.description = row.getString("description");
+                p.hair = row.getString("hair");
+                p.eyes = row.getString("eyes");
+                p.gender = row.getString("gender");
+                p.build = row.getString("build");
+                p.ageYears = row.getInteger("ageYears");
+                return p;
+            })
+            .onFailure().recoverWithItem((CharacterProfile) null);
     }
 
     /**
      * Convert narrative text to SD-style prompt keywords.
      */
-    private String narrativeToPrompt(String narrative) {
+    private static String narrativeToPrompt(String narrative) {
         if (narrative == null || narrative.isEmpty()) return "";
 
         // Extract key descriptive elements
@@ -169,5 +230,16 @@ public class PromptEnhancer {
         public String promptFragment;
         public String negativeFragment;
         public Double weight;
+    }
+
+    /** Character identity fields used to build a distinct prompt per character. */
+    public static class CharacterProfile {
+        public String name;
+        public String description;
+        public String hair;
+        public String eyes;
+        public String gender;
+        public String build;
+        public Integer ageYears;
     }
 }

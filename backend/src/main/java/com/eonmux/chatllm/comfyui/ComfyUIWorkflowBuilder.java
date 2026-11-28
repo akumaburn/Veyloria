@@ -200,6 +200,19 @@ public class ComfyUIWorkflowBuilder {
             }
         }
 
+        // Cache-bust attempt: the peer's ComfyUI prompt cache does not
+        // invalidate on input changes (changed text and seed were both served
+        // from cache), so this varies graph topology per build with a
+        // disconnected Note node. Verified 2026-11-27 that the peer cache
+        // IGNORES topology changes too (roster-004: Tessa and Silas were
+        // still served the first render in ~2s), so this is inert until the
+        // peer fixes invalidation. Kept for now; remove with the fix.
+        workflow.put("90", new JsonObject()
+            .put("class_type", "Note")
+            .put("inputs", new JsonObject()
+                .put("title", "subject:" + (prompt != null ? prompt.substring(0, Math.min(prompt.length(), 120)) : "")
+                    + " seed:" + seed)));
+
         if (refImageNames != null) applyRefImages(workflow, refImageNames);
         return workflow;
     }

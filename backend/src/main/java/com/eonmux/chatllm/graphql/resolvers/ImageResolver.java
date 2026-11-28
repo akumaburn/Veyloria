@@ -563,9 +563,13 @@ public class ImageResolver {
                         queueManager.submitWithId(imageId, conversationId, characterId, workflow)
                             .subscribe().with(
                                 jobId -> log.info("Submitted ComfyUI job {} for image {}", jobId, imageId),
-                                err -> log.error("Failed to submit ComfyUI job for image {}: {}", imageId, err.getMessage()));
+                                err -> {
+                                    log.error("Failed to submit ComfyUI job for image {}: {}", imageId, err.getMessage());
+                                    markSubmitFailed(imageId, err.getMessage());
+                                });
                     } catch (Exception e) {
                         log.error("Failed to build ComfyUI workflow for image {}: {}", imageId, e.getMessage());
+                        markSubmitFailed(imageId, e.getMessage());
                     }
                 }
 
@@ -577,6 +581,27 @@ public class ImageResolver {
                 log.error("Failed to create image generation request for conversation {}", conversationId, err);
                 future.completeExceptionally(err);
             });
+    }
+
+    /**
+     * Mark a row `failed` when the ComfyUI queue rejects the job (queue full,
+     * client down, ...). The row is inserted `pending` before the fire-and-forget
+     * submit, so a rejection is otherwise invisible in the GraphQL response and
+     * the row stays `pending` forever.
+     */
+    private void markSubmitFailed(String imageId, String reason) {
+        String updateQuery = """
+            UPDATE generated_image
+            SET metadata = JSON_SET(COALESCE(metadata, '{}'), '$.status', 'failed', '$.failReason', ?)
+            WHERE imageId = ?
+            """;
+        mysqlPool.preparedQuery(updateQuery)
+            .execute(Tuple.tuple()
+                .addValue(reason != null ? reason : "queue rejection")
+                .addValue(imageId))
+            .subscribe().with(
+                ignored -> log.info("Marked image {} as failed after submit rejection", imageId),
+                err -> log.error("Failed to mark image {} as failed: {}", imageId, err.getMessage()));
     }
 
     /** Upload reference images sequentially; returns the ComfyUI file names in order. */

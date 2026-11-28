@@ -188,6 +188,7 @@ public class SheetRefService {
             String prefix = "ref_" + characterId.substring(0, Math.min(8, characterId.length())) + "_";
             params.addUUID(UUID.randomUUID());
             params.addString(characterId);
+            params.addString("image");
             params.addString(prefix + crop.view + ".png");
             params.addString(crop.view);
             params.addDouble(crop.weight);
